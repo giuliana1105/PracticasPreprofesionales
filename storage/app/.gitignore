@@ -1,0 +1,12 @@
+*
+!private/
+!public/
+!.gitignore
+/node_modules
+/vendor
+.env
+.idea
+.vscode
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*

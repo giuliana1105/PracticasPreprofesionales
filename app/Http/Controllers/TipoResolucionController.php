@@ -1,0 +1,98 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\TipoResolucion;
+use Illuminate\Http\Request;
+
+class TipoResolucionController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    // public function index()
+    // {
+    //     $tipos = TipoResolucion::all();
+    //     return view('tipo_resoluciones.index', compact('tipos'));
+    // }
+
+
+    public function index()
+{
+    $query = TipoResolucion::query();
+    
+    // Aplicar filtros
+    if (request('filter') == 'recientes') {
+        $query->orderBy('created_at', 'desc');
+    }
+    
+    // Aplicar búsqueda
+    if (request('search')) {
+        $query->where('nombre_tipo_res', 'like', '%'.request('search').'%');
+    }
+    
+    $tipos = $query->paginate(10); // Paginación con 10 elementos por página
+    $totalTipos = TipoResolucion::count();
+    
+    return view('tipo_resoluciones.index', compact('tipos', 'totalTipos'));
+}
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        return view('tipo_resoluciones.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nombre_tipo_res' => 'required|string|max:255',
+        ]);
+
+        TipoResolucion::create($request->all());
+
+        return redirect()->route('tipo_resoluciones.index')
+                         ->with('success', 'Tipo de resolución creado exitosamente.');
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit($id)
+    {
+        $tipo = TipoResolucion::findOrFail($id);
+        return view('tipo_resoluciones.edit', compact('tipo'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'nombre_tipo_res' => 'required|string|max:255',
+        ]);
+
+        $tipo = TipoResolucion::findOrFail($id);
+        $tipo->update($request->all());
+
+        return redirect()->route('tipo_resoluciones.index')
+                         ->with('success', 'Tipo de resolución actualizado exitosamente.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy($id)
+    {
+        $tipo = TipoResolucion::findOrFail($id);
+        $tipo->delete();
+
+        return redirect()->route('tipo_resoluciones.index')
+                         ->with('success', 'Tipo de resolución eliminado exitosamente.');
+    }
+}
