@@ -30,7 +30,7 @@ class PersonaController extends Controller
     // Almacenar nueva persona
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
+        $validator = Validator::make($request->all(), [
             'cedula' => 'required|string|max:20|unique:personas,cedula',
             'nombres' => 'required|string|max:100',
             'celular' => 'required|string|max:15',
@@ -51,8 +51,14 @@ class PersonaController extends Controller
             'cargo_id.exists' => 'El cargo seleccionado no es válido'
         ]);
 
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
         try {
-            Persona::create($validatedData);
+            Persona::create($request->all());
             return redirect()->route('personas.index')
                 ->with('success', 'Persona registrada exitosamente');
                 
@@ -76,7 +82,7 @@ class PersonaController extends Controller
     {
         $persona = Persona::findOrFail($id);
 
-        $validatedData = $request->validate([
+        $validator = Validator::make($request->all(), [
             'cedula' => 'required|string|max:20|unique:personas,cedula,'.$id,
             'nombres' => 'required|string|max:100',
             'celular' => 'required|string|max:15',
@@ -97,8 +103,14 @@ class PersonaController extends Controller
             'cargo_id.exists' => 'El cargo seleccionado no es válido'
         ]);
 
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
         try {
-            $persona->update($validatedData);
+            $persona->update($request->all());
             return redirect()->route('personas.index')
                 ->with('success', 'Persona actualizada exitosamente');
                 
@@ -148,6 +160,31 @@ class PersonaController extends Controller
                     continue;
                 }
 
+                if (empty($row['nombres'])) {
+                    $errores[$numeroFila] = 'Nombres vacíos';
+                    continue;
+                }
+
+                if (empty($row['celular'])) {
+                    $errores[$numeroFila] = 'Celular vacío';
+                    continue;
+                }
+
+                if (empty($row['correo'])) {
+                    $errores[$numeroFila] = 'Correo vacío';
+                    continue;
+                }
+
+                if (empty($row['carrera'])) {
+                    $errores[$numeroFila] = 'Carrera vacía';
+                    continue;
+                }
+
+                if (empty($row['cargo'])) {
+                    $errores[$numeroFila] = 'Cargo vacío';
+                    continue;
+                }
+
                 // Verificar si la cédula ya existe
                 if (Persona::where('cedula', $row['cedula'])->exists()) {
                     $errores[$numeroFila] = 'Cédula ya registrada: ' . $row['cedula'];
@@ -155,14 +192,14 @@ class PersonaController extends Controller
                 }
 
                 // Buscar carrera (insensible a mayúsculas/minúsculas)
-                $carrera = Carrera::whereRaw('LOWER(nombre_carrera) = ?', [strtolower($row['carrera'])])->first();
+                $carrera = Carrera::whereRaw('LOWER(nombre_carrera) = ?', [strtolower(trim($row['carrera']))])->first();
                 if (!$carrera) {
                     $errores[$numeroFila] = 'Carrera no encontrada: ' . $row['carrera'];
                     continue;
                 }
 
                 // Buscar cargo (insensible a mayúsculas/minúsculas)
-                $cargo = Cargo::whereRaw('LOWER(nombre_cargo) = ?', [strtolower($row['cargo'])])->first();
+                $cargo = Cargo::whereRaw('LOWER(nombre_cargo) = ?', [strtolower(trim($row['cargo']))])->first();
                 if (!$cargo) {
                     $errores[$numeroFila] = 'Cargo no encontrado: ' . $row['cargo'];
                     continue;
@@ -180,9 +217,8 @@ class PersonaController extends Controller
                 Persona::create([
                     'cedula' => $row['cedula'],
                     'nombres' => $row['nombres'],
-                    
-                    'celular' => $row['celular'] ?? null,
-                    'correo' => $row['correo'] ?? null,
+                    'celular' => $row['celular'],
+                    'correo' => $row['correo'],
                     'carrera_id' => $carrera->id_carrera,
                     'cargo_id' => $cargo->id_cargo,
                 ]);

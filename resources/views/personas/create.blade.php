@@ -14,6 +14,12 @@
             </div>
         @endif
 
+        @if(session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
+
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
                 <a class="nav-link active" id="manual-tab" data-bs-toggle="tab" href="#manual" role="tab" aria-controls="manual" aria-selected="true">Ingreso Manual</a>
@@ -105,7 +111,7 @@
                 <h3>Importar personas desde un archivo CSV</h3>
                 <div class="alert alert-info">
                     <strong>Formato requerido:</strong> El archivo debe contener las columnas: 
-                    cedula, nombres, apellidos, celular, correo, carrera, cargo
+                    cedula, nombres, celular, correo, carrera, cargo
                 </div>
                 <form action="{{ route('personas.import') }}" method="POST" enctype="multipart/form-data">
                     @csrf
