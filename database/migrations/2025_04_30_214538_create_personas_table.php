@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('cedula')->unique();  // Cédula única
             $table->string('nombres');
-            $table->string('apellidos');
+           // $table->string('apellidos');
             $table->string('celular')->nullable();
             $table->string('correo')->unique()->nullable();
             

@@ -13,42 +13,18 @@ class Titulacion extends Model
     protected $primaryKey = 'id_titulacion';
 
     protected $fillable = [
-        'tema_id',
-        'estudiante_id',
-        'docente_id',
-        'asesor1_id',
-        'asesor2_id',
+        'tema',
+        'estudiante',
+        'cedula_estudiante',
+        'director',
+        'cedula_director',
+        'asesor1',
+        'cedula_asesor1',
         'periodo_id',
         'estado_id',
         'avance',
-        'acta_de_grado',
-        'observaciones',
+        'observaciones'
     ];
-
-    public function tema()
-    {
-        return $this->belongsTo(Tema::class, 'tema_id', 'id_tema');
-    }
-
-    public function estudiante()
-    {
-        return $this->belongsTo(Persona::class, 'estudiante_id', 'id');
-    }
-
-    public function docente()
-    {
-        return $this->belongsTo(Persona::class, 'docente_id', 'id');
-    }
-
-    public function asesor1()
-    {
-        return $this->belongsTo(Persona::class, 'asesor1_id', 'id');
-    }
-
-    public function asesor2()
-    {
-        return $this->belongsTo(Persona::class, 'asesor2_id', 'id');
-    }
 
     public function periodo()
     {
@@ -60,13 +36,8 @@ class Titulacion extends Model
         return $this->belongsTo(EstadoTitulacion::class, 'estado_id', 'id_estado');
     }
 
-    public function resoluciones()
+    public function resTemas()
     {
-        return $this->belongsToMany(Resolucion::class, 'resoluciones_titulaciones', 'titulacion_id', 'resolucion_id');
-    }
-
-    public function getRouteKeyName()
-    {
-        return 'id_titulacion';
+        return $this->hasMany(ResTema::class, 'titulacion_id', 'id_titulacion');
     }
 }

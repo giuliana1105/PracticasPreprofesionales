@@ -1,64 +1,66 @@
+{{-- filepath: resources/views/titulaciones/index.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <h1>Titulaciones</h1>
-
-    <!-- Botones para crear nueva titulación y cambiar resoluciones -->
-    <div class="mb-3">
-        <a href="{{ route('titulaciones.create') }}" class="btn btn-primary">Crear nueva titulación</a>
-        <form action="{{ route('resoluciones.cambiar') }}" method="POST" style="display:inline;">
-            @csrf
-            <button type="submit" class="btn btn-secondary">Cambiar de resoluciones</button>
-        </form>
+<h2>Listado de Titulaciones</h2>
+<a href="{{ route('titulaciones.create') }}">Crear Titulación</a>
+@if(session('success'))
+    <div style="color: green; font-weight: bold;">
+        {{ session('success') }}
     </div>
-
-    <table class="table mt-4 table-bordered">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Tema</th>
-                <th>Estudiante</th>
-                <th>Docente</th>
-                <th>Asesor 1</th>
-                <th>Asesor 2</th>
-                <th>Periodo</th>
-                <th>Estado</th>
-                <th>Acta de Grado</th>
-                <th>Avance</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($titulaciones as $titulacion)
-                <tr>
-                    <td>{{ $titulacion->id_titulacion }}</td>
-                    <td>{{ $titulacion->tema->nombre_tema ?? '' }}</td>
-                    <td>{{ $titulacion->estudiante->nombres ?? '' }}</td>
-                    <td>{{ $titulacion->docente->nombres ?? '' }}</td>
-                    <td>{{ $titulacion->asesor1->nombres ?? '' }}</td>
-                    <td>{{ $titulacion->asesor2->nombres ?? '' }}</td>
-                    <td>{{ $titulacion->periodo->periodo_academico ?? '' }}</td>
-                    <td>{{ $titulacion->estado->nombre_estado ?? '' }}</td>
-                    <td>
-                        @if($titulacion->acta_de_grado)
-                            <a href="{{ asset('storage/' . $titulacion->acta_de_grado) }}" target="_blank">Ver PDF</a>
-                        @else
-                            -
-                        @endif
-                    </td>
-                    <td>{{ $titulacion->avance }}%</td>
-                    <td>
-                        <a href="{{ route('titulaciones.edit', $titulacion->id_titulacion) }}" class="btn btn-warning">Editar</a>
-                        <form action="{{ route('titulaciones.destroy', $titulacion->id_titulacion) }}" method="POST" style="display:inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">Eliminar</button>
-                        </form>
-                    </td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
+@endif
+@if(session('error'))
+    <div style="color: red; font-weight: bold;">
+        {{ session('error') }}
+    </div>
+@endif
+<table border="1">
+    <thead>
+        <tr>
+            <th>Tema</th>
+            <th>Estudiante</th>
+            <th>Cédula Estudiante</th>
+            <th>Director</th>
+            <th>Cédula Director</th>
+            <th>Asesor 1</th>
+            <th>Cédula Asesor 1</th>
+            <th>Periodo</th>
+            <th>Estado</th>
+            <th>Avance</th>
+            <th>Observaciones</th>
+            <th>Resoluciones</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($titulaciones as $tit)
+        <tr>
+            <td>{{ $tit->tema }}</td>
+            <td>{{ $tit->estudiante }}</td>
+            <td>{{ $tit->cedula_estudiante }}</td>
+            <td>{{ $tit->director }}</td>
+            <td>{{ $tit->cedula_director }}</td>
+            <td>{{ $tit->asesor1 }}</td>
+            <td>{{ $tit->cedula_asesor1 }}</td>
+            <td>{{ $tit->periodo->periodo_academico?? '' }}</td>
+            <td>{{ $tit->estado->nombre_estado ?? '' }}</td>
+            <td>{{ $tit->avance }}%</td>
+            <td>{{ $tit->observaciones }}</td>
+            <td>
+                @foreach($tit->resTemas as $resTema)
+                    {{ $resTema->resolucion->numero_res ?? '' }} ({{ $resTema->resolucion->tipoResolucion->nombre_tipo_res ?? '' }})<br>
+                @endforeach
+            </td>
+            <td>
+                <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}">Editar</a>
+                <form action="{{ route('titulaciones.destroy', $tit->id_titulacion) }}" method="POST" style="display:inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" onclick="return confirm('¿Está seguro de eliminar esta titulación?')">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+        @endforeach
+    </tbody>
+</table>
 @endsection

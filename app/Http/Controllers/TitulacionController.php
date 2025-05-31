@@ -3,206 +3,236 @@
 namespace App\Http\Controllers;
 
 use App\Models\Titulacion;
-use App\Models\Resolucion;
 use App\Models\Periodo;
-use App\Models\Persona;
 use App\Models\EstadoTitulacion;
+use App\Models\Persona;
+use App\Models\ResTema;
+use App\Models\Resolucion;
 use Illuminate\Http\Request;
-use App\Models\Tema;
-use App\Models\ResolucionSeleccionada;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class TitulacionController extends Controller
 {
     public function index()
     {
-        $titulaciones = Titulacion::with([
-            'tema',
-            'estudiante',
-            'docente',
-            'asesor1',
-            'asesor2',
-            'periodo',
-            'estado'
-        ])->get();
-
+        $titulaciones = Titulacion::with(['periodo', 'estado', 'resTemas.resolucion'])->get();
         return view('titulaciones.index', compact('titulaciones'));
     }
 
     public function create()
     {
-        // Obtener las resoluciones seleccionadas desde la tabla `resoluciones_seleccionadas`
-        $resolucionesSeleccionadas = ResolucionSeleccionada::with('resolucion')->get()->pluck('resolucion');
-
-        // Obtener los temas relacionados con las resoluciones seleccionadas
-        $temas = Tema::whereHas('resoluciones', function ($query) use ($resolucionesSeleccionadas) {
-            $query->whereIn('id_Reso', $resolucionesSeleccionadas->pluck('id_Reso'));
-        })->get();
-
-        // Depurar los temas obtenidos
-       // dd($temas);
-
-        // Obtener solo personas con cargo 'Estudiante'
-        $estudiantes = Persona::whereHas('cargo', function($query) {
-            $query->where('nombre_cargo', 'Estudiante');
-        })->get();
-        // Obtener solo personas con cargo 'Docente' para docente, asesor1 y asesor2
-        $docentes = Persona::whereHas('cargo', function($query) {
-            $query->where('nombre_cargo', 'Docente');
-        })->get();
         $periodos = Periodo::all();
         $estados = EstadoTitulacion::all();
-       // dd($periodos, $estados);
+        // Solo resoluciones seleccionadas
+        $resolucionesSeleccionadas = \App\Models\Resolucion::whereIn(
+            'id_Reso',
+            \App\Models\ResolucionSeleccionada::pluck('resolucion_id')
+        )->get();
 
-        // Pasar los datos a la vista
-        return view('titulaciones.create', compact('resolucionesSeleccionadas', 'temas', 'estudiantes', 'docentes', 'periodos', 'estados'));
+        return view('titulaciones.create', compact('periodos', 'estados', 'resolucionesSeleccionadas'));
     }
 
     public function store(Request $request)
     {
-        // Validar los datos del formulario
         $request->validate([
-            'tema' => 'required|exists:temas,id_tema',
-            'estudiante' => 'required|exists:personas,id',
-            'docente' => 'required|exists:personas,id',
-            'asesor1' => 'required|exists:personas,id',
-            'asesor2' => 'nullable|exists:personas,id',
-            'periodo' => 'required|exists:periodos,id_periodo',
-            'estado' => 'required|exists:estado_titulaciones,id_estado',
-            'avance' => 'required|numeric|min:0|max:100',
-            'acta_de_grado' => 'nullable|file|mimes:pdf|max:2048',
+            'tema' => 'required|string',
+            'estudiante' => 'required|string',
+            'cedula_estudiante' => 'required|exists:personas,cedula',
+            'director' => 'required|string',
+            'cedula_director' => 'required|exists:personas,cedula',
+            'asesor1' => 'required|string',
+            'cedula_asesor1' => 'required|exists:personas,cedula',
+            'periodo_id' => 'required|exists:periodos,id_periodo',
+            'estado_id' => 'required|exists:estado_titulaciones,id_estado',
+            'avance' => 'required|integer|min:0|max:100',
             'observaciones' => 'nullable|string',
         ]);
 
-        try {
-            // Crear una nueva titulación
-            $titulacion = new Titulacion();
-            $titulacion->tema_id = $request->input('tema');
-            $titulacion->estudiante_id = $request->input('estudiante');
-            $titulacion->docente_id = $request->input('docente');
-            $titulacion->asesor1_id = $request->input('asesor1');
-            $titulacion->asesor2_id = $request->input('asesor2');
-            $titulacion->periodo_id = $request->input('periodo');
-            $titulacion->estado_id = $request->input('estado');
-            $titulacion->avance = $request->input('avance');
-            $titulacion->observaciones = $request->input('observaciones');
+        $titulacion = Titulacion::create($request->all());
 
-            // Guardar el archivo de acta de grado si se subió
-            if ($request->hasFile('acta_de_grado')) {
-                $titulacion->acta_de_grado = $request->file('acta_de_grado')->store('actas', 'public');
+        // Obtener todas las resoluciones seleccionadas
+        $resolucionesSeleccionadas = \App\Models\ResolucionSeleccionada::pluck('resolucion_id');
+
+        // Guardar relación en res_temas
+        foreach ($resolucionesSeleccionadas as $resolucion_id) {
+            ResTema::create([
+                'titulacion_id' => $titulacion->id_titulacion,
+                'resolucion_id' => $resolucion_id,
+                'tema' => $request->tema,
+            ]);
+        }
+
+        return redirect()->route('titulaciones.index')->with('success', 'Titulación creada exitosamente.');
+    }
+
+    public function edit($id)
+    {
+        $titulacion = Titulacion::findOrFail($id);
+        $periodos = Periodo::all();
+        $estados = EstadoTitulacion::all();
+        return view('titulaciones.edit', compact('titulacion', 'periodos', 'estados'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'tema' => 'required|string',
+            'estudiante' => 'required|string',
+            'cedula_estudiante' => 'required|exists:personas,cedula',
+            'director' => 'required|string',
+            'cedula_director' => 'required|exists:personas,cedula',
+            'asesor1' => 'required|string',
+            'cedula_asesor1' => 'required|exists:personas,cedula',
+            'periodo_id' => 'required|exists:periodos,id_periodo',
+            'estado_id' => 'required|exists:estado_titulaciones,id_estado',
+            'avance' => 'required|integer|min:0|max:100',
+            'observaciones' => 'nullable|string',
+        ]);
+
+        $titulacion = Titulacion::findOrFail($id);
+        $titulacion->update($request->all());
+
+        return redirect()->route('titulaciones.index')->with('success', 'Titulación actualizada.');
+    }
+
+    public function importCsv(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt'
+        ]);
+
+        $file = $request->file('csv_file');
+        $handle = fopen($file, 'r');
+
+        // Detecta delimitador automáticamente
+        $firstLine = fgets($handle);
+        $delimiter = (substr_count($firstLine, ';') > substr_count($firstLine, ',')) ? ';' : ',';
+        rewind($handle);
+
+        $header = fgetcsv($handle, 0, $delimiter);
+
+        // Mapeo de encabezados del usuario a campos de la base de datos
+        $map = [
+            'tema' => 'tema',
+            'estudiante' => 'estudiante',
+            'cedulaestudiante' => 'cedula_estudiante',
+            'cedulaestudiante' => 'cedula_estudiante',
+            'cedula estudiante' => 'cedula_estudiante',
+            'cédulaestudiante' => 'cedula_estudiante',
+            'cédula estudiante' => 'cedula_estudiante',
+            'director' => 'director',
+            'ceduladirector' => 'cedula_director',
+            'cedula director' => 'cedula_director',
+            'céduladirector' => 'cedula_director',
+            'cédula director' => 'cedula_director',
+            'asesor1' => 'asesor1',
+            'asesor 1' => 'asesor1',
+            'cedulaasesor1' => 'cedula_asesor1',
+            'cedula asesor1' => 'cedula_asesor1',
+            'cedulaasesor 1' => 'cedula_asesor1',
+            'cedula asesor 1' => 'cedula_asesor1',
+            'cédulaasesor1' => 'cedula_asesor1',
+            'cédula asesor1' => 'cedula_asesor1',
+            'cédulaasesor 1' => 'cedula_asesor1',
+            'cédula asesor 1' => 'cedula_asesor1',
+            'periodo' => 'periodo',
+            'estado' => 'estado',
+            'avance' => 'avance',
+            'observaciones' => 'observaciones',
+        ];
+
+        // Función para limpiar encabezados: minúsculas, sin espacios, sin tildes
+        $normalize = function($string) {
+            $string = mb_strtolower($string, 'UTF-8');
+            $string = preg_replace('/[áàäâ]/u', 'a', $string);
+            $string = preg_replace('/[éèëê]/u', 'e', $string);
+            $string = preg_replace('/[íìïî]/u', 'i', $string);
+            $string = preg_replace('/[óòöô]/u', 'o', $string);
+            $string = preg_replace('/[úùüû]/u', 'u', $string);
+            $string = preg_replace('/[ñ]/u', 'n', $string);
+            $string = preg_replace('/[^a-z0-9]/u', '', $string); // quita espacios y caracteres especiales
+            return $string;
+        };
+
+        // Normaliza encabezados y mapea a campos de base de datos
+        $normalizedHeader = [];
+        foreach ($header as $h) {
+            $key = $normalize($h);
+            $normalizedHeader[] = $map[$key] ?? $key;
+        }
+
+        $importados = 0;
+        $saltados = 0;
+        $errores = [];
+
+        $resolucionesSeleccionadas = \App\Models\ResolucionSeleccionada::pluck('resolucion_id');
+
+        while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+            if (count($row) !== count($normalizedHeader)) {
+                $saltados++;
+                $errores[] = "Fila con columnas incorrectas: " . implode($delimiter, $row);
+                continue;
             }
-            // Guardar la titulación en la base de datos
-            $titulacion->save();
 
-            // Redirigir al índice de titulaciones con un mensaje de éxito
-            return redirect()->route('titulaciones.index')->with('success', 'Titulación creada exitosamente.');
-        } catch (\Exception $e) {
-            // Capturar errores y mostrar un mensaje
-            return back()->with('error', 'Ocurrió un error al guardar la titulación: ' . $e->getMessage());
+            $data = array_combine($normalizedHeader, $row);
+
+            // Busca periodo y estado por nombre (insensible a mayúsculas/minúsculas)
+            $periodo = \App\Models\Periodo::whereRaw('LOWER(periodo_academico) = ?', [strtolower(trim($data['periodo']))])->first();
+            $estado = \App\Models\EstadoTitulacion::whereRaw('LOWER(nombre_estado) = ?', [strtolower(trim($data['estado']))])->first();
+
+            if (
+                $periodo &&
+                $estado &&
+                \App\Models\Persona::where('cedula', $data['cedula_estudiante'])->exists() &&
+                \App\Models\Persona::where('cedula', $data['cedula_director'])->exists() &&
+                \App\Models\Persona::where('cedula', $data['cedula_asesor1'])->exists()
+            ) {
+                $titulacion = \App\Models\Titulacion::create([
+                    'tema' => $data['tema'],
+                    'estudiante' => $data['estudiante'],
+                    'cedula_estudiante' => $data['cedula_estudiante'],
+                    'director' => $data['director'],
+                    'cedula_director' => $data['cedula_director'],
+                    'asesor1' => $data['asesor1'],
+                    'cedula_asesor1' => $data['cedula_asesor1'],
+                    'periodo_id' => $periodo->id_periodo,
+                    'estado_id' => $estado->id_estado,
+                    'avance' => $data['avance'],
+                    'observaciones' => $data['observaciones'] ?? null,
+                ]);
+
+                foreach ($resolucionesSeleccionadas as $resolucion_id) {
+                    \App\Models\ResTema::create([
+                        'titulacion_id' => $titulacion->id_titulacion,
+                        'resolucion_id' => $resolucion_id,
+                        'tema' => $data['tema'],
+                    ]);
+                }
+                $importados++;
+            } else {
+                $saltados++;
+                $errores[] = "Datos no válidos en fila: " . implode($delimiter, $row);
+            }
         }
-    }
+        fclose($handle);
 
-    public function edit(Titulacion $titulacion)
-    {
-        $estudiantes = \App\Models\Persona::whereHas('cargo', function($query) {
-            $query->where('nombre_cargo', 'Estudiante');
-        })->get();
-
-        $docentes = \App\Models\Persona::whereHas('cargo', function($query) {
-            $query->where('nombre_cargo', 'Docente');
-        })->get();
-
-        $periodos = \App\Models\Periodo::all();
-        $estados = \App\Models\EstadoTitulacion::all();
-        
-        $temas = Tema::with('resoluciones')->get();
-
-        return view('titulaciones.edit', compact('titulacion', 'estudiantes', 'docentes', 'periodos', 'estados','temas'));
-    }
-public function update(Request $request, Titulacion $titulacion)
-{
-    // Validación de datos
-    $request->validate([
-        'tema' => 'required',
-        'estudiante' => 'required|exists:personas,id',
-        'docente' => 'required|exists:personas,id',
-        'asesor1' => 'required|exists:personas,id',
-        'asesor2' => 'nullable|exists:personas,id',
-        'periodo' => 'required|exists:periodos,id_periodo',
-        'estado' => 'required|exists:estado_titulaciones,id_estado',
-        'acta_de_grado' => 'nullable|mimes:pdf|max:2048',
-        'observaciones' => 'nullable|string',
-        'avance' => 'required|numeric',  // Cambiado a numeric para aceptar decimales si es necesario
-    ]);
-
-    // Asignar solo los campos permitidos
-    $titulacion->tema_id = $request->input('tema');
-    $titulacion->estudiante_id = $request->input('estudiante');
-    $titulacion->docente_id = $request->input('docente');
-    $titulacion->asesor1_id = $request->input('asesor1');
-    $titulacion->asesor2_id = $request->input('asesor2');
-    $titulacion->periodo_id = $request->input('periodo');
-    $titulacion->estado_id = $request->input('estado');
-    $titulacion->avance = $request->input('avance');
-    $titulacion->observaciones = $request->input('observaciones');
-
-    // Manejo del archivo PDF (solo si suben uno nuevo)
-    if ($request->hasFile('acta_de_grado')) {
-        // Eliminar el archivo anterior si existe
-        if ($titulacion->acta_de_grado) {
-            Storage::delete('public/actas/' . $titulacion->acta_de_grado);
+        $requeridos = [
+            'tema','estudiante','cedula_estudiante','director','cedula_director',
+            'asesor1','cedula_asesor1','periodo','estado','avance','observaciones'
+        ];
+        $faltantes = array_diff($requeridos, $normalizedHeader);
+        if (count($faltantes)) {
+            return redirect()->route('titulaciones.index')
+                ->with('error', 'Faltan columnas en el CSV: ' . implode(', ', $faltantes));
         }
 
-        // Guardar el nuevo archivo
-        $titulacion->acta_de_grado = $request->file('acta_de_grado')->store('actas', 'public');
+        return redirect()->route('titulaciones.index')->with('success', "Titulaciones importadas: $importados. Filas saltadas: $saltados. " . implode(' | ', $errores));
     }
 
-    // Guardar los cambios
-    $titulacion->save();
-
-    // Redirigir a la lista de titulaciones con un mensaje de éxito
-    return redirect()->route('titulaciones.index')->with('success', 'Titulación actualizada exitosamente.');
-}
-
-    // public function update(Request $request, Titulacion $titulacion)
-    // {
-    //     $request->validate([
-    //         'tema' => 'required',
-    //         'estudiante' => 'required|exists:personas,id',
-    //         'docente' => 'required|exists:personas,id',
-    //         'asesor1' => 'required|exists:personas,id',
-    //         'asesor2' => 'nullable|exists:personas,id',
-    //         'periodo' => 'required|exists:periodos,id_periodo',
-    //         'estado' => 'required|exists:estado_titulaciones,id_estado',
-    //         'acta_de_grado' => 'nullable|mimes:pdf|max:2048',
-    //         'observaciones' => 'nullable|string',
-    //         'avance' => 'required|integer',
-    //     ]);
-
-    //     // Asignar solo los campos permitidos
-    //     $titulacion->tema_id = $request->input('tema');
-    //     $titulacion->estudiante_id = $request->input('estudiante');
-    //     $titulacion->docente_id = $request->input('docente');
-    //     $titulacion->asesor1_id = $request->input('asesor1');
-    //     $titulacion->asesor2_id = $request->input('asesor2');
-    //     $titulacion->periodo_id = $request->input('periodo');
-    //     $titulacion->estado_id = $request->input('estado');
-    //     $titulacion->avance = $request->input('avance');
-    //     $titulacion->observaciones = $request->input('observaciones');
-
-    //     // Manejo del archivo PDF (solo si suben uno nuevo)
-    //     if ($request->hasFile('acta_de_grado')) {
-    //         $titulacion->acta_de_grado = $request->file('acta_de_grado')->store('actas', 'public');
-    //     }
-
-    //     $titulacion->save();
-
-    //     return redirect()->route('titulaciones.index')->with('success', 'Titulación actualizada exitosamente.');
-    // }
-
-    public function destroy(Titulacion $titulacion)
+    public function destroy($id)
     {
+        $titulacion = Titulacion::findOrFail($id);
         $titulacion->delete();
-        return redirect()->route('titulaciones.index')->with('success', 'Titulación eliminada exitosamente.');
+        return redirect()->route('titulaciones.index')->with('success', 'Titulación eliminada correctamente.');
     }
 }

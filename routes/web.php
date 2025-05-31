@@ -11,6 +11,7 @@ use App\Http\Controllers\TipoResolucionController;
 use App\Http\Controllers\EstadoTitulacionController;
 use App\Http\Controllers\TitulacionController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ResTemaController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -58,9 +59,11 @@ Route::post('personas/import', [PersonaController::class, 'import'])->name('pers
 Route::resource('periodos', PeriodoController::class);
 Route::resource('estado-titulaciones', EstadoTitulacionController::class);
 Route::resource('titulaciones', TitulacionController::class);
-
+Route::post('titulaciones/import-csv', [TitulacionController::class, 'importCsv'])->name('titulaciones.importCsv');
+Route::get('/temas', [TemaController::class, 'index'])->name('temas.index');
 Route::get('/titulaciones/create', [TitulacionController::class, 'create'])->name('titulaciones.create');
 Route::post('/titulaciones/store', [TitulacionController::class, 'store'])->name('titulaciones.store');
+Route::post('/temas/store', [TemaController::class, 'store'])->name('temas.store');
 
 Route::get('/temas', [TemaController::class, 'index'])->name('temas.index');
 Route::post('/resoluciones/seleccionar', [ResolucionController::class, 'seleccionarResoluciones'])->name('resoluciones.seleccionar');
@@ -68,5 +71,5 @@ Route::get('/temas/create', [TemaController::class, 'create'])->name('temas.crea
 Route::post('/temas/store', [TemaController::class, 'store'])->name('temas.store');
 Route::delete('/titulaciones/{titulacion}', [TitulacionController::class, 'destroy'])->name('titulaciones.destroy');
 Route::put('/titulaciones/{titulacion}', [TitulacionController::class, 'update'])->name('titulaciones.update');
-
 Route::get('/home', [HomeController::class, 'index'])->name('home');
+Route::resource('res_temas', ResTemaController::class)->only(['index', 'store', 'destroy']);

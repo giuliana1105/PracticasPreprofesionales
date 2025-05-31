@@ -6,18 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('resoluciones_titulaciones', function (Blueprint $table) {
+        Schema::create('res_temas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('resolucion_id')->constrained('resoluciones', 'id_Reso')->onDelete('cascade');
             $table->foreignId('titulacion_id')->constrained('titulaciones', 'id_titulacion')->onDelete('cascade');
+            $table->foreignId('resolucion_id')->constrained('resoluciones', 'id_Reso')->onDelete('cascade');
+            $table->string('tema');
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::dropIfExists('resoluciones_titulaciones');
+        Schema::dropIfExists('res_temas');
     }
 };

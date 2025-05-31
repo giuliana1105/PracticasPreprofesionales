@@ -12,21 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('titulaciones', function (Blueprint $table) {
-            $table->id('id_titulacion'); // Clave primaria
-
-            // Claves foráneas
-            $table->foreignId('tema_id')->constrained('temas', 'id_tema');
-            $table->foreignId('estudiante_id')->constrained('personas', 'id');
-            $table->foreignId('docente_id')->constrained('personas', 'id');
-            $table->foreignId('asesor1_id')->constrained('personas', 'id');
-            $table->foreignId('asesor2_id')->nullable()->constrained('personas', 'id');
+            $table->id('id_titulacion');
+            $table->string('tema');
+            $table->string('estudiante');
+            $table->string('cedula_estudiante');
+            $table->string('director');
+            $table->string('cedula_director');
+            $table->string('asesor1');
+            $table->string('cedula_asesor1');
             $table->foreignId('periodo_id')->constrained('periodos', 'id_periodo');
             $table->foreignId('estado_id')->constrained('estado_titulaciones', 'id_estado');
-
-            // Campos adicionales
-            $table->string('acta_de_grado')->nullable();
+            $table->unsignedTinyInteger('avance');
             $table->text('observaciones')->nullable();
-            $table->integer('avance');
             $table->timestamps();
         });
     }

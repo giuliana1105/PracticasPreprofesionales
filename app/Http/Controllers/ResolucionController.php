@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Resolucion;
 use App\Models\Tema;
-use App\Models\ResolucionTema;
+use App\Models\ResTema;
 use App\Models\TipoResolucion;
 use App\Models\ResolucionSeleccionada;
 
@@ -88,7 +88,7 @@ class ResolucionController extends Controller
             foreach ($temas as $temaData) {
                 $tema = Tema::firstOrCreate(['nombre_tema' => $temaData['nombre_tema']]);
                 
-                ResolucionTema::firstOrCreate([
+                ResTema::firstOrCreate([
                     'resolucion_id' => $resolucionId,
                     'tema_id' => $tema->id_tema
                 ]);
