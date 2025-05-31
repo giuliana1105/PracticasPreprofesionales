@@ -22,7 +22,7 @@ Route::resource('resoluciones', ResolucionController::class);
 
 Route::get('/resoluciones', [ResolucionController::class, 'index'])->name('resoluciones.index');
 Route::post('/resoluciones/seleccionar', [ResolucionController::class, 'seleccionarResoluciones'])->name('resoluciones.seleccionar');
-Route::post('/resoluciones/cambiar', [ResolucionController::class, 'cambiarResoluciones'])->name('resoluciones.cambiar');
+Route::get('resoluciones/cambiar', [App\Http\Controllers\ResolucionController::class, 'cambiarResoluciones'])->name('resoluciones.cambiar');
 
 Route::resource('temas', TemaController::class);
 

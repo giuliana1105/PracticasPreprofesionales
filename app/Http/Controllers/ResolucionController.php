@@ -149,7 +149,7 @@ class ResolucionController extends Controller
     public function cambiarResoluciones()
     {
         // Eliminar todas las resoluciones seleccionadas
-        ResolucionSeleccionada::truncate();
+        \App\Models\ResolucionSeleccionada::truncate();
 
         // Redirigir a la pantalla de selección de resoluciones
         return redirect()->route('resoluciones.index')->with('success', 'Resoluciones limpiadas. Seleccione nuevas resoluciones.');
@@ -165,5 +165,11 @@ class ResolucionController extends Controller
         $resolucion->delete();
 
         return redirect()->route('resoluciones.index')->with('success', 'Resolución eliminada exitosamente.');
+    }
+    
+    public function show($id)
+    {
+        // Puedes dejarlo vacío o redirigir a index
+        return redirect()->route('resoluciones.index');
     }
 }

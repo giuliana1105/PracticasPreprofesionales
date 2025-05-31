@@ -4,6 +4,9 @@
 @section('content')
 <h2>Listado de Titulaciones</h2>
 <a href="{{ route('titulaciones.create') }}">Crear Titulación</a>
+<a href="{{ route('resoluciones.cambiar') }}" style="margin-left: 10px; color: white; background: #007bff; padding: 6px 12px; border-radius: 4px; text-decoration: none;">
+    Cambiar resoluciones
+</a>
 @if(session('success'))
     <div style="color: green; font-weight: bold;">
         {{ session('success') }}

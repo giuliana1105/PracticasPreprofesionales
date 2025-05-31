@@ -235,4 +235,10 @@ class TitulacionController extends Controller
         $titulacion->delete();
         return redirect()->route('titulaciones.index')->with('success', 'Titulación eliminada correctamente.');
     }
+
+    public function show($id)
+    {
+        // Puedes dejarlo vacío o redirigir a index
+        return redirect()->route('resoluciones.index');
+    }
 }
