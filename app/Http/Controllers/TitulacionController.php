@@ -111,11 +111,15 @@ class TitulacionController extends Controller
 
         $header = fgetcsv($handle, 0, $delimiter);
 
-        // Mapeo de encabezados del usuario a campos de la base de datos
+        // Elimina BOM del primer encabezado si existe
+        if (isset($header[0])) {
+            $header[0] = preg_replace('/^\x{FEFF}/u', '', $header[0]);
+        }
+
+        // Mapeo robusto
         $map = [
             'tema' => 'tema',
             'estudiante' => 'estudiante',
-            'cedulaestudiante' => 'cedula_estudiante',
             'cedulaestudiante' => 'cedula_estudiante',
             'cedula estudiante' => 'cedula_estudiante',
             'cédulaestudiante' => 'cedula_estudiante',
@@ -141,7 +145,7 @@ class TitulacionController extends Controller
             'observaciones' => 'observaciones',
         ];
 
-        // Función para limpiar encabezados: minúsculas, sin espacios, sin tildes
+        // Normaliza encabezados y mapea a campos de base de datos
         $normalize = function($string) {
             $string = mb_strtolower($string, 'UTF-8');
             $string = preg_replace('/[áàäâ]/u', 'a', $string);
@@ -150,16 +154,16 @@ class TitulacionController extends Controller
             $string = preg_replace('/[óòöô]/u', 'o', $string);
             $string = preg_replace('/[úùüû]/u', 'u', $string);
             $string = preg_replace('/[ñ]/u', 'n', $string);
-            $string = preg_replace('/[^a-z0-9]/u', '', $string); // quita espacios y caracteres especiales
+            $string = preg_replace('/\s+/', '', $string); // quita todos los espacios
             return $string;
         };
 
-        // Normaliza encabezados y mapea a campos de base de datos
         $normalizedHeader = [];
         foreach ($header as $h) {
             $key = $normalize($h);
             $normalizedHeader[] = $map[$key] ?? $key;
         }
+        //dd($normalizedHeader);
 
         $importados = 0;
         $saltados = 0;
@@ -175,6 +179,11 @@ class TitulacionController extends Controller
             }
 
             $data = array_combine($normalizedHeader, $row);
+
+            // Limpia cédulas de espacios y tabulaciones
+            $data['cedula_estudiante'] = trim(preg_replace('/\s+/', '', $data['cedula_estudiante']));
+            $data['cedula_director'] = trim(preg_replace('/\s+/', '', $data['cedula_director']));
+            $data['cedula_asesor1'] = trim(preg_replace('/\s+/', '', $data['cedula_asesor1']));
 
             // Busca periodo y estado por nombre (insensible a mayúsculas/minúsculas)
             $periodo = \App\Models\Periodo::whereRaw('LOWER(periodo_academico) = ?', [strtolower(trim($data['periodo']))])->first();
@@ -215,16 +224,6 @@ class TitulacionController extends Controller
             }
         }
         fclose($handle);
-
-        $requeridos = [
-            'tema','estudiante','cedula_estudiante','director','cedula_director',
-            'asesor1','cedula_asesor1','periodo','estado','avance','observaciones'
-        ];
-        $faltantes = array_diff($requeridos, $normalizedHeader);
-        if (count($faltantes)) {
-            return redirect()->route('titulaciones.index')
-                ->with('error', 'Faltan columnas en el CSV: ' . implode(', ', $faltantes));
-        }
 
         return redirect()->route('titulaciones.index')->with('success', "Titulaciones importadas: $importados. Filas saltadas: $saltados. " . implode(' | ', $errores));
     }
