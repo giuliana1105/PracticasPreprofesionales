@@ -426,7 +426,8 @@
                     <tr>
                         <th class="text-center">Seleccionar</th>
                         <th>Número</th>
-                        <th>Fecha</th>
+                        <th>Fecha aprobación</th>
+                        <th>Tipo de Resolución</th> <!-- Nueva columna -->
                         <th>Ver PDF</th>
                     </tr>
                 </thead>
@@ -438,6 +439,9 @@
                             </td>
                             <td class="align-middle">{{ $resolucion->numero_res }}</td>
                             <td class="align-middle">{{ $resolucion->fecha_res }}</td>
+                            <td class="align-middle">
+                                {{ $resolucion->tipoResolucion->nombre_tipo_res ?? '-' }}
+                            </td>
                             <td class="align-middle">
                                 @if($resolucion->archivo_url)
                                     <a href="{{ $resolucion->archivo_url }}" target="_blank" class="btn btn-outline-primary btn-sm">
