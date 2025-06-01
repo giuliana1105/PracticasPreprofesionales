@@ -34,6 +34,27 @@ class TitulacionController extends Controller
         if ($request->filled('estado_filtro')) {
             $query->where('estado_id', $request->estado_filtro);
         }
+        if ($request->filled('fecha_inicio')) {
+            $query->whereDate('created_at', '>=', $request->fecha_inicio);
+        }
+        if ($request->filled('fecha_fin')) {
+            $query->whereDate('created_at', '<=', $request->fecha_fin);
+        }
+
+        // Nueva lógica para filtrar por fecha en resoluciones
+        if ($request->filled('fecha_inicio') || $request->filled('fecha_fin')) {
+            $query->whereHas('resTemas.resolucion', function ($q) use ($request) {
+                $q->whereHas('tipoResolucion', function ($q2) {
+                    $q2->whereRaw('LOWER(nombre_tipo_res) = ?', ['consejo directivo']);
+                });
+                if ($request->filled('fecha_inicio')) {
+                    $q->whereDate('fecha_res', '>=', $request->fecha_inicio);
+                }
+                if ($request->filled('fecha_fin')) {
+                    $q->whereDate('fecha_res', '<=', $request->fecha_fin);
+                }
+            });
+        }
 
         $titulaciones = $query->get();
 

@@ -402,8 +402,14 @@
             @endforeach
         </select>
 
+        <label for="fecha_inicio" class="me-2 mb-0 ms-3">Desde (Consejo directivo):</label>
+        <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control me-2" style="width:auto;" value="{{ request('fecha_inicio') }}">
+
+        <label for="fecha_fin" class="me-2 mb-0">Hasta (Consejo directivo):</label>
+        <input type="date" name="fecha_fin" id="fecha_fin" class="form-control me-2" style="width:auto;" value="{{ request('fecha_fin') }}">
+
         <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-        @if(request('director_filtro') || request('asesor1_filtro') || request('periodo_filtro') || request('estado_filtro'))
+        @if(request('director_filtro') || request('asesor1_filtro') || request('periodo_filtro') || request('estado_filtro') || request('fecha_inicio') || request('fecha_fin'))
             <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary btn-sm ms-2">Quitar filtro</a>
         @endif
     </form>
