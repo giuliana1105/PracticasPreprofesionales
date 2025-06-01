@@ -247,15 +247,12 @@ public function import(Request $request)
 
     $file = $request->file('archivo_csv');
 
-    // 1. Abrimos temporalmente el fichero para leer la primera línea
+    // Detecta delimitador
     $handle = fopen($file->getPathname(), 'r');
     $firstLine = fgets($handle);
     fclose($handle);
-
-    // 2. Detectamos si existe ';' en la primera línea, si no, asumimos ','
     $delimiter = (strpos($firstLine, ';') !== false) ? ';' : ',';
 
-    // 3. Creamos el Reader y asignamos el delimitador detectado
     $csv = Reader::createFromPath($file->getPathname(), 'r');
     $csv->setHeaderOffset(0);
     $csv->setDelimiter($delimiter);
@@ -268,7 +265,7 @@ public function import(Request $request)
         foreach ($csv->getRecords() as $index => $row) {
             $fila = $index + 2;
 
-            // Validar campos (asegúrate de que tus encabezados coincidan con estos)
+            // Validar campos requeridos
             if (empty($row['cedula'])) {
                 $errores[$fila] = 'Cédula vacía';
                 continue;
@@ -296,18 +293,18 @@ public function import(Request $request)
 
             // Verificar cédula única
             if (Persona::where('cedula', $row['cedula'])->exists()) {
-                $errores[$fila] = 'Cédula ya registrada: ' . $row['cedula'];
+                $errores[$fila] = 'El número de cédula "' . $row['cedula'] . '" ya está registrado y no se puede volver a registrar.';
                 continue;
             }
 
             // Buscar carrera y cargo (ignorando mayúsculas/minúsculas)
-            $carrera = Carrera::whereRaw('LOWER(nombre_carrera) = ?', [strtolower(trim($row['carrera']))])->first();
+            $carrera = \App\Models\Carrera::whereRaw('LOWER(nombre_carrera) = ?', [strtolower(trim($row['carrera']))])->first();
             if (! $carrera) {
                 $errores[$fila] = 'Carrera no encontrada: ' . $row['carrera'];
                 continue;
             }
 
-            $cargo = Cargo::whereRaw('LOWER(nombre_cargo) = ?', [strtolower(trim($row['cargo']))])->first();
+            $cargo = \App\Models\Cargo::whereRaw('LOWER(nombre_cargo) = ?', [strtolower(trim($row['cargo']))])->first();
             if (! $cargo) {
                 $errores[$fila] = 'Cargo no encontrado: ' . $row['cargo'];
                 continue;
@@ -335,7 +332,7 @@ public function import(Request $request)
         DB::commit();
 
         return redirect()->route('personas.index')->with([
-            'success'       => "Se importaron {$importedCount} registros correctamente",
+            'success'       => "Se importaron {$importedCount} registros correctamente.",
             'import_errors' => $errores,
         ]);
     } catch (\Throwable $e) {
