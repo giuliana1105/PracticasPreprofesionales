@@ -335,61 +335,122 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="estudiante" class="form-label">Estudiante</label>
-                        <input type="text" id="estudiante" name="estudiante" class="form-control @error('estudiante') is-invalid @enderror" 
-                               placeholder="Estudiante" value="{{ old('estudiante') }}" required>
-                        @error('estudiante')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="cedula_estudiante" class="form-label">Cédula Estudiante</label>
-                        <input type="text" id="cedula_estudiante" name="cedula_estudiante" class="form-control @error('cedula_estudiante') is-invalid @enderror" 
-                               placeholder="Cédula Estudiante" value="{{ old('cedula_estudiante') }}" required>
-                        @error('cedula_estudiante')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="director" class="form-label">Director</label>
-                        <input type="text" id="director" name="director" class="form-control @error('director') is-invalid @enderror" 
-                               placeholder="Director" value="{{ old('director') }}" required>
-                        @error('director')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="cedula_director" class="form-label">Cédula Director</label>
-                        <input type="text" id="cedula_director" name="cedula_director" class="form-control @error('cedula_director') is-invalid @enderror" 
-                               placeholder="Cédula Director" value="{{ old('cedula_director') }}" required>
-                        @error('cedula_director')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="asesor1" class="form-label">Asesor 1</label>
-                        <input type="text" id="asesor1" name="asesor1" class="form-control @error('asesor1') is-invalid @enderror" 
-                               placeholder="Asesor 1" value="{{ old('asesor1') }}" required>
-                        @error('asesor1')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="cedula_asesor1" class="form-label">Cédula Asesor 1</label>
-                        <input type="text" id="cedula_asesor1" name="cedula_asesor1" class="form-control @error('cedula_asesor1') is-invalid @enderror" 
-                               placeholder="Cédula Asesor 1" value="{{ old('cedula_asesor1') }}" required>
-                        @error('cedula_asesor1')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
+                    <!-- Reemplaza los campos de estudiante con este select -->
+<div class="form-group">
+    <label for="persona_estudiante_id" class="form-label">Estudiante</label>
+    <select id="persona_estudiante_id" name="persona_estudiante_id" class="form-control @error('persona_estudiante_id') is-invalid @enderror" required>
+        <option value="">Seleccione un estudiante</option>
+        @foreach($personas as $persona)
+            @if($persona->cargo->nombre_cargo == 'Estudiante') <!-- Ajusta según tu estructura -->
+                <option value="{{ $persona->id }}" data-cedula="{{ $persona->cedula }}" {{ old('persona_estudiante_id') == $persona->id ? 'selected' : '' }}>
+                    {{ $persona->nombres }} - {{ $persona->cedula }}
+                </option>
+            @endif
+        @endforeach
+    </select>
+    @error('persona_estudiante_id')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
+
+<!-- Mantén el campo de cédula pero hazlo readonly -->
+<div class="form-group">
+    <label for="cedula_estudiante" class="form-label">Cédula Estudiante</label>
+    <input type="text" id="cedula_estudiante" name="cedula_estudiante" class="form-control @error('cedula_estudiante') is-invalid @enderror" 
+           placeholder="Cédula Estudiante" value="{{ old('cedula_estudiante') }}" readonly required>
+    @error('cedula_estudiante')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
+
+<!-- Reemplaza los campos de director con este select -->
+<div class="form-group">
+    <label for="persona_director_id" class="form-label">Director</label>
+    <select id="persona_director_id" name="persona_director_id" class="form-control @error('persona_director_id') is-invalid @enderror" required>
+        <option value="">Seleccione un director</option>
+        @foreach($personas as $persona)
+            @if($persona->cargo->nombre_cargo == 'Docente') <!-- Ajusta según tu estructura -->
+                <option value="{{ $persona->id }}" data-cedula="{{ $persona->cedula }}" {{ old('persona_director_id') == $persona->id ? 'selected' : '' }}>
+                    {{ $persona->nombres }} - {{ $persona->cedula }}
+                </option>
+            @endif
+        @endforeach
+    </select>
+    @error('persona_director_id')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
+
+<!-- Mantén el campo de cédula pero hazlo readonly -->
+<div class="form-group">
+    <label for="cedula_director" class="form-label">Cédula Director</label>
+    <input type="text" id="cedula_director" name="cedula_director" class="form-control @error('cedula_director') is-invalid @enderror" 
+           placeholder="Cédula Director" value="{{ old('cedula_director') }}" readonly required>
+    @error('cedula_director')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
+
+<!-- Reemplaza los campos de asesor con este select -->
+<div class="form-group">
+    <label for="persona_asesor_id" class="form-label">Asesor 1</label>
+    <select id="persona_asesor_id" name="persona_asesor_id" class="form-control @error('persona_asesor_id') is-invalid @enderror" required>
+        <option value="">Seleccione un asesor</option>
+        @foreach($personas as $persona)
+            @if($persona->cargo->nombre_cargo == 'Docente') <!-- Ajusta según tu estructura -->
+                <option value="{{ $persona->id }}" data-cedula="{{ $persona->cedula }}" {{ old('persona_asesor_id') == $persona->id ? 'selected' : '' }}>
+                    {{ $persona->nombres }} - {{ $persona->cedula }}
+                </option>
+            @endif
+        @endforeach
+    </select>
+    @error('persona_asesor_id')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
+
+<!-- Mantén el campo de cédula pero hazlo readonly -->
+<div class="form-group">
+    <label for="cedula_asesor1" class="form-label">Cédula Asesor 1</label>
+    <input type="text" id="cedula_asesor1" name="cedula_asesor1" class="form-control @error('cedula_asesor1') is-invalid @enderror" 
+           placeholder="Cédula Asesor 1" value="{{ old('cedula_asesor1') }}" readonly required>
+    @error('cedula_asesor1')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
+
+<!-- Agrega este script al final para manejar la actualización de cédulas -->
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Función para actualizar cédula
+        function actualizarCedula(selectId, inputCedulaId) {
+            const select = document.getElementById(selectId);
+            const inputCedula = document.getElementById(inputCedulaId);
+            
+            select.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value) {
+                    inputCedula.value = selectedOption.getAttribute('data-cedula');
+                } else {
+                    inputCedula.value = '';
+                }
+            });
+            
+            // Actualizar al cargar si ya hay un valor seleccionado
+            if (select.value) {
+                const selectedOption = select.options[select.selectedIndex];
+                inputCedula.value = selectedOption.getAttribute('data-cedula');
+            }
+        }
+        
+        // Configurar los listeners
+        actualizarCedula('persona_estudiante_id', 'cedula_estudiante');
+        actualizarCedula('persona_director_id', 'cedula_director');
+        actualizarCedula('persona_asesor_id', 'cedula_asesor1');
+    });
+</script>
+@endpush
                     <div class="form-group">
                         <label for="periodo_id" class="form-label">Periodo</label>
                         <select id="periodo_id" name="periodo_id" class="form-control @error('periodo_id') is-invalid @enderror" required>

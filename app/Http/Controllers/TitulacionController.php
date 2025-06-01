@@ -21,6 +21,7 @@ class TitulacionController extends Controller
 
     public function create()
     {
+        $personas = Persona::with('cargo')->get(); 
         $periodos = Periodo::all();
         $estados = EstadoTitulacion::all();
         $resolucionesSeleccionadas = \App\Models\Resolucion::whereIn(
@@ -28,7 +29,7 @@ class TitulacionController extends Controller
             \App\Models\ResolucionSeleccionada::pluck('resolucion_id')
         )->get();
 
-        return view('titulaciones.create', compact('periodos', 'estados', 'resolucionesSeleccionadas'));
+        return view('titulaciones.create', compact('periodos', 'estados', 'resolucionesSeleccionadas','personas'));
     }
 
     public function store(Request $request)
