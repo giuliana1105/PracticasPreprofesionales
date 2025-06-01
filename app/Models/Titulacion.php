@@ -14,11 +14,11 @@ class Titulacion extends Model
 
     protected $fillable = [
         'tema',
-        'estudiante',
+     //   'estudiante',
         'cedula_estudiante',
-        'director',
+       // 'director',
         'cedula_director',
-        'asesor1',
+        //'asesor1',
         'cedula_asesor1',
         'periodo_id',
         'estado_id',

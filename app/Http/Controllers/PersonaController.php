@@ -136,106 +136,214 @@ class PersonaController extends Controller
     }
 
     // Importar desde CSV
-    public function import(Request $request)
-    {
-        $request->validate([
-            'archivo_csv' => 'required|file|mimes:csv,txt|max:2048',
-        ]);
+    // public function import(Request $request)
+    // {
+    //     $request->validate([
+    //         'archivo_csv' => 'required|file|mimes:csv,txt|max:2048',
+    //     ]);
 
-        $file = $request->file('archivo_csv');
-        $csv = Reader::createFromPath($file->getPathname(), 'r');
-        $csv->setHeaderOffset(0);
+    //     $file = $request->file('archivo_csv');
+    //     $csv = Reader::createFromPath($file->getPathname(), 'r');
+    //     $csv->setHeaderOffset(0);
 
-        DB::beginTransaction();
-        $importedCount = 0;
-        $errores = [];
+    //     DB::beginTransaction();
+    //     $importedCount = 0;
+    //     $errores = [];
 
-        try {
-            foreach ($csv->getRecords() as $index => $row) {
-                $numeroFila = $index + 2; // Fila real en el CSV (1 para encabezado + 1 porque empieza en 0)
+    //     try {
+    //         foreach ($csv->getRecords() as $index => $row) {
+    //             $numeroFila = $index + 2; // Fila real en el CSV (1 para encabezado + 1 porque empieza en 0)
                 
-                // Validar campos requeridos
-                if (empty($row['cedula'])) {
-                    $errores[$numeroFila] = 'Cédula vacía';
-                    continue;
-                }
+    //             // Validar campos requeridos
+    //             if (empty($row['cedula'])) {
+    //                 $errores[$numeroFila] = 'Cédula vacía';
+    //                 continue;
+    //             }
 
-                if (empty($row['nombres'])) {
-                    $errores[$numeroFila] = 'Nombres vacíos';
-                    continue;
-                }
+    //             if (empty($row['nombres'])) {
+    //                 $errores[$numeroFila] = 'Nombres vacíos';
+    //                 continue;
+    //             }
 
-                if (empty($row['celular'])) {
-                    $errores[$numeroFila] = 'Celular vacío';
-                    continue;
-                }
+    //             if (empty($row['celular'])) {
+    //                 $errores[$numeroFila] = 'Celular vacío';
+    //                 continue;
+    //             }
 
-                if (empty($row['correo'])) {
-                    $errores[$numeroFila] = 'Correo vacío';
-                    continue;
-                }
+    //             if (empty($row['correo'])) {
+    //                 $errores[$numeroFila] = 'Correo vacío';
+    //                 continue;
+    //             }
 
-                if (empty($row['carrera'])) {
-                    $errores[$numeroFila] = 'Carrera vacía';
-                    continue;
-                }
+    //             if (empty($row['carrera'])) {
+    //                 $errores[$numeroFila] = 'Carrera vacía';
+    //                 continue;
+    //             }
 
-                if (empty($row['cargo'])) {
-                    $errores[$numeroFila] = 'Cargo vacío';
-                    continue;
-                }
+    //             if (empty($row['cargo'])) {
+    //                 $errores[$numeroFila] = 'Cargo vacío';
+    //                 continue;
+    //             }
 
-                // Verificar si la cédula ya existe
-                if (Persona::where('cedula', $row['cedula'])->exists()) {
-                    $errores[$numeroFila] = 'Cédula ya registrada: ' . $row['cedula'];
-                    continue;
-                }
+    //             // Verificar si la cédula ya existe
+    //             if (Persona::where('cedula', $row['cedula'])->exists()) {
+    //                 $errores[$numeroFila] = 'Cédula ya registrada: ' . $row['cedula'];
+    //                 continue;
+    //             }
 
-                // Buscar carrera (insensible a mayúsculas/minúsculas)
-                $carrera = Carrera::whereRaw('LOWER(nombre_carrera) = ?', [strtolower(trim($row['carrera']))])->first();
-                if (!$carrera) {
-                    $errores[$numeroFila] = 'Carrera no encontrada: ' . $row['carrera'];
-                    continue;
-                }
+    //             // Buscar carrera (insensible a mayúsculas/minúsculas)
+    //             $carrera = Carrera::whereRaw('LOWER(nombre_carrera) = ?', [strtolower(trim($row['carrera']))])->first();
+    //             if (!$carrera) {
+    //                 $errores[$numeroFila] = 'Carrera no encontrada: ' . $row['carrera'];
+    //                 continue;
+    //             }
 
-                // Buscar cargo (insensible a mayúsculas/minúsculas)
-                $cargo = Cargo::whereRaw('LOWER(nombre_cargo) = ?', [strtolower(trim($row['cargo']))])->first();
-                if (!$cargo) {
-                    $errores[$numeroFila] = 'Cargo no encontrado: ' . $row['cargo'];
-                    continue;
-                }
+    //             // Buscar cargo (insensible a mayúsculas/minúsculas)
+    //             $cargo = Cargo::whereRaw('LOWER(nombre_cargo) = ?', [strtolower(trim($row['cargo']))])->first();
+    //             if (!$cargo) {
+    //                 $errores[$numeroFila] = 'Cargo no encontrado: ' . $row['cargo'];
+    //                 continue;
+    //             }
 
-                // Validar correo único si está presente
-                if (!empty($row['correo'])) {
-                    if (Persona::where('correo', $row['correo'])->exists()) {
-                        $errores[$numeroFila] = 'Correo ya registrado: ' . $row['correo'];
-                        continue;
-                    }
-                }
+    //             // Validar correo único si está presente
+    //             if (!empty($row['correo'])) {
+    //                 if (Persona::where('correo', $row['correo'])->exists()) {
+    //                     $errores[$numeroFila] = 'Correo ya registrado: ' . $row['correo'];
+    //                     continue;
+    //                 }
+    //             }
 
-                // Crear registro
-                Persona::create([
-                    'cedula' => $row['cedula'],
-                    'nombres' => $row['nombres'],
-                    'celular' => $row['celular'],
-                    'correo' => $row['correo'],
-                    'carrera_id' => $carrera->id_carrera,
-                    'cargo_id' => $cargo->id_cargo,
-                ]);
+    //             // Crear registro
+    //             Persona::create([
+    //                 'cedula' => $row['cedula'],
+    //                 'nombres' => $row['nombres'],
+    //                 'celular' => $row['celular'],
+    //                 'correo' => $row['correo'],
+    //                 'carrera_id' => $carrera->id_carrera,
+    //                 'cargo_id' => $cargo->id_cargo,
+    //             ]);
 
-                $importedCount++;
+    //             $importedCount++;
+    //         }
+
+    //         DB::commit();
+
+    //         return redirect()->route('personas.index')->with([
+    //             'success' => "Se importaron {$importedCount} registros correctamente",
+    //             'import_errors' => $errores
+    //         ]);
+
+    //     } catch (\Throwable $e) {
+    //         DB::rollBack();
+    //         return back()->with('error', 'Error en la importación: ' . $e->getMessage());
+    //     }
+    // }
+    
+public function import(Request $request)
+{
+    $request->validate([
+        'archivo_csv' => 'required|file|mimes:csv,txt|max:2048',
+    ]);
+
+    $file = $request->file('archivo_csv');
+
+    // 1. Abrimos temporalmente el fichero para leer la primera línea
+    $handle = fopen($file->getPathname(), 'r');
+    $firstLine = fgets($handle);
+    fclose($handle);
+
+    // 2. Detectamos si existe ';' en la primera línea, si no, asumimos ','
+    $delimiter = (strpos($firstLine, ';') !== false) ? ';' : ',';
+
+    // 3. Creamos el Reader y asignamos el delimitador detectado
+    $csv = Reader::createFromPath($file->getPathname(), 'r');
+    $csv->setHeaderOffset(0);
+    $csv->setDelimiter($delimiter);
+
+    DB::beginTransaction();
+    $importedCount = 0;
+    $errores = [];
+
+    try {
+        foreach ($csv->getRecords() as $index => $row) {
+            $fila = $index + 2;
+
+            // Validar campos (asegúrate de que tus encabezados coincidan con estos)
+            if (empty($row['cedula'])) {
+                $errores[$fila] = 'Cédula vacía';
+                continue;
+            }
+            if (empty($row['nombres'])) {
+                $errores[$fila] = 'Nombres vacíos';
+                continue;
+            }
+            if (empty($row['celular'])) {
+                $errores[$fila] = 'Celular vacío';
+                continue;
+            }
+            if (empty($row['correo'])) {
+                $errores[$fila] = 'Correo vacío';
+                continue;
+            }
+            if (empty($row['carrera'])) {
+                $errores[$fila] = 'Carrera vacía';
+                continue;
+            }
+            if (empty($row['cargo'])) {
+                $errores[$fila] = 'Cargo vacío';
+                continue;
             }
 
-            DB::commit();
+            // Verificar cédula única
+            if (Persona::where('cedula', $row['cedula'])->exists()) {
+                $errores[$fila] = 'Cédula ya registrada: ' . $row['cedula'];
+                continue;
+            }
 
-            return redirect()->route('personas.index')->with([
-                'success' => "Se importaron {$importedCount} registros correctamente",
-                'import_errors' => $errores
+            // Buscar carrera y cargo (ignorando mayúsculas/minúsculas)
+            $carrera = Carrera::whereRaw('LOWER(nombre_carrera) = ?', [strtolower(trim($row['carrera']))])->first();
+            if (! $carrera) {
+                $errores[$fila] = 'Carrera no encontrada: ' . $row['carrera'];
+                continue;
+            }
+
+            $cargo = Cargo::whereRaw('LOWER(nombre_cargo) = ?', [strtolower(trim($row['cargo']))])->first();
+            if (! $cargo) {
+                $errores[$fila] = 'Cargo no encontrado: ' . $row['cargo'];
+                continue;
+            }
+
+            // Verificar correo único
+            if (Persona::where('correo', $row['correo'])->exists()) {
+                $errores[$fila] = 'Correo ya registrado: ' . $row['correo'];
+                continue;
+            }
+
+            // Crear persona
+            Persona::create([
+                'cedula'     => $row['cedula'],
+                'nombres'    => $row['nombres'],
+                'celular'    => $row['celular'],
+                'correo'     => $row['correo'],
+                'carrera_id' => $carrera->id_carrera,
+                'cargo_id'   => $cargo->id_cargo,
             ]);
 
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return back()->with('error', 'Error en la importación: ' . $e->getMessage());
+            $importedCount++;
         }
+
+        DB::commit();
+
+        return redirect()->route('personas.index')->with([
+            'success'       => "Se importaron {$importedCount} registros correctamente",
+            'import_errors' => $errores,
+        ]);
+    } catch (\Throwable $e) {
+        DB::rollBack();
+        return back()->with('error', 'Error en la importación: ' . $e->getMessage());
     }
+}
+
+
+
 }
