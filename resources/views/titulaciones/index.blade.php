@@ -298,6 +298,15 @@
         border-color: #f5c6cb;
     }
 
+    .form-label {
+        font-weight: 600;
+        color: #d32f2f;
+    }
+
+    .gap-2 {
+        gap: 0.5rem;
+    }
+
     @media (max-width: 768px) {
         .header-logo {
             height: 30px;
@@ -365,69 +374,89 @@
         </div>
     @endif
 
-    <form method="GET" action="{{ route('titulaciones.index') }}" class="mb-3 d-flex align-items-center flex-wrap">
-        <label for="director_filtro" class="me-2 mb-0">Filtrar por Director:</label>
-        <select name="director_filtro" id="director_filtro" class="form-control me-2 mb-2" style="width:auto;">
-            <option value="">-- Todos --</option>
-            @foreach($docentes as $docente)
-                <option value="{{ $docente->cedula }}" {{ request('director_filtro') == $docente->cedula ? 'selected' : '' }}>
-                    {{ $docente->nombres }}
-                </option>
-            @endforeach
-        </select>
+    <div class="filter-container mb-3" style="background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.06); padding: 18px 18px 8px 18px;">
+        <form method="GET" action="{{ route('titulaciones.index') }}">
+            <div class="d-flex flex-wrap align-items-end gap-2">
+                <div class="mb-2 me-3">
+                    <label for="director_filtro" class="form-label mb-1 fw-bold">Director</label>
+                    <select name="director_filtro" id="director_filtro" class="form-control">
+                        <option value="">-- Todos --</option>
+                        @foreach($docentes as $docente)
+                            <option value="{{ $docente->cedula }}" {{ request('director_filtro') == $docente->cedula ? 'selected' : '' }}>
+                                {{ $docente->nombres }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="mb-2 me-3">
+                    <label for="asesor1_filtro" class="form-label mb-1 fw-bold">Asesor 1</label>
+                    <select name="asesor1_filtro" id="asesor1_filtro" class="form-control">
+                        <option value="">-- Todos --</option>
+                        @foreach($docentes as $docente)
+                            <option value="{{ $docente->cedula }}" {{ request('asesor1_filtro') == $docente->cedula ? 'selected' : '' }}>
+                                {{ $docente->nombres }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="mb-2 me-3">
+                    <label for="periodo_filtro" class="form-label mb-1 fw-bold">Periodo</label>
+                    <select name="periodo_filtro" id="periodo_filtro" class="form-control">
+                        <option value="">-- Todos --</option>
+                        @foreach($periodos as $periodo)
+                            <option value="{{ $periodo->id_periodo }}" {{ request('periodo_filtro') == $periodo->id_periodo ? 'selected' : '' }}>
+                                {{ $periodo->periodo_academico }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="mb-2 me-3 d-flex align-items-end">
+                    <div>
+                        <label for="fecha_inicio" class="form-label mb-1 fw-bold">Desde</label>
+                        <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control" value="{{ request('fecha_inicio') }}">
+                    </div>
+                    <div class="ms-2">
+                        <label for="fecha_fin" class="form-label mb-1 fw-bold">Hasta</label>
+                        <input type="date" name="fecha_fin" id="fecha_fin" class="form-control" value="{{ request('fecha_fin') }}">
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+                <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+                @if(request('director_filtro') || request('asesor1_filtro') || request('periodo_filtro') || request('fecha_inicio') || request('fecha_fin'))
+                    <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary btn-sm">Quitar filtro</a>
+                @endif
+                <button type="submit" formaction="{{ route('titulaciones.pdf') }}" formtarget="_blank" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-file-pdf"></i> Generar PDF
+                </button>
+            </div>
+        </form>
+    </div>
 
-        <label for="asesor1_filtro" class="me-2 mb-0 ms-3">Filtrar por Asesor 1:</label>
-        <select name="asesor1_filtro" id="asesor1_filtro" class="form-control me-2 mb-2" style="width:auto;">
-            <option value="">-- Todos --</option>
-            @foreach($docentes as $docente)
-                <option value="{{ $docente->cedula }}" {{ request('asesor1_filtro') == $docente->cedula ? 'selected' : '' }}>
-                    {{ $docente->nombres }}
-                </option>
-            @endforeach
-        </select>
-
-        <label for="periodo_filtro" class="me-2 mb-0 ms-3">Filtrar por Periodo:</label>
-        <select name="periodo_filtro" id="periodo_filtro" class="form-control me-2 mb-2" style="width:auto;">
-            <option value="">-- Todos --</option>
-            @foreach($periodos as $periodo)
-                <option value="{{ $periodo->id_periodo }}" {{ request('periodo_filtro') == $periodo->id_periodo ? 'selected' : '' }}>
-                    {{ $periodo->periodo_academico }}
-                </option>
-            @endforeach
-        </select>
-
-        <label for="estado_filtro" class="me-2 mb-0 ms-3">Filtrar por Estado:</label>
-        <select name="estado_filtro" id="estado_filtro" class="form-control me-2 mb-2" style="width:auto;">
-            <option value="">-- Todos --</option>
-            @foreach($estados as $estado)
-                <option value="{{ $estado->id_estado }}" {{ request('estado_filtro') == $estado->id_estado ? 'selected' : '' }}>
-                    {{ $estado->nombre_estado }}
-                </option>
-            @endforeach
-        </select>
-
-        <label for="fecha_inicio" class="me-2 mb-0 ms-3">Desde (Consejo directivo):</label>
-        <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control me-2 mb-2" style="width:auto;" value="{{ request('fecha_inicio') }}">
-
-        <label for="fecha_fin" class="me-2 mb-0">Hasta (Consejo directivo):</label>
-        <input type="date" name="fecha_fin" id="fecha_fin" class="form-control me-2 mb-2" style="width:auto;" value="{{ request('fecha_fin') }}">
-
-        <button type="submit" class="btn btn-primary btn-sm mb-2">Filtrar</button>
-        @if(request('director_filtro') || request('asesor1_filtro') || request('periodo_filtro') || request('estado_filtro') || request('fecha_inicio') || request('fecha_fin'))
-            <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary btn-sm ms-2 mb-2">Quitar filtro</a>
-        @endif
-
-        <!-- Botón para generar PDF -->
-        <button type="submit" formaction="{{ route('titulaciones.pdf') }}" formtarget="_blank" class="btn btn-outline-primary btn-sm ms-2 mb-2">
-            <i class="fas fa-file-pdf"></i> Generar PDF
-        </button>
-    </form>
+    <div class="mb-2">
+        <span class="fw-bold">
+            Resultados: {{ $titulaciones->count() }}
+            @if(request('estado_filtro'))
+                (Estado: {{ $estados->firstWhere('id_estado', request('estado_filtro'))->nombre_estado ?? '' }})
+            @endif
+            @if(request('director_filtro') || request('asesor1_filtro') || request('periodo_filtro') || request('fecha_inicio') || request('fecha_fin'))
+                (Filtrado)
+            @endif
+        </span>
+    </div>
 
     <div class="d-flex flex-column flex-md-row justify-content-between mb-4">
         <div class="btn-group mb-2 mb-md-0">
-            <a href="{{ route('titulaciones.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Nueva Titulación
+            <a href="{{ route('titulaciones.index') }}"
+               class="btn btn-outline-primary {{ !request('estado_filtro') ? 'active' : '' }}">
+                Todos
             </a>
+            @foreach($estados as $estado)
+                <a href="{{ route('titulaciones.index', array_merge(request()->except('page', 'estado_filtro'), ['estado_filtro' => $estado->id_estado])) }}"
+                   class="btn btn-outline-info {{ request('estado_filtro') == $estado->id_estado ? 'active' : '' }}">
+                    {{ $estado->nombre_estado }}
+                </a>
+            @endforeach
         </div>
     </div>
 
