@@ -27,11 +27,13 @@
     }
 
     .header-logo {
+        /* Idealmente, aquí se definiría un background-image si el logo es vía CSS */
         background-repeat: no-repeat;
         background-size: contain;
         height: 40px;
-        width: auto;
+        width: 40px; /* Ajustado para tener un tamaño si no hay imagen */
         margin-right: 15px;
+        background-color: #fff; /* Placeholder color si no hay logo */
     }
 
     .header-text-container {
@@ -85,6 +87,7 @@
         border-radius: 5px;
         font-size: 1em;
         transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        box-sizing: border-box; /* Añadido para consistencia en el tamaño */
     }
 
     .form-control:focus {
@@ -101,6 +104,7 @@
         color: #dc3545;
         font-size: 0.875em;
         margin-top: 5px;
+        display: block; /* Asegura que el mensaje se muestre */
     }
 
     textarea.form-control {
@@ -109,7 +113,8 @@
     }
 
     select.form-control {
-        height: auto;
+        height: auto; /* Puede ser problemático, mejor usar padding como en inputs */
+        padding: 10px; /* Asegurar padding consistente */
     }
 
     .btn {
@@ -185,6 +190,7 @@
 
     .nav-tabs {
         border-bottom: 1px solid #dee2e6;
+        margin-bottom: 0; /* Ajuste para que el contenido del tab se una mejor */
     }
 
     .nav-tabs .nav-link {
@@ -193,6 +199,7 @@
         border-top-left-radius: 5px;
         border-top-right-radius: 5px;
         padding: 10px 20px;
+        margin-bottom: -1px; /* Para que el borde inferior se solape con el del tab-content */
     }
 
     .nav-tabs .nav-link:hover {
@@ -236,6 +243,7 @@
     @media (max-width: 768px) {
         .header-logo {
             height: 30px;
+            width: 30px; /* Ajustado */
             margin-right: 10px;
         }
 
@@ -266,7 +274,8 @@
 
 <div class="container">
     <div class="header-container">
-        <div class="header-logo"></div>
+        <div class="header-logo">
+            </div>
         <div class="header-text-container">
             <span class="utn-text">UTN</span>
             <span class="ibarra-text">IBARRA - ECUADOR</span>
@@ -277,7 +286,7 @@
 
     @if ($errors->any())
         <div class="alert alert-danger">
-            <ul style="margin-bottom: 0;">
+            <ul style="margin-bottom: 0; padding-left: 20px;">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
@@ -294,26 +303,26 @@
     <div class="form-container">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
-                <a class="nav-link" id="csv-tab" data-bs-toggle="tab" href="#csv" role="tab" aria-controls="csv" aria-selected="true">Importar desde CSV</a>
+                <a class="nav-link" id="csv-tab" data-bs-toggle="tab" href="#csv" role="tab" aria-controls="csv" aria-selected="false">Importar desde CSV</a>
             </li>
             <li class="nav-item" role="presentation">
-                <a class="nav-link active" id="manual-tab" data-bs-toggle="tab" href="#manual" role="tab" aria-controls="manual" aria-selected="false">Ingreso Manual</a>
+                <a class="nav-link active" id="manual-tab" data-bs-toggle="tab" href="#manual" role="tab" aria-controls="manual" aria-selected="true">Ingreso Manual</a>
             </li>
         </ul>
 
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade" id="csv" role="tabpanel" aria-labelledby="csv-tab">
-                <h3 class="section-title" style="margin-top: 0;">Importar Titulaciones desde CSV</h3>
+                <h3 class="section-title" style="margin-top: 20px;">Importar Titulaciones desde CSV</h3>
                 <div class="alert alert-info">
                     <strong>Formato requerido:</strong> El archivo debe contener las columnas: 
-                    Tema, Cédula estudiante,Cédula director,Cédula asesor 1, 
+                    Tema, Cédula estudiante, Cédula director, Cédula asesor 1, 
                     Periodo, Estado, Avance, Observaciones
                 </div>
                 <form action="{{ route('titulaciones.importCsv') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="form-group">
                         <label for="csv_file" class="form-label">Archivo CSV:</label>
-                        <input type="file" name="csv_file" class="form-control" accept=".csv" required>
+                        <input type="file" name="csv_file" id="csv_file" class="form-control" accept=".csv" required>
                     </div>
                     <div class="form-group">
                         <button type="submit" class="btn btn-success">
@@ -324,7 +333,7 @@
             </div>
 
             <div class="tab-pane fade show active" id="manual" role="tabpanel" aria-labelledby="manual-tab">
-                <form action="{{ route('titulaciones.store') }}" method="POST">
+                <form action="{{ route('titulaciones.store') }}" method="POST" style="margin-top: 20px;">
                     @csrf
                     
                     <div class="form-group">
@@ -335,122 +344,59 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    <!-- Reemplaza los campos de estudiante con este select -->
 <div class="form-group">
     <label for="persona_estudiante_id" class="form-label">Estudiante</label>
-    <select id="persona_estudiante_id" name="persona_estudiante_id" class="form-control @error('persona_estudiante_id') is-invalid @enderror" required>
+    <select id="persona_estudiante_id" name="persona_estudiante_id" class="form-control" required>
         <option value="">Seleccione un estudiante</option>
         @foreach($personas as $persona)
-            @if($persona->cargo->nombre_cargo == 'Estudiante') <!-- Ajusta según tu estructura -->
-                <option value="{{ $persona->id }}" data-cedula="{{ $persona->cedula }}" {{ old('persona_estudiante_id') == $persona->id ? 'selected' : '' }}>
-                    {{ $persona->nombres }} - {{ $persona->cedula }}
+            @if($persona->cargo && $persona->cargo->nombre_cargo == 'Estudiante')
+                <option value="{{ $persona->id }}" data-cedula="{{ $persona->cedula }}">
+                    {{ $persona->nombres }}
                 </option>
             @endif
         @endforeach
     </select>
-    @error('persona_estudiante_id')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
 </div>
-
-<!-- Mantén el campo de cédula pero hazlo readonly -->
 <div class="form-group">
     <label for="cedula_estudiante" class="form-label">Cédula Estudiante</label>
-    <input type="text" id="cedula_estudiante" name="cedula_estudiante" class="form-control @error('cedula_estudiante') is-invalid @enderror" 
-           placeholder="Cédula Estudiante" value="{{ old('cedula_estudiante') }}" readonly required>
-    @error('cedula_estudiante')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
+    <input type="text" id="cedula_estudiante" name="cedula_estudiante" class="form-control" readonly required>
 </div>
 
-<!-- Reemplaza los campos de director con este select -->
 <div class="form-group">
     <label for="persona_director_id" class="form-label">Director</label>
-    <select id="persona_director_id" name="persona_director_id" class="form-control @error('persona_director_id') is-invalid @enderror" required>
+    <select id="persona_director_id" name="persona_director_id" class="form-control" required>
         <option value="">Seleccione un director</option>
         @foreach($personas as $persona)
-            @if($persona->cargo->nombre_cargo == 'Docente') <!-- Ajusta según tu estructura -->
-                <option value="{{ $persona->id }}" data-cedula="{{ $persona->cedula }}" {{ old('persona_director_id') == $persona->id ? 'selected' : '' }}>
-                    {{ $persona->nombres }} - {{ $persona->cedula }}
+            @if($persona->cargo && $persona->cargo->nombre_cargo == 'Docente')
+                <option value="{{ $persona->id }}" data-cedula="{{ $persona->cedula }}">
+                    {{ $persona->nombres }}
                 </option>
             @endif
         @endforeach
     </select>
-    @error('persona_director_id')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
 </div>
-
-<!-- Mantén el campo de cédula pero hazlo readonly -->
 <div class="form-group">
     <label for="cedula_director" class="form-label">Cédula Director</label>
-    <input type="text" id="cedula_director" name="cedula_director" class="form-control @error('cedula_director') is-invalid @enderror" 
-           placeholder="Cédula Director" value="{{ old('cedula_director') }}" readonly required>
-    @error('cedula_director')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
+    <input type="text" id="cedula_director" name="cedula_director" class="form-control" readonly required>
 </div>
 
-<!-- Reemplaza los campos de asesor con este select -->
 <div class="form-group">
     <label for="persona_asesor_id" class="form-label">Asesor 1</label>
-    <select id="persona_asesor_id" name="persona_asesor_id" class="form-control @error('persona_asesor_id') is-invalid @enderror" required>
+    <select id="persona_asesor_id" name="persona_asesor_id" class="form-control" required>
         <option value="">Seleccione un asesor</option>
         @foreach($personas as $persona)
-            @if($persona->cargo->nombre_cargo == 'Docente') <!-- Ajusta según tu estructura -->
-                <option value="{{ $persona->id }}" data-cedula="{{ $persona->cedula }}" {{ old('persona_asesor_id') == $persona->id ? 'selected' : '' }}>
-                    {{ $persona->nombres }} - {{ $persona->cedula }}
+            @if($persona->cargo && $persona->cargo->nombre_cargo == 'Docente')
+                <option value="{{ $persona->id }}" data-cedula="{{ $persona->cedula }}">
+                    {{ $persona->nombres }}
                 </option>
             @endif
         @endforeach
     </select>
-    @error('persona_asesor_id')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
 </div>
-
-<!-- Mantén el campo de cédula pero hazlo readonly -->
 <div class="form-group">
     <label for="cedula_asesor1" class="form-label">Cédula Asesor 1</label>
-    <input type="text" id="cedula_asesor1" name="cedula_asesor1" class="form-control @error('cedula_asesor1') is-invalid @enderror" 
-           placeholder="Cédula Asesor 1" value="{{ old('cedula_asesor1') }}" readonly required>
-    @error('cedula_asesor1')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
+    <input type="text" id="cedula_asesor1" name="cedula_asesor1" class="form-control" readonly required>
 </div>
-
-<!-- Agrega este script al final para manejar la actualización de cédulas -->
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Función para actualizar cédula
-        function actualizarCedula(selectId, inputCedulaId) {
-            const select = document.getElementById(selectId);
-            const inputCedula = document.getElementById(inputCedulaId);
-            
-            select.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                if (selectedOption.value) {
-                    inputCedula.value = selectedOption.getAttribute('data-cedula');
-                } else {
-                    inputCedula.value = '';
-                }
-            });
-            
-            // Actualizar al cargar si ya hay un valor seleccionado
-            if (select.value) {
-                const selectedOption = select.options[select.selectedIndex];
-                inputCedula.value = selectedOption.getAttribute('data-cedula');
-            }
-        }
-        
-        // Configurar los listeners
-        actualizarCedula('persona_estudiante_id', 'cedula_estudiante');
-        actualizarCedula('persona_director_id', 'cedula_director');
-        actualizarCedula('persona_asesor_id', 'cedula_asesor1');
-    });
-</script>
-@endpush
                     <div class="form-group">
                         <label for="periodo_id" class="form-label">Periodo</label>
                         <select id="periodo_id" name="periodo_id" class="form-control @error('periodo_id') is-invalid @enderror" required>
@@ -499,14 +445,16 @@
                         @enderror
                     </div>
                     
+                    @if(isset($resolucionesSeleccionadas) && $resolucionesSeleccionadas->count() > 0)
                     <div class="form-group">
                         <label class="form-label">Resoluciones seleccionadas:</label>
                         <ul class="resoluciones-list">
                             @foreach($resolucionesSeleccionadas as $res)
-                                <li>{{ $res->numero_res }} - {{ $res->tipoResolucion->nombre ?? '' }}</li>
+                                <li>{{ $res->numero_res }} - {{ $res->tipoResolucion->nombre ?? 'Tipo no especificado' }}</li>
                             @endforeach
                         </ul>
                     </div>
+                    @endif
                     
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary">
@@ -523,6 +471,34 @@
 </div>
 
 @push('scripts')
+{{-- CDN de Font Awesome para los iconos --}}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+{{-- Script para la funcionalidad de autocompletar cédula y manejo de tabs --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function actualizarCedula(selectId, inputCedulaId) {
+        const select = document.getElementById(selectId);
+        const inputCedula = document.getElementById(inputCedulaId);
+
+        function setCedula() {
+            const selectedOption = select.options[select.selectedIndex];
+            console.log('ID:', selectId, 'Seleccionado:', selectedOption.value, 'Cédula:', selectedOption.getAttribute('data-cedula'));
+            if (selectedOption && selectedOption.value) {
+                inputCedula.value = selectedOption.getAttribute('data-cedula') || '';
+            } else {
+                inputCedula.value = '';
+            }
+        }
+
+        select.addEventListener('change', setCedula);
+        setCedula();
+    }
+
+    actualizarCedula('persona_estudiante_id', 'cedula_estudiante');
+    actualizarCedula('persona_director_id', 'cedula_director');
+    actualizarCedula('persona_asesor_id', 'cedula_asesor1');
+});
+</script>
 @endpush
 @endsection
