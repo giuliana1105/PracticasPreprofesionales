@@ -389,7 +389,6 @@
                     <th>Observaciones</th>
                     <th>Resolución (Tipo)</th>
                     <th>Fecha aprobación (Consejo directivo)</th>
-                    <th>Acta de grado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -424,15 +423,6 @@
                                 ->first();
                         @endphp
                         {{ $fechaConsejo ?? '' }}
-                    </td>
-                    <td>
-                        @if($tit->acta_grado)
-                            <a href="{{ asset('storage/' . $tit->acta_grado) }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                Ver acta de grado
-                            </a>
-                        @else
-                            -
-                        @endif
                     </td>
                     <td>
                         <div class="d-flex justify-content-center">
