@@ -16,7 +16,7 @@ class TitulacionController extends Controller
 {
     public function index(Request $request)
     {
-        $periodos = \App\Models\Periodo::orderBy('periodo_academico')->get();
+        $estados = \App\Models\EstadoTitulacion::orderBy('nombre_estado')->get();
 
         $query = Titulacion::with([
             'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona'
@@ -31,6 +31,9 @@ class TitulacionController extends Controller
         if ($request->filled('periodo_filtro')) {
             $query->where('periodo_id', $request->periodo_filtro);
         }
+        if ($request->filled('estado_filtro')) {
+            $query->where('estado_id', $request->estado_filtro);
+        }
 
         $titulaciones = $query->get();
 
@@ -38,7 +41,9 @@ class TitulacionController extends Controller
             $q->where('nombre_cargo', 'Docente');
         })->orderBy('nombres')->get();
 
-        return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos'));
+        $periodos = \App\Models\Periodo::orderBy('periodo_academico')->get();
+
+        return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados'));
     }
 
     public function create()

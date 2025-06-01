@@ -392,8 +392,18 @@
             @endforeach
         </select>
 
+        <label for="estado_filtro" class="me-2 mb-0 ms-3">Filtrar por Estado:</label>
+        <select name="estado_filtro" id="estado_filtro" class="form-control me-2" style="width:auto;">
+            <option value="">-- Todos --</option>
+            @foreach($estados as $estado)
+                <option value="{{ $estado->id_estado }}" {{ request('estado_filtro') == $estado->id_estado ? 'selected' : '' }}>
+                    {{ $estado->nombre_estado }}
+                </option>
+            @endforeach
+        </select>
+
         <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-        @if(request('director_filtro') || request('asesor1_filtro') || request('periodo_filtro'))
+        @if(request('director_filtro') || request('asesor1_filtro') || request('periodo_filtro') || request('estado_filtro'))
             <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary btn-sm ms-2">Quitar filtro</a>
         @endif
     </form>
