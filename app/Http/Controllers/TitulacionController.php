@@ -43,9 +43,10 @@ class TitulacionController extends Controller
             'estado_id' => 'required|exists:estado_titulaciones,id_estado',
             'avance' => 'required|integer|min:0|max:100',
             'observaciones' => 'nullable|string',
+            'acta_grado' => 'nullable|file|mimes:pdf|max:2048',
         ]);
 
-        $titulacion = Titulacion::create($request->only([
+        $data = $request->only([
             'tema',
             'cedula_estudiante',
             'cedula_director',
@@ -54,7 +55,15 @@ class TitulacionController extends Controller
             'estado_id',
             'avance',
             'observaciones'
-        ]));
+        ]);
+
+        // Si subió acta y el estado es Graduado, guárdala
+        if ($request->hasFile('acta_grado') && $request->estado_id && 
+            \App\Models\EstadoTitulacion::find($request->estado_id)?->nombre_estado === 'Graduado') {
+            $data['acta_grado'] = $request->file('acta_grado')->store('actas_grado', 'public');
+        }
+
+        $titulacion = Titulacion::create($data);
 
         $resolucionesSeleccionadas = \App\Models\ResolucionSeleccionada::pluck('resolucion_id');
         foreach ($resolucionesSeleccionadas as $resolucion_id) {

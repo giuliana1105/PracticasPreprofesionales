@@ -219,7 +219,7 @@
     @endif
 
     <div class="form-container">
-        <form action="{{ route('titulaciones.update', $titulacion->id_titulacion) }}" method="POST">
+        <form action="{{ route('titulaciones.update', $titulacion->id_titulacion) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             
@@ -314,6 +314,18 @@
             </div>
             
             <div class="form-group">
+                <label for="acta_grado" class="form-label">Acta de grado (PDF)</label>
+                @if($titulacion->acta_grado)
+                    <div class="mb-2">
+                        <a href="{{ asset('storage/' . $titulacion->acta_grado) }}" target="_blank" class="btn btn-success btn-sm">
+                            Ver acta de grado
+                        </a>
+                    </div>
+                @endif
+                <input type="file" id="acta_grado" name="acta_grado" class="form-control" accept="application/pdf" disabled>
+            </div>
+            
+            <div class="form-group">
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Actualizar Titulación
                 </button>
@@ -327,5 +339,22 @@
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const estadoSelect = document.getElementById('estado_id');
+    const actaInput = document.getElementById('acta_grado');
+    function toggleActa() {
+        const selected = estadoSelect.options[estadoSelect.selectedIndex];
+        if (selected && selected.text.trim().toLowerCase() === 'graduado') {
+            actaInput.disabled = false;
+        } else {
+            actaInput.disabled = true;
+            actaInput.value = '';
+        }
+    }
+    estadoSelect.addEventListener('change', toggleActa);
+    toggleActa();
+});
+</script>
 @endpush
 @endsection

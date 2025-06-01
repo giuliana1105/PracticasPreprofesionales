@@ -333,7 +333,7 @@
             </div>
 
             <div class="tab-pane fade show active" id="manual" role="tabpanel" aria-labelledby="manual-tab">
-                <form action="{{ route('titulaciones.store') }}" method="POST" style="margin-top: 20px;">
+                <form action="{{ route('titulaciones.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     
                     <div class="form-group">
@@ -457,6 +457,11 @@
                     @endif
                     
                     <div class="form-group">
+                        <label for="acta_grado" class="form-label">Acta de grado (PDF)</label>
+                        <input type="file" id="acta_grado" name="acta_grado" class="form-control" accept="application/pdf" disabled>
+                    </div>
+                    
+                    <div class="form-group">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> Guardar Titulación
                         </button>
@@ -498,6 +503,21 @@ document.addEventListener('DOMContentLoaded', function() {
     actualizarCedula('persona_estudiante_id', 'cedula_estudiante');
     actualizarCedula('persona_director_id', 'cedula_director');
     actualizarCedula('persona_asesor_id', 'cedula_asesor1');
+
+    // Habilitar campo acta de grado solo si estado es Graduado
+    const estadoSelect = document.getElementById('estado_id');
+    const actaInput = document.getElementById('acta_grado');
+    function toggleActa() {
+        const selected = estadoSelect.options[estadoSelect.selectedIndex];
+        if (selected && selected.text.trim().toLowerCase() === 'graduado') {
+            actaInput.disabled = false;
+        } else {
+            actaInput.disabled = true;
+            actaInput.value = '';
+        }
+    }
+    estadoSelect.addEventListener('change', toggleActa);
+    toggleActa();
 });
 </script>
 @endpush

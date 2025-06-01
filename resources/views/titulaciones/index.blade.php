@@ -389,6 +389,7 @@
                     <th>Observaciones</th>
                     <th>Resolución (Tipo)</th>
                     <th>Fecha aprobación (Consejo directivo)</th>
+                    <th>Acta de grado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -425,6 +426,11 @@
                         {{ $fechaConsejo ?? '' }}
                     </td>
                     <td>
+                        @if($tit->acta_grado)
+        <a href="{{ asset('storage/' . $tit->acta_grado) }}" target="_blank">Ver PDF</a>
+    @endif
+                    </td>
+                    <td>
                         <div class="d-flex justify-content-center">
                             <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" 
                                class="btn btn-sm btn-warning mx-1" 
@@ -443,6 +449,17 @@
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </form>
+                            @if($tit->estado && strtolower($tit->estado->nombre_estado) === 'graduado')
+                                @if($tit->acta_grado)
+                                    <a href="{{ asset('storage/' . $tit->acta_grado) }}" target="_blank" class="btn btn-success btn-sm">
+                                        Ver acta de grado
+                                    </a>
+                                @else
+                                    <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}#acta_grado" class="btn btn-info btn-sm">
+                                        Subir acta de grado
+                                    </a>
+                                @endif
+                            @endif
                         </div>
                     </td>
                 </tr>
