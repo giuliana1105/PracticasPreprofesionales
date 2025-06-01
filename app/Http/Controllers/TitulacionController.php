@@ -23,7 +23,6 @@ class TitulacionController extends Controller
     {
         $periodos = Periodo::all();
         $estados = EstadoTitulacion::all();
-        // Solo resoluciones seleccionadas
         $resolucionesSeleccionadas = \App\Models\Resolucion::whereIn(
             'id_Reso',
             \App\Models\ResolucionSeleccionada::pluck('resolucion_id')
@@ -36,11 +35,8 @@ class TitulacionController extends Controller
     {
         $request->validate([
             'tema' => 'required|string',
-            'estudiante' => 'required|string',
             'cedula_estudiante' => 'required|exists:personas,cedula',
-            'director' => 'required|string',
             'cedula_director' => 'required|exists:personas,cedula',
-            'asesor1' => 'required|string',
             'cedula_asesor1' => 'required|exists:personas,cedula',
             'periodo_id' => 'required|exists:periodos,id_periodo',
             'estado_id' => 'required|exists:estado_titulaciones,id_estado',
@@ -48,12 +44,18 @@ class TitulacionController extends Controller
             'observaciones' => 'nullable|string',
         ]);
 
-        $titulacion = Titulacion::create($request->all());
+        $titulacion = Titulacion::create($request->only([
+            'tema',
+            'cedula_estudiante',
+            'cedula_director',
+            'cedula_asesor1',
+            'periodo_id',
+            'estado_id',
+            'avance',
+            'observaciones'
+        ]));
 
-        // Obtener todas las resoluciones seleccionadas
         $resolucionesSeleccionadas = \App\Models\ResolucionSeleccionada::pluck('resolucion_id');
-
-        // Guardar relación en res_temas
         foreach ($resolucionesSeleccionadas as $resolucion_id) {
             ResTema::create([
                 'titulacion_id' => $titulacion->id_titulacion,
@@ -77,11 +79,8 @@ class TitulacionController extends Controller
     {
         $request->validate([
             'tema' => 'required|string',
-            'estudiante' => 'required|string',
             'cedula_estudiante' => 'required|exists:personas,cedula',
-            'director' => 'required|string',
             'cedula_director' => 'required|exists:personas,cedula',
-            'asesor1' => 'required|string',
             'cedula_asesor1' => 'required|exists:personas,cedula',
             'periodo_id' => 'required|exists:periodos,id_periodo',
             'estado_id' => 'required|exists:estado_titulaciones,id_estado',
@@ -90,7 +89,16 @@ class TitulacionController extends Controller
         ]);
 
         $titulacion = Titulacion::findOrFail($id);
-        $titulacion->update($request->all());
+        $titulacion->update($request->only([
+            'tema',
+            'cedula_estudiante',
+            'cedula_director',
+            'cedula_asesor1',
+            'periodo_id',
+            'estado_id',
+            'avance',
+            'observaciones'
+        ]));
 
         return redirect()->route('titulaciones.index')->with('success', 'Titulación actualizada.');
     }
@@ -119,18 +127,14 @@ class TitulacionController extends Controller
         // Mapeo robusto
         $map = [
             'tema' => 'tema',
-            'estudiante' => 'estudiante',
             'cedulaestudiante' => 'cedula_estudiante',
             'cedula estudiante' => 'cedula_estudiante',
             'cédulaestudiante' => 'cedula_estudiante',
             'cédula estudiante' => 'cedula_estudiante',
-            'director' => 'director',
             'ceduladirector' => 'cedula_director',
             'cedula director' => 'cedula_director',
             'céduladirector' => 'cedula_director',
             'cédula director' => 'cedula_director',
-            'asesor1' => 'asesor1',
-            'asesor 1' => 'asesor1',
             'cedulaasesor1' => 'cedula_asesor1',
             'cedula asesor1' => 'cedula_asesor1',
             'cedulaasesor 1' => 'cedula_asesor1',
@@ -163,7 +167,6 @@ class TitulacionController extends Controller
             $key = $normalize($h);
             $normalizedHeader[] = $map[$key] ?? $key;
         }
-        //dd($normalizedHeader);
 
         $importados = 0;
         $saltados = 0;
@@ -198,11 +201,8 @@ class TitulacionController extends Controller
             ) {
                 $titulacion = \App\Models\Titulacion::create([
                     'tema' => $data['tema'],
-                    'estudiante' => $data['estudiante'],
                     'cedula_estudiante' => $data['cedula_estudiante'],
-                    'director' => $data['director'],
                     'cedula_director' => $data['cedula_director'],
-                    'asesor1' => $data['asesor1'],
                     'cedula_asesor1' => $data['cedula_asesor1'],
                     'periodo_id' => $periodo->id_periodo,
                     'estado_id' => $estado->id_estado,
@@ -237,7 +237,6 @@ class TitulacionController extends Controller
 
     public function show($id)
     {
-        // Puedes dejarlo vacío o redirigir a index
         return redirect()->route('resoluciones.index');
     }
 }

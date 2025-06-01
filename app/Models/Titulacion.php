@@ -40,4 +40,16 @@ class Titulacion extends Model
     {
         return $this->hasMany(ResTema::class, 'titulacion_id', 'id_titulacion');
     }
+    public function estudiantePersona()
+    {
+        return $this->belongsTo(\App\Models\Persona::class, 'cedula_estudiante', 'cedula');
+    }
+    public function directorPersona()
+    {
+        return $this->belongsTo(\App\Models\Persona::class, 'cedula_director', 'cedula');
+    }
+    public function asesor1Persona()
+    {
+        return $this->belongsTo(\App\Models\Persona::class, 'cedula_asesor1', 'cedula');
+    }
 }

@@ -395,11 +395,11 @@
                 @foreach($titulaciones as $tit)
                 <tr>
                     <td>{{ $tit->tema }}</td>
-                    <td>{{ $tit->estudiante }}</td>
+                    <td>{{ $tit->estudiantePersona->nombres ?? '' }}</td>
                     <td>{{ $tit->cedula_estudiante }}</td>
-                    <td>{{ $tit->director }}</td>
+                    <td>{{ $tit->directorPersona->nombres ?? '' }}</td>
                     <td>{{ $tit->cedula_director }}</td>
-                    <td>{{ $tit->asesor1 }}</td>
+                    <td>{{ $tit->asesor1Persona->nombres ?? '' }}</td>
                     <td>{{ $tit->cedula_asesor1 }}</td>
                     <td>{{ $tit->periodo->periodo_academico?? '' }}</td>
                     <td>{{ $tit->estado->nombre_estado ?? '' }}</td>
