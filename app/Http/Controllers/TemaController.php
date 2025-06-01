@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Tema;
 use App\Models\Resolucion;
 use App\Models\ResolucionSeleccionada;
-use App\Models\ResolucionTema;
+use App\Models\ResTema;
 use Illuminate\Http\Request;
 
 class TemaController extends Controller
@@ -140,7 +140,7 @@ public function store(Request $request)
 
         // Asociar el tema con las resoluciones seleccionadas
         foreach ($resolucionesSeleccionadas as $resolucionSeleccionada) {
-            ResolucionTema::create([
+            ResTema::create([
                 'resolucion_id' => $resolucionSeleccionada->resolucion_id,
                 'tema_id' => $tema->id_tema,
             ]);

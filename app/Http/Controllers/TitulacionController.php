@@ -86,6 +86,10 @@ class TitulacionController extends Controller
             'estado_id' => 'required|exists:estado_titulaciones,id_estado',
             'avance' => 'required|integer|min:0|max:100',
             'observaciones' => 'nullable|string',
+        ], [
+            'cedula_estudiante.exists' => 'El número de cédula del estudiante no está registrado en personas.',
+            'cedula_director.exists' => 'El número de cédula del director no está registrado en personas.',
+            'cedula_asesor1.exists' => 'El número de cédula del asesor 1 no está registrado en personas.',
         ]);
 
         $titulacion = Titulacion::findOrFail($id);
