@@ -14,10 +14,31 @@ use Illuminate\Support\Facades\Storage;
 
 class TitulacionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $titulaciones = Titulacion::with(['periodo', 'estado', 'resTemas.resolucion'])->get();
-        return view('titulaciones.index', compact('titulaciones'));
+        $periodos = \App\Models\Periodo::orderBy('periodo_academico')->get();
+
+        $query = Titulacion::with([
+            'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona'
+        ]);
+
+        if ($request->filled('director_filtro')) {
+            $query->where('cedula_director', $request->director_filtro);
+        }
+        if ($request->filled('asesor1_filtro')) {
+            $query->where('cedula_asesor1', $request->asesor1_filtro);
+        }
+        if ($request->filled('periodo_filtro')) {
+            $query->where('periodo_id', $request->periodo_filtro);
+        }
+
+        $titulaciones = $query->get();
+
+        $docentes = \App\Models\Persona::whereHas('cargo', function($q) {
+            $q->where('nombre_cargo', 'Docente');
+        })->orderBy('nombres')->get();
+
+        return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos'));
     }
 
     public function create()
@@ -30,7 +51,11 @@ class TitulacionController extends Controller
             \App\Models\ResolucionSeleccionada::pluck('resolucion_id')
         )->get();
 
-        return view('titulaciones.create', compact('periodos', 'estados', 'resolucionesSeleccionadas','personas'));
+        $docentes = \App\Models\Persona::whereHas('cargo', function($q) {
+            $q->where('nombre_cargo', 'Docente');
+        })->orderBy('nombres')->get();
+
+        return view('titulaciones.create', compact('periodos', 'estados', 'resolucionesSeleccionadas','personas', 'docentes'));
     }
 
     public function store(Request $request)

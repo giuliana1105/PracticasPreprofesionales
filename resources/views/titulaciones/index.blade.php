@@ -361,6 +361,43 @@
         </div>
     @endif
 
+    <form method="GET" action="{{ route('titulaciones.index') }}" class="mb-3 d-flex align-items-center">
+        <label for="director_filtro" class="me-2 mb-0">Filtrar por Director:</label>
+        <select name="director_filtro" id="director_filtro" class="form-control me-2" style="width:auto;">
+            <option value="">-- Todos --</option>
+            @foreach($docentes as $docente)
+                <option value="{{ $docente->cedula }}" {{ request('director_filtro') == $docente->cedula ? 'selected' : '' }}>
+                    {{ $docente->nombres }}
+                </option>
+            @endforeach
+        </select>
+
+        <label for="asesor1_filtro" class="me-2 mb-0 ms-3">Filtrar por Asesor 1:</label>
+        <select name="asesor1_filtro" id="asesor1_filtro" class="form-control me-2" style="width:auto;">
+            <option value="">-- Todos --</option>
+            @foreach($docentes as $docente)
+                <option value="{{ $docente->cedula }}" {{ request('asesor1_filtro') == $docente->cedula ? 'selected' : '' }}>
+                    {{ $docente->nombres }}
+                </option>
+            @endforeach
+        </select>
+
+        <label for="periodo_filtro" class="me-2 mb-0 ms-3">Filtrar por Periodo:</label>
+        <select name="periodo_filtro" id="periodo_filtro" class="form-control me-2" style="width:auto;">
+            <option value="">-- Todos --</option>
+            @foreach($periodos as $periodo)
+                <option value="{{ $periodo->id_periodo }}" {{ request('periodo_filtro') == $periodo->id_periodo ? 'selected' : '' }}>
+                    {{ $periodo->periodo_academico }}
+                </option>
+            @endforeach
+        </select>
+
+        <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+        @if(request('director_filtro') || request('asesor1_filtro') || request('periodo_filtro'))
+            <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary btn-sm ms-2">Quitar filtro</a>
+        @endif
+    </form>
+
     <div class="d-flex justify-content-between mb-4">
         <div>
             <a href="{{ route('titulaciones.create') }}" class="btn btn-primary">
