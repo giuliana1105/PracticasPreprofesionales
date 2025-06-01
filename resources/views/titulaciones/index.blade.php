@@ -2,22 +2,18 @@
 
 @section('content')
 <style>
-    /* Reseteo y estilo general */
     body {
         background-color: #e9ecef;
         color: #212529;
         margin: 0;
-        padding: 0 10px 20px 10px; /* algo de padding lateral pequeño para no pegarlo totalmente a borde */
+        padding-bottom: 20px;
         font-family: sans-serif;
-        overflow-x: hidden; /* Evitar scroll horizontal por margen */
     }
 
-    /* Contenedor usa todo el ancho posible */
     .container {
-        width: 100% !important; /* fuerza ocupar todo el ancho */
-        padding: 10px 0; /* menos padding para ganar espacio */
+        max-width: 1200px;
         margin: 0 auto;
-        box-sizing: border-box;
+        padding: 20px;
     }
 
     .header-container {
@@ -63,23 +59,18 @@
         font-weight: bold;
     }
 
-    /* Contenedor tabla con scroll horizontal */
     .table-container {
         background-color: #fff;
         border-radius: 5px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         margin-bottom: 20px;
         overflow-x: auto;
-        width: 100%;
     }
 
-    /* Tabla ocupa 100% ancho */
     .table {
-        width: 100% !important;
+        width: 100%;
         margin-bottom: 0;
         border-collapse: collapse;
-        table-layout: auto;
-        min-width: 1200px; /* ancho mínimo para que no se compacte */
     }
 
     .table thead th {
@@ -99,34 +90,15 @@
         padding: 12px;
         text-align: center;
         border-bottom: 1px solid #dee2e6;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 180px; /* ajustar si quieres */
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+        max-width: none;
     }
 
-    /* Agrega esto para mostrar completos los campos solicitados */
-    .table td[data-label="Tema"],
-    .table td[data-label="Periodo"],
-    .table td[data-label="Estudiante"],
-    .table td[data-label="Director"],
-    .table td[data-label="Asesor 1"] {
-        white-space: normal !important;
-        overflow: visible !important;
-        text-overflow: unset !important;
-        max-width: none !important;
-    }
-
-    /* Si no usas data-label, usa nth-child según el orden de las columnas */
-    .table td:nth-child(1), /* Tema */
-    .table td:nth-child(2), /* Estudiante */
-    .table td:nth-child(3), /* Director */
-    .table td:nth-child(4), /* Asesor 1 */
-    .table td:nth-child(5)  /* Periodo */ {
-        white-space: normal !important;
-        overflow: visible !important;
-        text-overflow: unset !important;
-        max-width: none !important;
+    .table td:first-child,
+    .table th:first-child {
+        text-align: center;
     }
 
     .table-hover tbody tr:hover {
@@ -184,11 +156,13 @@
     .btn-outline-primary {
         color: #d32f2f;
         border-color: #d32f2f;
+        border-radius: 5px;
     }
 
     .btn-outline-primary:hover {
         background-color: #d32f2f;
         color: #fff;
+        border-color: #d32f2f;
     }
 
     .btn-info {
@@ -324,7 +298,6 @@
         border-color: #f5c6cb;
     }
 
-    /* Responsivo */
     @media (max-width: 768px) {
         .header-logo {
             height: 30px;
@@ -443,15 +416,17 @@
         @if(request('director_filtro') || request('asesor1_filtro') || request('periodo_filtro') || request('estado_filtro') || request('fecha_inicio') || request('fecha_fin'))
             <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary btn-sm ms-2 mb-2">Quitar filtro</a>
         @endif
+
+        <!-- Botón para generar PDF -->
+        <button type="submit" formaction="{{ route('titulaciones.pdf') }}" formtarget="_blank" class="btn btn-outline-primary btn-sm ms-2 mb-2">
+            <i class="fas fa-file-pdf"></i> Generar PDF
+        </button>
     </form>
 
-    <div class="d-flex justify-content-between mb-4 flex-wrap">
-        <div>
-            <a href="{{ route('titulaciones.create') }}" class="btn btn-primary mb-2">
-                <i class="fas fa-plus"></i> Crear Titulación
-            </a>
-            <a href="{{ route('resoluciones.cambiar') }}" class="btn btn-info ms-2 mb-2">
-                <i class="fas fa-exchange-alt"></i> Cambiar resoluciones
+    <div class="d-flex flex-column flex-md-row justify-content-between mb-4">
+        <div class="btn-group mb-2 mb-md-0">
+            <a href="{{ route('titulaciones.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nueva Titulación
             </a>
         </div>
     </div>

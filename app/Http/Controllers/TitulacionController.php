@@ -11,6 +11,9 @@ use App\Models\Resolucion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+
 
 class TitulacionController extends Controller
 {
@@ -329,5 +332,68 @@ class TitulacionController extends Controller
         ])->findOrFail($id);
 
         return view('titulaciones.show', compact('titulacion'));
+    }
+
+    public function pdf(Request $request)
+    {
+        // Repite la lógica de filtros del index
+        $query = Titulacion::with([
+            'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
+        ]);
+
+        if ($request->filled('director_filtro')) {
+            $query->where('cedula_director', $request->director_filtro);
+        }
+        if ($request->filled('asesor1_filtro')) {
+            $query->where('cedula_asesor1', $request->asesor1_filtro);
+        }
+        if ($request->filled('periodo_filtro')) {
+            $query->where('periodo_id', $request->periodo_filtro);
+        }
+        if ($request->filled('estado_filtro')) {
+            $query->where('estado_id', $request->estado_filtro);
+        }
+        if ($request->filled('fecha_inicio') || $request->filled('fecha_fin')) {
+            $query->whereHas('resTemas.resolucion', function ($q) use ($request) {
+                $q->whereHas('tipoResolucion', function ($q2) {
+                    $q2->whereRaw('LOWER(nombre_tipo_res) = ?', ['consejo directivo']);
+                });
+                if ($request->filled('fecha_inicio')) {
+                    $q->whereDate('fecha_res', '>=', $request->fecha_inicio);
+                }
+                if ($request->filled('fecha_fin')) {
+                    $q->whereDate('fecha_res', '<=', $request->fecha_fin);
+                }
+            });
+        }
+
+        $titulo = 'Reporte de Titulaciones';
+
+        if ($request->filled('estado_filtro')) {
+            $estado = \App\Models\EstadoTitulacion::find($request->estado_filtro);
+            if ($estado) {
+                $titulo = 'Reporte de titulaciones ' . strtolower($estado->nombre_estado);
+            }
+        } elseif ($request->filled('director_filtro')) {
+            $director = \App\Models\Persona::where('cedula', $request->director_filtro)->first();
+            if ($director) {
+                $titulo = 'Reporte de titulaciones de ' . $director->nombres;
+            }
+        } elseif ($request->filled('asesor1_filtro')) {
+            $asesor = \App\Models\Persona::where('cedula', $request->asesor1_filtro)->first();
+            if ($asesor) {
+                $titulo = 'Reporte de titulaciones asesoradas por ' . $asesor->nombres;
+            }
+        } elseif ($request->filled('periodo_filtro')) {
+            $periodo = \App\Models\Periodo::find($request->periodo_filtro);
+            if ($periodo) {
+                $titulo = 'Reporte de titulaciones del periodo ' . $periodo->periodo_academico;
+            }
+        }
+
+        $titulaciones = $query->get();
+
+        $pdf = PDF::loadView('titulaciones.pdf', compact('titulaciones', 'titulo'));
+        return $pdf->stream('titulaciones_filtradas.pdf');
     }
 }

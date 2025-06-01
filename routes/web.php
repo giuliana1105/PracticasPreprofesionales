@@ -58,7 +58,7 @@ Route::resource('personas', PersonaController::class);
 Route::post('personas/import', [PersonaController::class, 'import'])->name('personas.import');
 Route::resource('periodos', PeriodoController::class);
 Route::resource('estado-titulaciones', EstadoTitulacionController::class);
-Route::resource('titulaciones', TitulacionController::class);
+//Route::resource('titulaciones', TitulacionController::class);
 Route::post('titulaciones/import-csv', [TitulacionController::class, 'importCsv'])->name('titulaciones.importCsv');
 Route::get('/temas', [TemaController::class, 'index'])->name('temas.index');
 Route::get('/titulaciones/create', [TitulacionController::class, 'create'])->name('titulaciones.create');
@@ -73,4 +73,16 @@ Route::delete('/titulaciones/{titulacion}', [TitulacionController::class, 'destr
 Route::put('/titulaciones/{titulacion}', [TitulacionController::class, 'update'])->name('titulaciones.update');
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 Route::resource('res_temas', ResTemaController::class)->only(['index', 'store', 'destroy']);
+
+// Ruta para generar PDF (debe ir antes)
+Route::get('titulaciones/pdf', [TitulacionController::class, 'pdf'])->name('titulaciones.pdf');
+
+// Rutas CRUD de titulaciones
+Route::get('titulaciones', [TitulacionController::class, 'index'])->name('titulaciones.index');
+Route::get('titulaciones/create', [TitulacionController::class, 'create'])->name('titulaciones.create');
+Route::post('titulaciones/store', [TitulacionController::class, 'store'])->name('titulaciones.store');
 Route::get('titulaciones/{titulacion}', [TitulacionController::class, 'show'])->name('titulaciones.show');
+Route::get('titulaciones/{titulacion}/edit', [TitulacionController::class, 'edit'])->name('titulaciones.edit');
+Route::put('titulaciones/{titulacion}', [TitulacionController::class, 'update'])->name('titulaciones.update');
+Route::delete('titulaciones/{titulacion}', [TitulacionController::class, 'destroy'])->name('titulaciones.destroy');
+Route::post('titulaciones/import-csv', [TitulacionController::class, 'importCsv'])->name('titulaciones.importCsv');
