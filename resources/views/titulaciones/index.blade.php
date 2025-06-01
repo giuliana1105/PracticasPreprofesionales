@@ -2,18 +2,22 @@
 
 @section('content')
 <style>
+    /* Reseteo y estilo general */
     body {
         background-color: #e9ecef;
         color: #212529;
         margin: 0;
-        padding-bottom: 20px;
+        padding: 0 10px 20px 10px; /* algo de padding lateral pequeño para no pegarlo totalmente a borde */
         font-family: sans-serif;
+        overflow-x: hidden; /* Evitar scroll horizontal por margen */
     }
 
+    /* Contenedor usa todo el ancho posible */
     .container {
-        max-width: 1200px;
+        width: 100% !important; /* fuerza ocupar todo el ancho */
+        padding: 10px 0; /* menos padding para ganar espacio */
         margin: 0 auto;
-        padding: 20px;
+        box-sizing: border-box;
     }
 
     .header-container {
@@ -59,19 +63,23 @@
         font-weight: bold;
     }
 
-    /* Estilos específicos para la tabla */
+    /* Contenedor tabla con scroll horizontal */
     .table-container {
         background-color: #fff;
         border-radius: 5px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         margin-bottom: 20px;
         overflow-x: auto;
+        width: 100%;
     }
 
+    /* Tabla ocupa 100% ancho */
     .table {
-        width: 100%;
+        width: 100% !important;
         margin-bottom: 0;
         border-collapse: collapse;
+        table-layout: auto;
+        min-width: 1200px; /* ancho mínimo para que no se compacte */
     }
 
     .table thead th {
@@ -80,6 +88,7 @@
         padding: 12px;
         text-align: center;
         border-bottom: 1px solid #dee2e6;
+        white-space: nowrap;
     }
 
     .table tbody tr:nth-child(odd) {
@@ -90,11 +99,34 @@
         padding: 12px;
         text-align: center;
         border-bottom: 1px solid #dee2e6;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 180px; /* ajustar si quieres */
     }
 
-    .table td:first-child,
-    .table th:first-child {
-        text-align: left;
+    /* Agrega esto para mostrar completos los campos solicitados */
+    .table td[data-label="Tema"],
+    .table td[data-label="Periodo"],
+    .table td[data-label="Estudiante"],
+    .table td[data-label="Director"],
+    .table td[data-label="Asesor 1"] {
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
+        max-width: none !important;
+    }
+
+    /* Si no usas data-label, usa nth-child según el orden de las columnas */
+    .table td:nth-child(1), /* Tema */
+    .table td:nth-child(2), /* Estudiante */
+    .table td:nth-child(3), /* Director */
+    .table td:nth-child(4), /* Asesor 1 */
+    .table td:nth-child(5)  /* Periodo */ {
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
+        max-width: none !important;
     }
 
     .table-hover tbody tr:hover {
@@ -292,7 +324,7 @@
         border-color: #f5c6cb;
     }
 
-    /* Estilos responsivos */
+    /* Responsivo */
     @media (max-width: 768px) {
         .header-logo {
             height: 30px;
@@ -325,12 +357,12 @@
             margin-left: 0;
             margin-top: 10px;
         }
-        
+
         .table td, .table th {
             padding: 8px;
             font-size: 0.9em;
         }
-        
+
         .btn {
             padding: 4px 8px;
             font-size: 0.9em;
@@ -340,8 +372,7 @@
 
 <div class="container">
     <div class="header-container">
-        <div class="header-logo">
-        </div>
+        <div class="header-logo"></div>
         <div class="header-text-container">
             <span class="utn-text">UTN</span>
             <span class="ibarra-text">IBARRA - ECUADOR</span>
@@ -361,9 +392,9 @@
         </div>
     @endif
 
-    <form method="GET" action="{{ route('titulaciones.index') }}" class="mb-3 d-flex align-items-center">
+    <form method="GET" action="{{ route('titulaciones.index') }}" class="mb-3 d-flex align-items-center flex-wrap">
         <label for="director_filtro" class="me-2 mb-0">Filtrar por Director:</label>
-        <select name="director_filtro" id="director_filtro" class="form-control me-2" style="width:auto;">
+        <select name="director_filtro" id="director_filtro" class="form-control me-2 mb-2" style="width:auto;">
             <option value="">-- Todos --</option>
             @foreach($docentes as $docente)
                 <option value="{{ $docente->cedula }}" {{ request('director_filtro') == $docente->cedula ? 'selected' : '' }}>
@@ -373,7 +404,7 @@
         </select>
 
         <label for="asesor1_filtro" class="me-2 mb-0 ms-3">Filtrar por Asesor 1:</label>
-        <select name="asesor1_filtro" id="asesor1_filtro" class="form-control me-2" style="width:auto;">
+        <select name="asesor1_filtro" id="asesor1_filtro" class="form-control me-2 mb-2" style="width:auto;">
             <option value="">-- Todos --</option>
             @foreach($docentes as $docente)
                 <option value="{{ $docente->cedula }}" {{ request('asesor1_filtro') == $docente->cedula ? 'selected' : '' }}>
@@ -383,7 +414,7 @@
         </select>
 
         <label for="periodo_filtro" class="me-2 mb-0 ms-3">Filtrar por Periodo:</label>
-        <select name="periodo_filtro" id="periodo_filtro" class="form-control me-2" style="width:auto;">
+        <select name="periodo_filtro" id="periodo_filtro" class="form-control me-2 mb-2" style="width:auto;">
             <option value="">-- Todos --</option>
             @foreach($periodos as $periodo)
                 <option value="{{ $periodo->id_periodo }}" {{ request('periodo_filtro') == $periodo->id_periodo ? 'selected' : '' }}>
@@ -393,7 +424,7 @@
         </select>
 
         <label for="estado_filtro" class="me-2 mb-0 ms-3">Filtrar por Estado:</label>
-        <select name="estado_filtro" id="estado_filtro" class="form-control me-2" style="width:auto;">
+        <select name="estado_filtro" id="estado_filtro" class="form-control me-2 mb-2" style="width:auto;">
             <option value="">-- Todos --</option>
             @foreach($estados as $estado)
                 <option value="{{ $estado->id_estado }}" {{ request('estado_filtro') == $estado->id_estado ? 'selected' : '' }}>
@@ -403,23 +434,23 @@
         </select>
 
         <label for="fecha_inicio" class="me-2 mb-0 ms-3">Desde (Consejo directivo):</label>
-        <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control me-2" style="width:auto;" value="{{ request('fecha_inicio') }}">
+        <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control me-2 mb-2" style="width:auto;" value="{{ request('fecha_inicio') }}">
 
         <label for="fecha_fin" class="me-2 mb-0">Hasta (Consejo directivo):</label>
-        <input type="date" name="fecha_fin" id="fecha_fin" class="form-control me-2" style="width:auto;" value="{{ request('fecha_fin') }}">
+        <input type="date" name="fecha_fin" id="fecha_fin" class="form-control me-2 mb-2" style="width:auto;" value="{{ request('fecha_fin') }}">
 
-        <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+        <button type="submit" class="btn btn-primary btn-sm mb-2">Filtrar</button>
         @if(request('director_filtro') || request('asesor1_filtro') || request('periodo_filtro') || request('estado_filtro') || request('fecha_inicio') || request('fecha_fin'))
-            <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary btn-sm ms-2">Quitar filtro</a>
+            <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary btn-sm ms-2 mb-2">Quitar filtro</a>
         @endif
     </form>
 
-    <div class="d-flex justify-content-between mb-4">
+    <div class="d-flex justify-content-between mb-4 flex-wrap">
         <div>
-            <a href="{{ route('titulaciones.create') }}" class="btn btn-primary">
+            <a href="{{ route('titulaciones.create') }}" class="btn btn-primary mb-2">
                 <i class="fas fa-plus"></i> Crear Titulación
             </a>
-            <a href="{{ route('resoluciones.cambiar') }}" class="btn btn-info ms-2">
+            <a href="{{ route('resoluciones.cambiar') }}" class="btn btn-info ms-2 mb-2">
                 <i class="fas fa-exchange-alt"></i> Cambiar resoluciones
             </a>
         </div>
@@ -431,16 +462,10 @@
                 <tr>
                     <th>Tema</th>
                     <th>Estudiante</th>
-                    <th>Cédula Estudiante</th>
                     <th>Director</th>
-                    <th>Cédula Director</th>
                     <th>Asesor 1</th>
-                    <th>Cédula Asesor 1</th>
                     <th>Periodo</th>
                     <th>Estado</th>
-                    <th>Avance</th>
-                    <th>Observaciones</th>
-                    <th>Resolución (Tipo)</th>
                     <th>Fecha aprobación (Consejo directivo)</th>
                     <th>Acciones</th>
                 </tr>
@@ -450,21 +475,10 @@
                 <tr>
                     <td>{{ $tit->tema }}</td>
                     <td>{{ $tit->estudiantePersona->nombres ?? '' }}</td>
-                    <td>{{ $tit->cedula_estudiante }}</td>
                     <td>{{ $tit->directorPersona->nombres ?? '' }}</td>
-                    <td>{{ $tit->cedula_director }}</td>
                     <td>{{ $tit->asesor1Persona->nombres ?? '' }}</td>
-                    <td>{{ $tit->cedula_asesor1 }}</td>
-                    <td>{{ $tit->periodo->periodo_academico?? '' }}</td>
+                    <td>{{ $tit->periodo->periodo_academico ?? '' }}</td>
                     <td>{{ $tit->estado->nombre_estado ?? '' }}</td>
-                    <td>{{ $tit->avance }}%</td>
-                    <td>{{ $tit->observaciones }}</td>
-                    <td>
-                        @foreach($tit->resTemas as $resTema)
-                            {{ $resTema->resolucion->numero_res ?? '' }}
-                            ({{ $resTema->resolucion->tipoResolucion->nombre_tipo_res ?? '' }})<br>
-                        @endforeach
-                    </td>
                     <td>
                         @php
                             $fechaConsejo = $tit->resTemas
@@ -478,19 +492,22 @@
                         {{ $fechaConsejo ?? '' }}
                     </td>
                     <td>
-                        <div class="d-flex justify-content-center">
+                        <div class="d-flex justify-content-center flex-wrap">
+                            <a href="{{ route('titulaciones.show', $tit->id_titulacion) }}" class="btn btn-outline-primary btn-sm mx-1 mb-1">
+                                <i class="fas fa-eye"></i> Ver detalles
+                            </a>
                             <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" 
-                               class="btn btn-sm btn-warning mx-1" 
+                               class="btn btn-sm btn-warning mx-1 mb-1" 
                                title="Editar">
                                 <i class="fas fa-edit"></i>
                             </a>
                             <form action="{{ route('titulaciones.destroy', $tit->id_titulacion) }}" 
                                   method="POST" 
-                                  class="d-inline">
+                                  class="d-inline mx-1 mb-1">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" 
-                                        class="btn btn-sm btn-danger mx-1" 
+                                        class="btn btn-sm btn-danger" 
                                         onclick="return confirm('¿Está seguro de eliminar esta titulación?')" 
                                         title="Eliminar">
                                     <i class="fas fa-trash-alt"></i>
@@ -498,11 +515,11 @@
                             </form>
                             @if($tit->estado && strtolower($tit->estado->nombre_estado) === 'graduado')
                                 @if($tit->acta_grado)
-                                    <a href="{{ asset('storage/' . $tit->acta_grado) }}" target="_blank" class="btn btn-success btn-sm">
+                                    <a href="{{ asset('storage/' . $tit->acta_grado) }}" target="_blank" class="btn btn-success btn-sm mx-1 mb-1">
                                         Ver acta de grado
                                     </a>
                                 @else
-                                    <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}#acta_grado" class="btn btn-info btn-sm">
+                                    <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}#acta_grado" class="btn btn-info btn-sm mx-1 mb-1">
                                         Subir acta de grado
                                     </a>
                                 @endif

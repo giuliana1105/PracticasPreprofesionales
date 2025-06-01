@@ -323,6 +323,11 @@ class TitulacionController extends Controller
 
     public function show($id)
     {
-        return redirect()->route('resoluciones.index');
+        $titulacion = Titulacion::with([
+            'estudiantePersona', 'directorPersona', 'asesor1Persona',
+            'periodo', 'estado', 'resTemas.resolucion.tipoResolucion'
+        ])->findOrFail($id);
+
+        return view('titulaciones.show', compact('titulacion'));
     }
 }

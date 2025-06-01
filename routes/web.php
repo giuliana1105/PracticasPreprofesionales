@@ -73,3 +73,4 @@ Route::delete('/titulaciones/{titulacion}', [TitulacionController::class, 'destr
 Route::put('/titulaciones/{titulacion}', [TitulacionController::class, 'update'])->name('titulaciones.update');
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 Route::resource('res_temas', ResTemaController::class)->only(['index', 'store', 'destroy']);
+Route::get('titulaciones/{titulacion}', [TitulacionController::class, 'show'])->name('titulaciones.show');
