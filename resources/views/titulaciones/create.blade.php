@@ -306,8 +306,8 @@
                 <h3 class="section-title" style="margin-top: 0;">Importar Titulaciones desde CSV</h3>
                 <div class="alert alert-info">
                     <strong>Formato requerido:</strong> El archivo debe contener las columnas: 
-                    tema, estudiante, cedula_estudiante, director, cedula_director, asesor1, cedula_asesor1, 
-                    periodo, estado, avance, observaciones
+                    Tema, Cédula estudiante,Cédula director,Cédula asesor 1, 
+                    Periodo, Estado, Avance, Observaciones
                 </div>
                 <form action="{{ route('titulaciones.importCsv') }}" method="POST" enctype="multipart/form-data">
                     @csrf

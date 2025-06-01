@@ -143,7 +143,7 @@ class ResolucionController extends Controller
             ResolucionSeleccionada::create(['resolucion_id' => $id]);
         }
 
-        return redirect()->route('temas.create')->with('success', 'Resoluciones seleccionadas correctamente. Ahora puede ingresar los temas.');
+        return redirect()->route('titulaciones.index')->with('success', 'Resoluciones seleccionadas correctamente. Ahora puede ingresar los temas.');
     }
 
     public function cambiarResoluciones()
