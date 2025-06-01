@@ -387,7 +387,8 @@
                     <th>Estado</th>
                     <th>Avance</th>
                     <th>Observaciones</th>
-                    <th>Resoluciones</th>
+                    <th>Resolución (Tipo)</th>
+                    <th>Fecha aprobación (Consejo directivo)</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -407,8 +408,21 @@
                     <td>{{ $tit->observaciones }}</td>
                     <td>
                         @foreach($tit->resTemas as $resTema)
-                            {{ $resTema->resolucion->numero_res ?? '' }} ({{ $resTema->resolucion->tipoResolucion->nombre_tipo_res ?? '' }})<br>
+                            {{ $resTema->resolucion->numero_res ?? '' }}
+                            ({{ $resTema->resolucion->tipoResolucion->nombre_tipo_res ?? '' }})<br>
                         @endforeach
+                    </td>
+                    <td>
+                        @php
+                            $fechaConsejo = $tit->resTemas
+                                ->filter(fn($resTema) => 
+                                    isset($resTema->resolucion->tipoResolucion->nombre_tipo_res) &&
+                                    strtolower($resTema->resolucion->tipoResolucion->nombre_tipo_res) === 'consejo directivo'
+                                )
+                                ->pluck('resolucion.fecha_res')
+                                ->first();
+                        @endphp
+                        {{ $fechaConsejo ?? '' }}
                     </td>
                     <td>
                         <div class="d-flex justify-content-center">
