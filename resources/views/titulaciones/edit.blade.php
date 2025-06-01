@@ -7,20 +7,27 @@
     @csrf
     @method('PUT')
     <input type="text" name="tema" value="{{ $titulacion->tema }}" required>
-    <input type="text" name="estudiante" value="{{ $titulacion->estudiante }}" required>
-    <input type="text" name="cedula_estudiante" value="{{ $titulacion->cedula_estudiante }}" required>
-    <input type="text" name="director" value="{{ $titulacion->director }}" required>
-    <input type="text" name="cedula_director" value="{{ $titulacion->cedula_director }}" required>
-    <input type="text" name="asesor1" value="{{ $titulacion->asesor1 }}" required>
-    <input type="text" name="cedula_asesor1" value="{{ $titulacion->cedula_asesor1 }}" required>
+
+    <label>Estudiante:</label>
+    <input type="text" value="{{ $titulacion->estudiantePersona->nombres ?? '' }}" class="form-control" readonly>
+    <input type="text" name="cedula_estudiante" value="{{ $titulacion->cedula_estudiante }}" class="form-control" required>
+
+    <label>Director:</label>
+    <input type="text" value="{{ $titulacion->directorPersona->nombres ?? '' }}" class="form-control" readonly>
+    <input type="text" name="cedula_director" value="{{ $titulacion->cedula_director }}" class="form-control" required>
+
+    <label>Asesor 1:</label>
+    <input type="text" value="{{ $titulacion->asesor1Persona->nombres ?? '' }}" class="form-control" readonly>
+    <input type="text" name="cedula_asesor1" value="{{ $titulacion->cedula_asesor1 }}" class="form-control" required>
+
     <select name="periodo_id" required>
         @foreach($periodos as $periodo)
-            <option value="{{ $periodo->id_periodo }}" @if($titulacion->periodo_id == $periodo->id_periodo) selected @endif>{{ $periodo->nombre }}</option>
+            <option value="{{ $periodo->id_periodo }}" @if($titulacion->periodo_id == $periodo->id_periodo) selected @endif>{{ $periodo->periodo_academico }}</option>
         @endforeach
     </select>
     <select name="estado_id" required>
         @foreach($estados as $estado)
-            <option value="{{ $estado->id_estado }}" @if($titulacion->estado_id == $estado->id_estado) selected @endif>{{ $estado->nombre }}</option>
+            <option value="{{ $estado->id_estado }}" @if($titulacion->estado_id == $estado->id_estado) selected @endif>{{ $estado->nombre_estado }}</option>
         @endforeach
     </select>
     <input type="number" name="avance" value="{{ $titulacion->avance }}" min="0" max="100" required>
