@@ -1,54 +1,466 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h2 class="mb-0">Resoluciones</h2>
-        </div>
-        <div class="card-body">
-            <!-- Botón para crear una nueva resolución -->
-            <div class="mb-3">
-                <a href="{{ route('resoluciones.create') }}" class="btn btn-success">
-                    <i class="fas fa-plus"></i> Crear Nueva Resolución
-                </a>
-            </div>
+<style>
+    body {
+        background-color: #e9ecef;
+        color: #212529;
+        margin: 0;
+        padding-bottom: 20px;
+        font-family: sans-serif;
+    }
 
-            <!-- Formulario para seleccionar resoluciones -->
-            <form action="{{ route('resoluciones.seleccionar') }}" method="POST">
-                @csrf
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Seleccionar</th>
-                            <th>Número</th>
-                            <th>Fecha</th>
-                            <th>Ver PDF</th> <!-- Nueva columna -->
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($resoluciones as $resolucion)
-                            <tr>
-                                <td>
-                                    <input type="checkbox" name="resoluciones[]" value="{{ $resolucion->id_Reso }}">
-                                </td>
-                                <td>{{ $resolucion->numero_res }}</td>
-                                <td>{{ $resolucion->fecha_res }}</td>
-                                <td>
-                                    @if($resolucion->archivo_url)
-                                        <a href="{{ $resolucion->archivo_url }}" target="_blank">Ver PDF</a>
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                <button type="submit" class="btn btn-primary">Guardar Resoluciones Seleccionadas</button>
-            </form>
-           
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .header-container {
+        background-color: #d32f2f;
+        color: #fff;
+        padding: 15px 20px;
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+
+    .header-logo {
+        background-repeat: no-repeat;
+        background-size: contain;
+        height: 40px;
+        width: auto;
+        margin-right: 15px;
+    }
+
+    .header-text-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .utn-text {
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+
+    .ibarra-text {
+        font-size: 0.9em;
+    }
+
+    .page-title {
+        background-color: #343a40;
+        color: #fff;
+        padding: 20px;
+        text-align: center;
+        border-radius: 5px;
+        margin-bottom: 30px;
+        font-size: 1.5em;
+        font-weight: bold;
+    }
+
+    .module-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 20px;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+    }
+
+    .module-card {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: #495057;
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .module-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .module-icon {
+        font-size: 2.5em;
+        margin-bottom: 15px;
+        color: #d32f2f;
+    }
+
+    .module-title {
+        font-weight: bold;
+        text-align: left;
+        font-size: 1.1em;
+        margin-bottom: 10px;
+    }
+
+    .table-container {
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: collapse;
+    }
+
+    .table thead th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+        padding: 12px;
+        text-align: center;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .table tbody tr:nth-child(odd) {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    .table td {
+        padding: 12px;
+        text-align: center;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .table td:first-child,
+    .table th:first-child {
+        text-align: center;
+    }
+
+    .table td:nth-child(2),
+    .table th:nth-child(2),
+    .table td:nth-child(3),
+    .table th:nth-child(3),
+    .table td:nth-child(4),
+    .table th:nth-child(4) {
+        text-align: left;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    .btn {
+        min-width: 36px;
+    }
+
+    .btn-group .btn {
+        margin: 0 5px 0 0;
+    }
+
+    .form-control {
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        border-color: #d32f2f;
+        box-shadow: 0 0 0 0.2rem rgba(211, 47, 47, 0.25);
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        border-radius: 5px;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #5a6268;
+    }
+
+    .btn-primary {
+        background-color: #d32f2f;
+        border-color: #d32f2f;
+        border-radius: 5px;
+    }
+
+    .btn-primary:hover {
+        background-color: #c82333;
+        border-color: #c82333;
+    }
+
+    .btn-outline-primary {
+        color: #d32f2f;
+        border-color: #d32f2f;
+        border-radius: 5px;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #d32f2f;
+        color: #fff;
+        border-color: #d32f2f;
+    }
+
+    .btn-outline-info {
+        color: #17a2b8;
+        border-color: #17a2b8;
+        border-radius: 5px;
+    }
+
+    .btn-outline-info:hover {
+        background-color: #17a2b8;
+        color: #fff;
+        border-color: #17a2b8;
+    }
+
+    .btn-warning {
+        color: #fff;
+        background-color: #f39c12;
+        border-color: #f39c12;
+        border-radius: 5px;
+    }
+
+    .btn-warning:hover {
+        background-color: #e08e0b;
+        border-color: #e08e0b;
+    }
+
+    .btn-danger {
+        color: #fff;
+        background-color: #dc3545;
+        border-color: #dc3545;
+        border-radius: 5px;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #c82333;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        border-radius: 5px;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #218838;
+    }
+
+    .d-flex {
+        display: flex;
+    }
+
+    .flex-column {
+        flex-direction: column;
+    }
+
+    .flex-md-row {
+        flex-direction: row;
+    }
+
+    .justify-content-between {
+        justify-content: space-between;
+    }
+
+    .mb-4 {
+        margin-bottom: 20px;
+    }
+
+    .mb-3 {
+        margin-bottom: 15px;
+    }
+
+    .mb-2 {
+        margin-bottom: 10px;
+    }
+
+    .mb-md-0 {
+        margin-bottom: 0;
+    }
+
+    .ms-2 {
+        margin-left: 10px;
+    }
+
+    .w-100 {
+        width: 100%;
+    }
+
+    .w-md-50 {
+        width: 50%;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .mt-4 {
+        margin-top: 20px;
+    }
+
+    .align-items-center {
+        align-items: center;
+    }
+
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.071);
+    }
+
+    .card {
+        border-radius: 5px;
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.071);
+    }
+
+    .card-header {
+        background-color: #d32f2f;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 5px 5px 0 0 !important;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    .py-3 {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .thead-light th {
+        background-color: #f8f9fa;
+        color: #212529;
+    }
+
+    .d-inline {
+        display: inline-flex;
+    }
+
+    /* Estilos responsivos */
+    @media (max-width: 768px) {
+        .module-container {
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            padding: 10px;
+            gap: 10px;
+        }
+
+        .module-card {
+            padding: 15px;
+        }
+
+        .module-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .module-title {
+            font-size: 1em;
+        }
+
+        .header-logo {
+            height: 30px;
+            margin-right: 10px;
+        }
+
+        .utn-text {
+            font-size: 1em;
+        }
+
+        .ibarra-text {
+            font-size: 0.8em;
+        }
+
+        .page-title {
+            font-size: 1.3em;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .flex-md-row {
+            flex-direction: column;
+        }
+
+        .w-md-50 {
+            width: 100%;
+        }
+
+        .ms-2 {
+            margin-left: 0;
+            margin-top: 10px;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="header-container">
+        <div class="header-logo">
+        </div>
+        <div class="header-text-container">
+            <span class="utn-text">UTN</span>
+            <span class="ibarra-text">IBARRA - ECUADOR</span>
         </div>
     </div>
+
+    <h1 class="page-title">Gestión de Resoluciones</h1>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body text-center py-3">
+            <a href="{{ route('resoluciones.create') }}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Crear Nueva Resolución
+            </a>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <form action="{{ route('resoluciones.seleccionar') }}" method="POST">
+            @csrf
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th class="text-center">Seleccionar</th>
+                        <th>Número</th>
+                        <th>Fecha</th>
+                        <th>Ver PDF</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($resoluciones as $resolucion)
+                        <tr>
+                            <td class="text-center align-middle">
+                                <input type="checkbox" name="resoluciones[]" value="{{ $resolucion->id_Reso }}">
+                            </td>
+                            <td class="align-middle">{{ $resolucion->numero_res }}</td>
+                            <td class="align-middle">{{ $resolucion->fecha_res }}</td>
+                            <td class="align-middle">
+                                @if($resolucion->archivo_url)
+                                    <a href="{{ $resolucion->archivo_url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-file-pdf"></i> Ver PDF
+                                    </a>
+                                @else
+                                    -
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            <div class="d-flex justify-content-center mt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Guardar Resoluciones Seleccionadas
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
+
+@push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+@endpush
 @endsection
