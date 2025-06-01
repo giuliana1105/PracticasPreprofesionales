@@ -427,8 +427,12 @@
                     </td>
                     <td>
                         @if($tit->acta_grado)
-        <a href="{{ asset('storage/' . $tit->acta_grado) }}" target="_blank">Ver PDF</a>
-    @endif
+                            <a href="{{ asset('storage/' . $tit->acta_grado) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                Ver acta de grado
+                            </a>
+                        @else
+                            -
+                        @endif
                     </td>
                     <td>
                         <div class="d-flex justify-content-center">

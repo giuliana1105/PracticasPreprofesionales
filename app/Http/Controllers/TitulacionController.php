@@ -10,6 +10,7 @@ use App\Models\ResTema;
 use App\Models\Resolucion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class TitulacionController extends Controller
 {
@@ -58,8 +59,11 @@ class TitulacionController extends Controller
         ]);
 
         // Si subió acta y el estado es Graduado, guárdala
-        if ($request->hasFile('acta_grado') && $request->estado_id && 
-            \App\Models\EstadoTitulacion::find($request->estado_id)?->nombre_estado === 'Graduado') {
+        if (
+            $request->hasFile('acta_grado') &&
+            $request->file('acta_grado')->isValid() &&
+            \App\Models\EstadoTitulacion::find($request->estado_id)?->nombre_estado === 'Graduado'
+        ) {
             $data['acta_grado'] = $request->file('acta_grado')->store('actas_grado', 'public');
         }
 
@@ -96,14 +100,12 @@ class TitulacionController extends Controller
             'estado_id' => 'required|exists:estado_titulaciones,id_estado',
             'avance' => 'required|integer|min:0|max:100',
             'observaciones' => 'nullable|string',
-        ], [
-            'cedula_estudiante.exists' => 'El número de cédula del estudiante no está registrado en personas.',
-            'cedula_director.exists' => 'El número de cédula del director no está registrado en personas.',
-            'cedula_asesor1.exists' => 'El número de cédula del asesor 1 no está registrado en personas.',
+            'acta_grado' => 'nullable|file|mimes:pdf|max:2048',
         ]);
 
         $titulacion = Titulacion::findOrFail($id);
-        $titulacion->update($request->only([
+
+        $data = $request->only([
             'tema',
             'cedula_estudiante',
             'cedula_director',
@@ -112,9 +114,28 @@ class TitulacionController extends Controller
             'estado_id',
             'avance',
             'observaciones'
-        ]));
+        ]);
 
-        return redirect()->route('titulaciones.index')->with('success', 'Titulación actualizada.');
+        // Solo guardar acta de grado si el estado es Graduado y se subió archivo
+        $estadoGraduado = EstadoTitulacion::find($request->estado_id)?->nombre_estado === 'Graduado';
+
+        if ($estadoGraduado && $request->hasFile('acta_grado') && $request->file('acta_grado')->isValid()) {
+            // Borra el archivo anterior si existe
+            if ($titulacion->acta_grado) {
+                Storage::disk('public')->delete($titulacion->acta_grado);
+            }
+            $data['acta_grado'] = $request->file('acta_grado')->store('actas_grado', 'public');
+        }
+
+        // Si el estado ya no es Graduado, elimina el acta de grado
+        if (!$estadoGraduado && $titulacion->acta_grado) {
+            Storage::disk('public')->delete($titulacion->acta_grado);
+            $data['acta_grado'] = null;
+        }
+
+        $titulacion->update($data);
+
+        return redirect()->route('titulaciones.index')->with('success', 'Titulación actualizada correctamente.');
     }
 
     public function importCsv(Request $request)

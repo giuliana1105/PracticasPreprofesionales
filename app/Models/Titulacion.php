@@ -23,7 +23,8 @@ class Titulacion extends Model
         'periodo_id',
         'estado_id',
         'avance',
-        'observaciones'
+        'observaciones',
+        'acta_grado',
     ];
 
     public function periodo()
