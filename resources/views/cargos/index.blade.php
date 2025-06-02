@@ -211,6 +211,9 @@
             <a href="{{ route('cargos.create') }}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Crear Cargo
             </a>
+            <a href="{{ route('home') }}" class="btn btn-secondary ms-2">
+                <i class="fas fa-home"></i> Home
+            </a>
         </div>
     </div>
 

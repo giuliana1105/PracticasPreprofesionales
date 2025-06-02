@@ -173,10 +173,7 @@
             <i class="fas fa-file-alt module-icon"></i>
             <div class="module-title">Resoluciones</div>
         </a>
-        <a href="{{ route('temas.index') }}" class="module-card">
-            <i class="fas fa-comments module-icon"></i>
-            <div class="module-title">Temas</div>
-        </a>
+       
         <a href="{{ route('titulaciones.index') }}" class="module-card">
             <i class="fas fa-certificate module-icon"></i>
             <div class="module-title">Titulaciones</div>
