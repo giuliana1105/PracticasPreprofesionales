@@ -135,13 +135,42 @@ class TitulacionController extends Controller
         return redirect()->route('titulaciones.index')->with('success', 'Titulación creada exitosamente.');
     }
 
-    public function edit($id)
-    {
-        $titulacion = Titulacion::findOrFail($id);
-        $periodos = Periodo::all();
-        $estados = EstadoTitulacion::all();
-        return view('titulaciones.edit', compact('titulacion', 'periodos', 'estados'));
-    }
+    // public function edit($id)
+    // {
+    //     $titulacion = Titulacion::findOrFail($id);
+    //     $periodos = \App\Models\Periodo::all();
+    //     $estados = \App\Models\EstadoTitulacion::all();
+    //     $personas = \App\Models\Persona::with('cargo')->get();
+
+    //     // Buscar los IDs de las personas según la cédula almacenada
+    //     $personaEstudiante = $personas->firstWhere('cedula', $titulacion->cedula_estudiante);
+    //     $personaDirector = $personas->firstWhere('cedula', $titulacion->cedula_director);
+    //     $personaAsesor = $personas->firstWhere('cedula', $titulacion->cedula_asesor1);
+
+    //     return view('titulaciones.edit', compact(
+    //         'titulacion', 'periodos', 'estados', 'personas',
+    //         'personaEstudiante', 'personaDirector', 'personaAsesor'
+    //     ));
+    // }
+
+ 
+public function edit($id)
+{
+    $titulacion = Titulacion::findOrFail($id);
+    $periodos = \App\Models\Periodo::all();
+    $estados = \App\Models\EstadoTitulacion::all();
+    $personas = \App\Models\Persona::with('cargo')->get();
+
+    // Buscar los IDs de las personas según la cédula almacenada
+    $personaEstudiante = $personas->firstWhere('cedula', $titulacion->cedula_estudiante);
+    $personaDirector = $personas->firstWhere('cedula', $titulacion->cedula_director);
+    $personaAsesor = $personas->firstWhere('cedula', $titulacion->cedula_asesor1);
+
+    return view('titulaciones.edit', compact(
+        'titulacion', 'periodos', 'estados', 'personas',
+        'personaEstudiante', 'personaDirector', 'personaAsesor'
+    ));
+}
 
     public function update(Request $request, $id)
     {

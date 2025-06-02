@@ -233,39 +233,68 @@
             </div>
             
             <div class="form-group">
-                <label class="form-label">Estudiante</label>
-                <div class="person-info">
-                    {{ $titulacion->estudiantePersona->nombres ?? 'No asignado' }}
-                </div>
-                <input type="text" name="cedula_estudiante" class="form-control @error('cedula_estudiante') is-invalid @enderror mt-2" 
-                       value="{{ $titulacion->cedula_estudiante }}" required>
-                @error('cedula_estudiante')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                <label for="persona_estudiante_id" class="form-label">Estudiante</label>
+                <select id="persona_estudiante_id" name="persona_estudiante_id" class="form-control" required>
+                    <option value="">Seleccione un estudiante</option>
+                    @foreach($personas as $persona)
+                        @if($persona->cargo && $persona->cargo->nombre_cargo == 'Estudiante')
+                            <option value="{{ $persona->id }}"
+                                data-cedula="{{ $persona->cedula }}"
+                                {{ (old('persona_estudiante_id', $personaEstudiante->id ?? '') == $persona->id) ? 'selected' : '' }}>
+                                {{ $persona->nombres }}
+                            </option>
+                        @endif
+                    @endforeach
+                </select>
             </div>
-            
             <div class="form-group">
-                <label class="form-label">Director</label>
-                <div class="person-info">
-                    {{ $titulacion->directorPersona->nombres ?? 'No asignado' }}
-                </div>
-                <input type="text" name="cedula_director" class="form-control @error('cedula_director') is-invalid @enderror mt-2" 
-                       value="{{ $titulacion->cedula_director }}" required>
-                @error('cedula_director')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                <label for="cedula_estudiante" class="form-label">Cédula Estudiante</label>
+                <input type="text" id="cedula_estudiante" name="cedula_estudiante" class="form-control"
+                       value="{{ old('cedula_estudiante', $titulacion->cedula_estudiante) }}" readonly required>
             </div>
-            
+
             <div class="form-group">
-                <label class="form-label">Asesor 1</label>
-                <div class="person-info">
-                    {{ $titulacion->asesor1Persona->nombres ?? 'No asignado' }}
-                </div>
-                <input type="text" name="cedula_asesor1" class="form-control @error('cedula_asesor1') is-invalid @enderror mt-2" 
-                       value="{{ $titulacion->cedula_asesor1 }}" required>
-                @error('cedula_asesor1')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                <label for="persona_director_id" class="form-label">Director</label>
+                <select id="persona_director_id" name="persona_director_id" class="form-control" required>
+                    <option value="">Seleccione un director</option>
+                    @foreach($personas as $persona)
+                        @if($persona->cargo && $persona->cargo->nombre_cargo == 'Docente')
+                            <option value="{{ $persona->id }}"
+
+                                data-cedula="{{ $persona->cedula }}"
+
+                                {{ (old('persona_director_id', $personaDirector->id ?? '') == $persona->id) ? 'selected' : '' }}>
+                                {{ $persona->nombres }}
+                            </option>
+                        @endif
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="cedula_director" class="form-label">Cédula Director</label>
+                <input type="text" id="cedula_director" name="cedula_director" class="form-control" value="{{ old('cedula_director', $titulacion->cedula_director) }}" readonly required>
+            </div>
+
+            <div class="form-group">
+                <label for="persona_asesor_id" class="form-label">Asesor 1</label>
+                <select id="persona_asesor_id" name="persona_asesor_id" class="form-control" required>
+                    <option value="">Seleccione un asesor</option>
+                    @foreach($personas as $persona)
+                        @if($persona->cargo && $persona->cargo->nombre_cargo == 'Docente')
+                            <option value="{{ $persona->id }}"
+
+                                data-cedula="{{ $persona->cedula }}"
+
+                                {{ (old('persona_asesor_id', $personaAsesor->id ?? '') == $persona->id) ? 'selected' : '' }}>
+                                {{ $persona->nombres }}
+                            </option>
+                        @endif
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="cedula_asesor1" class="form-label">Cédula Asesor 1</label>
+                <input type="text" id="cedula_asesor1" name="cedula_asesor1" class="form-control" value="{{ old('cedula_asesor1', $titulacion->cedula_asesor1) }}" readonly required>
             </div>
             
             <div class="form-group">
@@ -354,6 +383,30 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     estadoSelect.addEventListener('change', toggleActa);
     toggleActa();
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function actualizarCedula(selectId, inputCedulaId) {
+        const select = document.getElementById(selectId);
+        const inputCedula = document.getElementById(inputCedulaId);
+
+        function setCedula() {
+            const selectedOption = select.options[select.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                inputCedula.value = selectedOption.getAttribute('data-cedula') || '';
+            } else {
+                inputCedula.value = '';
+            }
+        }
+
+        select.addEventListener('change', setCedula);
+        setCedula();
+    }
+
+    actualizarCedula('persona_estudiante_id', 'cedula_estudiante');
+    actualizarCedula('persona_director_id', 'cedula_director');
+    actualizarCedula('persona_asesor_id', 'cedula_asesor1');
 });
 </script>
 @endpush
