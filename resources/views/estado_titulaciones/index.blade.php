@@ -277,6 +277,9 @@
             <a href="{{ route('estado-titulaciones.create') }}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Nuevo Estado
             </a>
+            <a href="{{ route('home') }}" class="btn btn-secondary ms-2">
+                <i class="fas fa-home"></i> Home
+            </a>
         </div>
     </div>
 

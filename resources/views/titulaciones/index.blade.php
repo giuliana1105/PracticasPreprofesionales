@@ -445,6 +445,12 @@
         </span>
     </div>
 
+    <div class="d-flex flex-column flex-md-row justify-content-start mb-4">
+        <a href="{{ route('titulaciones.create') }}" class="btn btn-primary me-2 mb-2 mb-md-0">
+            <i class="fas fa-plus"></i> Nueva Titulación
+        </a>
+    </div>
+
     <div class="d-flex flex-column flex-md-row justify-content-between mb-4">
         <div class="btn-group mb-2 mb-md-0">
             <a href="{{ route('titulaciones.index') }}"

@@ -292,7 +292,9 @@
         <a href="{{ route('personas.create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Nueva Persona
         </a>
-       
+        <a href="{{ route('home') }}" class="btn btn-secondary ms-2">
+            <i class="fas fa-home"></i> Home
+        </a>
     </div>
 
     <div class="table-container">

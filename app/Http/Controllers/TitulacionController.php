@@ -292,10 +292,14 @@ public function edit($id)
 
         $resolucionesSeleccionadas = \App\Models\ResolucionSeleccionada::pluck('resolucion_id');
 
+        $filaActual = 1; // Para numerar filas (considerando encabezado)
         while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+            $filaActual++;
+            $erroresFila = [];
+
             if (count($row) !== count($normalizedHeader)) {
                 $saltados++;
-                $errores[] = "Fila con columnas incorrectas: " . implode($delimiter, $row);
+                $errores[] = "Fila {$filaActual}: columnas incorrectas (" . implode($delimiter, $row) . ")";
                 continue;
             }
 
@@ -307,39 +311,60 @@ public function edit($id)
             $data['cedula_asesor1'] = trim(preg_replace('/\s+/', '', $data['cedula_asesor1']));
 
             // Busca periodo y estado por nombre (insensible a mayúsculas/minúsculas)
-            $periodo = \App\Models\Periodo::whereRaw('LOWER(periodo_academico) = ?', [strtolower(trim($data['periodo']))])->first();
-            $estado = \App\Models\EstadoTitulacion::whereRaw('LOWER(nombre_estado) = ?', [strtolower(trim($data['estado']))])->first();
+            $nombrePeriodo = preg_replace('/\s+/', ' ', trim($data['periodo'] ?? ''));
+            $nombreEstado = preg_replace('/\s+/', ' ', trim($data['estado'] ?? ''));
 
-            if (
-                $periodo &&
-                $estado &&
-                \App\Models\Persona::where('cedula', $data['cedula_estudiante'])->exists() &&
-                \App\Models\Persona::where('cedula', $data['cedula_director'])->exists() &&
-                \App\Models\Persona::where('cedula', $data['cedula_asesor1'])->exists()
-            ) {
-                $titulacion = \App\Models\Titulacion::create([
-                    'tema' => $data['tema'],
-                    'cedula_estudiante' => $data['cedula_estudiante'],
-                    'cedula_director' => $data['cedula_director'],
-                    'cedula_asesor1' => $data['cedula_asesor1'],
-                    'periodo_id' => $periodo->id_periodo,
-                    'estado_id' => $estado->id_estado,
-                    'avance' => $data['avance'],
-                    'observaciones' => $data['observaciones'] ?? null,
-                ]);
-
-                foreach ($resolucionesSeleccionadas as $resolucion_id) {
-                    \App\Models\ResTema::create([
-                        'titulacion_id' => $titulacion->id_titulacion,
-                        'resolucion_id' => $resolucion_id,
-                        'tema' => $data['tema'],
-                    ]);
-                }
-                $importados++;
-            } else {
-                $saltados++;
-                $errores[] = "Datos no válidos en fila: " . implode($delimiter, $row);
+            $periodo = \App\Models\Periodo::whereRaw('LOWER(TRIM(periodo_academico)) = ?', [strtolower($nombrePeriodo)])->first();
+            if (!$periodo) {
+                $erroresFila[] = "Período '{$nombrePeriodo}' no registrado";
             }
+
+            $estado = \App\Models\EstadoTitulacion::whereRaw('LOWER(TRIM(nombre_estado)) = ?', [strtolower($nombreEstado)])->first();
+            if (!$estado) {
+                $erroresFila[] = "Estado '{$nombreEstado}' no registrado";
+            }
+
+            $estudiante = \App\Models\Persona::where('cedula', $data['cedula_estudiante'])->first();
+            if (!$estudiante) {
+                $erroresFila[] = "Estudiante con cédula '{$data['cedula_estudiante']}' no registrado";
+            }
+
+            $director = \App\Models\Persona::where('cedula', $data['cedula_director'])->first();
+            if (!$director) {
+                $erroresFila[] = "Director con cédula '{$data['cedula_director']}' no registrado";
+            }
+
+            $asesor1 = \App\Models\Persona::where('cedula', $data['cedula_asesor1'])->first();
+            if (!$asesor1) {
+                $erroresFila[] = "Asesor 1 con cédula '{$data['cedula_asesor1']}' no registrado";
+            }
+
+            // Si hay errores, agrega el mensaje detallado
+            if (count($erroresFila) > 0) {
+                $saltados++;
+                $errores[] = "Fila {$filaActual}: " . implode(' | ', $erroresFila);
+                continue;
+            }
+
+            $titulacion = \App\Models\Titulacion::create([
+                'tema' => $data['tema'],
+                'cedula_estudiante' => $data['cedula_estudiante'],
+                'cedula_director' => $data['cedula_director'],
+                'cedula_asesor1' => $data['cedula_asesor1'],
+                'periodo_id' => $periodo->id_periodo,
+                'estado_id' => $estado->id_estado,
+                'avance' => $data['avance'],
+                'observaciones' => $data['observaciones'] ?? null,
+            ]);
+
+            foreach ($resolucionesSeleccionadas as $resolucion_id) {
+                \App\Models\ResTema::create([
+                    'titulacion_id' => $titulacion->id_titulacion,
+                    'resolucion_id' => $resolucion_id,
+                    'tema' => $data['tema'],
+                ]);
+            }
+            $importados++;
         }
         fclose($handle);
 

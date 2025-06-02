@@ -411,9 +411,12 @@
     <h1 class="page-title">Gestión de Resoluciones</h1>
 
     <div class="card shadow-sm mb-4">
-        <div class="card-body text-center py-3">
-            <a href="{{ route('resoluciones.create') }}" class="btn btn-success">
+        <div class="card-body text-center py-3 d-flex justify-content-center">
+            <a href="{{ route('resoluciones.create') }}" class="btn btn-success me-2">
                 <i class="fas fa-plus"></i> Crear Nueva Resolución
+            </a>
+            <a href="{{ route('home') }}" class="btn btn-secondary ms-2">
+                <i class="fas fa-home"></i> Home
             </a>
         </div>
     </div>
