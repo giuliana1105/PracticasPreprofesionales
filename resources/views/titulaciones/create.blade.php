@@ -450,7 +450,7 @@
                         <label class="form-label">Resoluciones seleccionadas:</label>
                         <ul class="resoluciones-list">
                             @foreach($resolucionesSeleccionadas as $res)
-                                <li>{{ $res->numero_res }} - {{ $res->tipoResolucion->nombre ?? 'Tipo no especificado' }}</li>
+                                <li>{{ $res->numero_res }} - {{ $res->tipoResolucion->nombre_tipo_res ?? 'Tipo no especificado' }}</li>
                             @endforeach
                         </ul>
                     </div>
