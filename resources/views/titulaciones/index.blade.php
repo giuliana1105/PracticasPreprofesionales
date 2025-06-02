@@ -374,6 +374,17 @@
         </div>
     @endif
 
+    {{-- 1. Botón Nueva Titulación y Cambiar Resoluciones --}}
+    <div class="d-flex flex-column flex-md-row justify-content-start mb-4">
+        <a href="{{ route('titulaciones.create') }}" class="btn btn-primary me-2 mb-2 mb-md-0">
+            <i class="fas fa-plus"></i> Nueva Titulación
+        </a>
+        <a href="{{ route('resoluciones.cambiar') }}" class="btn btn-secondary ms-0 ms-md-2 mb-2 mb-md-0">
+            <i class="fas fa-sync-alt"></i> Cambiar resoluciones seleccionadas
+        </a>
+    </div>
+
+    {{-- 2. Filtros principales (ahora incluye Estado) --}}
     <div class="filter-container mb-3" style="background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.06); padding: 18px 18px 8px 18px;">
         <form method="GET" action="{{ route('titulaciones.index') }}">
             <div class="d-flex flex-wrap align-items-end gap-2">
@@ -410,6 +421,18 @@
                         @endforeach
                     </select>
                 </div>
+                {{-- Filtro de Estado como select --}}
+                <div class="mb-2 me-3">
+                    <label for="estado_filtro" class="form-label mb-1 fw-bold">Estado</label>
+                    <select name="estado_filtro" id="estado_filtro" class="form-control">
+                        <option value="">-- Todos --</option>
+                        @foreach($estados as $estado)
+                            <option value="{{ $estado->id_estado }}" {{ request('estado_filtro') == $estado->id_estado ? 'selected' : '' }}>
+                                {{ $estado->nombre_estado }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="mb-2 me-3 d-flex align-items-end">
                     <div>
                         <label for="fecha_inicio" class="form-label mb-1 fw-bold">Desde</label>
@@ -423,7 +446,7 @@
             </div>
             <div class="d-flex flex-wrap gap-2 mt-2">
                 <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-                @if(request('director_filtro') || request('asesor1_filtro') || request('periodo_filtro') || request('fecha_inicio') || request('fecha_fin'))
+                @if(request('director_filtro') || request('asesor1_filtro') || request('periodo_filtro') || request('estado_filtro') || request('fecha_inicio') || request('fecha_fin'))
                     <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary btn-sm">Quitar filtro</a>
                 @endif
                 <button type="submit" formaction="{{ route('titulaciones.pdf') }}" formtarget="_blank" class="btn btn-outline-primary btn-sm">
@@ -433,6 +456,7 @@
         </form>
     </div>
 
+    {{-- 3. Resultados --}}
     <div class="mb-2">
         <span class="fw-bold">
             Resultados: {{ $titulaciones->count() }}
@@ -443,30 +467,6 @@
                 (Filtrado)
             @endif
         </span>
-    </div>
-
-    <div class="d-flex flex-column flex-md-row justify-content-start mb-4">
-        <a href="{{ route('titulaciones.create') }}" class="btn btn-primary me-2 mb-2 mb-md-0">
-            <i class="fas fa-plus"></i> Nueva Titulación
-        </a>
-        <a href="{{ route('resoluciones.cambiar') }}" class="btn btn-secondary ms-0 ms-md-2 mb-2 mb-md-0">
-            <i class="fas fa-sync-alt"></i> Cambiar resoluciones seleccionadas
-        </a>
-    </div>
-
-    <div class="d-flex flex-column flex-md-row justify-content-between mb-4">
-        <div class="btn-group mb-2 mb-md-0">
-            <a href="{{ route('titulaciones.index') }}"
-               class="btn btn-outline-primary {{ !request('estado_filtro') ? 'active' : '' }}">
-                Todos
-            </a>
-            @foreach($estados as $estado)
-                <a href="{{ route('titulaciones.index', array_merge(request()->except('page', 'estado_filtro'), ['estado_filtro' => $estado->id_estado])) }}"
-                   class="btn btn-outline-info {{ request('estado_filtro') == $estado->id_estado ? 'active' : '' }}">
-                    {{ $estado->nombre_estado }}
-                </a>
-            @endforeach
-        </div>
     </div>
 
     <div class="table-container">
