@@ -449,6 +449,9 @@
         <a href="{{ route('titulaciones.create') }}" class="btn btn-primary me-2 mb-2 mb-md-0">
             <i class="fas fa-plus"></i> Nueva Titulación
         </a>
+        <a href="{{ route('resoluciones.cambiar') }}" class="btn btn-secondary ms-0 ms-md-2 mb-2 mb-md-0">
+            <i class="fas fa-sync-alt"></i> Cambiar resoluciones seleccionadas
+        </a>
     </div>
 
     <div class="d-flex flex-column flex-md-row justify-content-between mb-4">
