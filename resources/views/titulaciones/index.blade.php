@@ -446,6 +446,12 @@
                         <input type="date" name="fecha_fin" id="fecha_fin" class="form-control" value="{{ request('fecha_fin') }}">
                     </div>
                 </div>
+                <div class="mb-2 me-3">
+                    <label for="busqueda" class="form-label mb-1 fw-bold">Buscar</label>
+                    <input type="text" name="busqueda" id="busqueda" class="form-control"
+                        value="{{ request('busqueda') }}"
+                        placeholder="Tema, estudiante, director, asesor...">
+                </div>
             </div>
             <div class="d-flex flex-wrap gap-2 mt-2">
                 <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>

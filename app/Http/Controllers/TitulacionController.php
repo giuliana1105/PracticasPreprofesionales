@@ -22,8 +22,25 @@ class TitulacionController extends Controller
         $estados = \App\Models\EstadoTitulacion::orderBy('nombre_estado')->get();
 
         $query = Titulacion::with([
-            'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona'
+            'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
         ]);
+
+        // Filtro de búsqueda por tema, estudiante, director o asesor (insensible a mayúsculas/minúsculas)
+        if ($request->filled('busqueda')) {
+            $busqueda = strtolower($request->input('busqueda'));
+            $query->where(function($q) use ($busqueda) {
+                $q->whereRaw('LOWER(tema) LIKE ?', ['%' . $busqueda . '%'])
+                    ->orWhereHas('estudiantePersona', function($q2) use ($busqueda) {
+                        $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%']);
+                    })
+                    ->orWhereHas('directorPersona', function($q2) use ($busqueda) {
+                        $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%']);
+                    })
+                    ->orWhereHas('asesor1Persona', function($q2) use ($busqueda) {
+                        $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%']);
+                    });
+            });
+        }
 
         if ($request->filled('director_filtro')) {
             $query->where('cedula_director', $request->director_filtro);
