@@ -129,6 +129,15 @@ class TitulacionController extends Controller
             'observaciones'
         ]);
 
+        // Busca los nombres por cédula
+        $estudiante = \App\Models\Persona::where('cedula', $data['cedula_estudiante'])->first();
+        $director = \App\Models\Persona::where('cedula', $data['cedula_director'])->first();
+        $asesor1 = \App\Models\Persona::where('cedula', $data['cedula_asesor1'])->first();
+
+        $data['estudiante'] = $estudiante ? ($estudiante->nombres . ' ' . $estudiante->apellidos) : null;
+        $data['director'] = $director ? ($director->nombres . ' ' . $director->apellidos) : null;
+        $data['asesor1'] = $asesor1 ? ($asesor1->nombres . ' ' . $asesor1->apellidos) : null;
+
         // Si subió acta y el estado es Graduado, guárdala
         if (
             $request->hasFile('acta_grado') &&
@@ -365,8 +374,11 @@ public function edit($id)
 
             $titulacion = \App\Models\Titulacion::create([
                 'tema' => $data['tema'],
+                'estudiante' => $estudiante->nombres . ' ' . $estudiante->apellidos,
                 'cedula_estudiante' => $data['cedula_estudiante'],
+                'director' => $director->nombres . ' ' . $director->apellidos,
                 'cedula_director' => $data['cedula_director'],
+                'asesor1' => $asesor1->nombres . ' ' . $asesor1->apellidos,
                 'cedula_asesor1' => $data['cedula_asesor1'],
                 'periodo_id' => $periodo->id_periodo,
                 'estado_id' => $estado->id_estado,
