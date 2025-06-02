@@ -382,6 +382,9 @@
         <a href="{{ route('resoluciones.cambiar') }}" class="btn btn-secondary ms-0 ms-md-2 mb-2 mb-md-0">
             <i class="fas fa-sync-alt"></i> Cambiar resoluciones seleccionadas
         </a>
+        <a href="{{ route('home') }}" class="btn btn-secondary ms-0 ms-md-2 mb-2 mb-md-0">
+            <i class="fas fa-home"></i> Home
+        </a>
     </div>
 
     {{-- 2. Filtros principales (ahora incluye Estado) --}}
