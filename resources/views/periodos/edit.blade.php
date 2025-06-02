@@ -1,8 +1,123 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    body {
+        background-color: #e9ecef;
+        color: #212529;
+        margin: 0;
+        padding-bottom: 20px;
+        font-family: sans-serif;
+    }
+    .container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .header-container {
+        background-color: #d32f2f;
+        color: #fff;
+        padding: 15px 20px;
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+    .header-text-container {
+        display: flex;
+        flex-direction: column;
+    }
+    .utn-text {
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+    .ibarra-text {
+        font-size: 0.9em;
+    }
+    .page-title {
+        background-color: #343a40;
+        color: #fff;
+        padding: 20px;
+        text-align: center;
+        border-radius: 5px;
+        margin-bottom: 30px;
+        font-size: 1.5em;
+        font-weight: bold;
+    }
+    .card {
+        border-radius: 5px;
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.071);
+        margin-bottom: 30px;
+    }
+    .card-body {
+        padding: 30px 25px 25px 25px;
+        background: #fff;
+        border-radius: 0 0 5px 5px;
+    }
+    .form-group label, .form-label {
+        font-weight: bold;
+        color: #212529;
+    }
+    .form-control {
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        box-sizing: border-box;
+    }
+    .form-control:focus {
+        border-color: #d32f2f;
+        box-shadow: 0 0 0 0.2rem rgba(211, 47, 47, 0.15);
+    }
+    .btn {
+        min-width: 36px;
+        border-radius: 5px;
+        padding: 6px 12px;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+    }
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #5a6268;
+        color: white;
+    }
+    .btn-primary {
+        background-color: #d32f2f;
+        border-color: #d32f2f;
+        color: white;
+    }
+    .btn-primary:hover {
+        background-color: #c82333;
+        border-color: #c82333;
+        color: white;
+    }
+    .invalid-feedback {
+        color: #dc3545;
+        font-size: 0.95em;
+    }
+    .mt-4 { margin-top: 1.5rem; }
+    .mb-3 { margin-bottom: 1rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    @media (max-width: 768px) {
+        .container { padding: 10px; }
+        .card-body { padding: 15px 8px 10px 8px; }
+        .page-title { font-size: 1.1em; padding: 12px; }
+    }
+</style>
+
 <div class="container">
-    <h1>Editar Período</h1>
+    <div class="header-container">
+        <div class="header-text-container">
+            <span class="utn-text">UTN</span>
+            <span class="ibarra-text">IBARRA - ECUADOR</span>
+        </div>
+    </div>
+    <h1 class="page-title">Editar Período</h1>
 
     {{-- Mostrar mensajes de error --}}
     @if ($errors->any())
@@ -29,53 +144,38 @@
         </div>
     @endif
 
-    <div class="card">
+    <div class="card shadow">
         <div class="card-body">
             <form action="{{ route('periodos.update', $periodo->id_periodo) }}" method="POST">
                 @csrf
                 @method('PUT')
-                
-                <div class="form-group row">
-                    <label for="mes_ini" class="col-sm-3 col-form-label">Mes Inicio:</label>
-                    <div class="col-sm-9">
-                        <input type="text" class="form-control" id="mes_ini" name="mes_ini" 
-                               value="{{ old('mes_ini', $periodo->mes_ini) }}" placeholder="Ej: Enero">
-                    </div>
+                <div class="form-group mb-3">
+                    <label for="mes_ini" class="form-label">Mes Inicio:</label>
+                    <input type="text" class="form-control" id="mes_ini" name="mes_ini"
+                           value="{{ old('mes_ini', $periodo->mes_ini) }}" placeholder="Ej: Enero">
                 </div>
-                
-                <div class="form-group row">
-                    <label for="mes_fin" class="col-sm-3 col-form-label">Mes Fin:</label>
-                    <div class="col-sm-9">
-                        <input type="text" class="form-control" id="mes_fin" name="mes_fin" 
-                               value="{{ old('mes_fin', $periodo->mes_fin) }}" placeholder="Ej: Marzo">
-                    </div>
+                <div class="form-group mb-3">
+                    <label for="mes_fin" class="form-label">Mes Fin:</label>
+                    <input type="text" class="form-control" id="mes_fin" name="mes_fin"
+                           value="{{ old('mes_fin', $periodo->mes_fin) }}" placeholder="Ej: Marzo">
                 </div>
-                
-                <div class="form-group row">
-                    <label for="año_ini" class="col-sm-3 col-form-label">Año Inicio:</label>
-                    <div class="col-sm-9">
-                        <input type="number" class="form-control" id="año_ini" name="año_ini" 
-                               value="{{ old('año_ini', $periodo->año_ini) }}" placeholder="Ej: 2023">
-                    </div>
+                <div class="form-group mb-3">
+                    <label for="año_ini" class="form-label">Año Inicio:</label>
+                    <input type="number" class="form-control" id="año_ini" name="año_ini"
+                           value="{{ old('año_ini', $periodo->año_ini) }}" placeholder="Ej: 2023">
                 </div>
-                
-                <div class="form-group row">
-                    <label for="año_fin" class="col-sm-3 col-form-label">Año Fin:</label>
-                    <div class="col-sm-9">
-                        <input type="number" class="form-control" id="año_fin" name="año_fin" 
-                               value="{{ old('año_fin', $periodo->año_fin) }}" placeholder="Ej: 2023">
-                    </div>
+                <div class="form-group mb-3">
+                    <label for="año_fin" class="form-label">Año Fin:</label>
+                    <input type="number" class="form-control" id="año_fin" name="año_fin"
+                           value="{{ old('año_fin', $periodo->año_fin) }}" placeholder="Ej: 2023">
                 </div>
-                
-                <div class="form-group row">
-                    <div class="col-sm-9 offset-sm-3">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Actualizar
-                        </button>
-                        <a href="{{ route('periodos.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Volver
-                        </a>
-                    </div>
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Actualizar
+                    </button>
+                    <a href="{{ route('periodos.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
                 </div>
             </form>
         </div>
@@ -84,6 +184,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 <script>
     $(document).ready(function(){
         setTimeout(function(){
