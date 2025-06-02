@@ -324,10 +324,13 @@
                         <label for="csv_file" class="form-label">Archivo CSV:</label>
                         <input type="file" name="csv_file" id="csv_file" class="form-control" accept=".csv" required>
                     </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-success">
+                    <div class="form-group d-flex flex-column flex-md-row gap-2">
+                        <button type="submit" class="btn btn-success me-md-2 mb-2 mb-md-0">
                             <i class="fas fa-file-import"></i> Importar
                         </button>
+                        <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </a>
                     </div>
                 </form>
             </div>
