@@ -178,6 +178,10 @@
             <i class="fas fa-certificate module-icon"></i>
             <div class="module-title">Titulaciones</div>
         </a>
+        <a href="{{ route('tipo_resoluciones.index') }}" class="module-card">
+            <i class="fas fa-tags module-icon"></i>
+            <div class="module-title">Tipos de Resoluciones</div>
+        </a>
     </div>
 </div>
 @endsection
