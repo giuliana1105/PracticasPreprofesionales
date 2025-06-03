@@ -55,6 +55,12 @@ class CargoController extends Controller
     // Eliminar un cargo
     public function destroy(Cargo $cargo)
     {
+        // Verifica si el cargo está referenciado en personas
+        if (\App\Models\Persona::where('cargo_id', $cargo->id_cargo)->exists()) {
+            return redirect()->route('cargos.index')
+                ->with('error', 'No se puede eliminar este estado porque está referenciado en otras tablas.');
+        }
+
         $cargo->delete();
         return redirect()->route('cargos.index')->with('success', 'Cargo eliminado exitosamente.');
     }
