@@ -386,6 +386,17 @@
 
     <h1 class="page-title">Gestión de Tipos de Resolución</h1>
 
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
+
     <div class="d-flex flex-column flex-md-row justify-content-between mb-4">
         <div class="btn-group mb-2 mb-md-0">
             <a href="{{ route('tipo_resoluciones.index') }}"

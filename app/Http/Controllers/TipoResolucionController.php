@@ -89,10 +89,15 @@ class TipoResolucionController extends Controller
      */
     public function destroy($id)
     {
-        $tipo = TipoResolucion::findOrFail($id);
-        $tipo->delete();
-
-        return redirect()->route('tipo_resoluciones.index')
-                         ->with('success', 'Tipo de resolución eliminado exitosamente.');
+        try {
+            $tipo = \App\Models\TipoResolucion::findOrFail($id);
+            $tipo->delete();
+            return redirect()->route('tipo_resoluciones.index')
+                ->with('success', 'Tipo de resolución eliminado exitosamente.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Error de restricción de clave foránea
+            return redirect()->route('tipo_resoluciones.index')
+                ->with('error', 'No se puede eliminar este tipo de resolución porque está referenciado en otra tabla.');
+        }
     }
 }
