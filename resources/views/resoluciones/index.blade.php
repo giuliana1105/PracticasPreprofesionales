@@ -398,13 +398,13 @@
     }
     </style>
 
-@if(session('success'))
+<!-- @if(session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 
 @if(session('error'))
     <div class="alert alert-danger">{{ session('error') }}</div>
-@endif
+@endif -->
 
 <div class="container">
     <div class="header-container">
@@ -428,6 +428,20 @@
             </a>
         </div>
     </div>
+
+    <div class="container">
+
+    {{-- Mensajes de éxito y error antes de la tabla --}}
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+
+ 
+</div>
 
     <div class="table-container">
 
