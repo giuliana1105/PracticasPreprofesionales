@@ -73,6 +73,13 @@ class PeriodoController extends Controller
     public function destroy($id)
     {
         $periodo = Periodo::findOrFail($id);
+
+        // Verifica si el periodo está referenciado en titulaciones
+        if (\App\Models\Titulacion::where('periodo_id', $periodo->id_periodo)->exists()) {
+            return redirect()->route('periodos.index')
+                ->with('error', 'No se puede eliminar este estado porque está referenciado en otras tablas.');
+        }
+
         $periodo->delete();
 
         return redirect()->route('periodos.index')->with('success', 'Periodo eliminado exitosamente.');
