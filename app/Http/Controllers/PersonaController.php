@@ -125,11 +125,28 @@ class PersonaController extends Controller
     {
         try {
             $persona = Persona::findOrFail($id);
+
+            // Verifica si la persona está referenciada en otras tablas
+            $referenciada = false;
+
+            // Ejemplo: verifica si la persona es director, asesor o estudiante en titulaciones
+            if (
+                \App\Models\Titulacion::where('cedula_estudiante', $persona->cedula)->exists() ||
+                \App\Models\Titulacion::where('cedula_director', $persona->cedula)->exists() ||
+                \App\Models\Titulacion::where('cedula_asesor1', $persona->cedula)->exists()
+            ) {
+                $referenciada = true;
+            }
+
+            if ($referenciada) {
+                return redirect()->route('personas.index')
+                    ->with('error', 'No se puede eliminar este estado porque está referenciado en otras tablas.');
+            }
+
             $persona->delete();
-            
+
             return redirect()->route('personas.index')
                 ->with('success', 'Persona eliminada exitosamente');
-                
         } catch (\Exception $e) {
             return back()->with('error', 'Error al eliminar: ' . $e->getMessage());
         }
