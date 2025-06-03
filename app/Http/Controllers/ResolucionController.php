@@ -195,4 +195,43 @@ class ResolucionController extends Controller
         // Puedes dejarlo vacío o redirigir a index
         return redirect()->route('resoluciones.index');
     }
+
+    public function edit($id)
+    {
+        $resolucion = \App\Models\Resolucion::findOrFail($id);
+        $tipos = \App\Models\TipoResolucion::all(); // Si necesitas tipos para un select
+        return view('resoluciones.edit', compact('resolucion', 'tipos'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $resolucion = \App\Models\Resolucion::findOrFail($id);
+
+        $request->validate([
+            'numero_res' => 'required|string|max:255',
+            'fecha_res' => 'required|date',
+            'tipo_res' => 'required|exists:tipo_resoluciones,id_tipo_res',
+            // Si permites actualizar el PDF:
+            'archivo_pdf' => 'nullable|file|mimes:pdf|max:2048',
+        ]);
+
+        $data = [
+            'numero_res' => $request->numero_res,
+            'fecha_res' => $request->fecha_res,
+            'tipo_res' => $request->tipo_res,
+        ];
+
+        // Si se sube un nuevo archivo PDF, reemplázalo
+        if ($request->hasFile('archivo_pdf')) {
+            // Borra el anterior si existe
+            if ($resolucion->archivo_pdf && Storage::disk('public')->exists($resolucion->archivo_pdf)) {
+                Storage::disk('public')->delete($resolucion->archivo_pdf);
+            }
+            $data['archivo_pdf'] = $request->file('archivo_pdf')->store('resoluciones', 'public');
+        }
+
+        $resolucion->update($data);
+
+        return redirect()->route('resoluciones.index')->with('success', 'Resolución actualizada exitosamente.');
+    }
 }

@@ -461,6 +461,10 @@
                             @endif
                         </td>
                         <td class="align-middle">
+                            {{-- Botón editar --}}
+                            <a href="{{ route('resoluciones.edit', $resolucion->id_Reso) }}" class="btn btn-warning btn-sm" title="Editar">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
                             {{-- Botón eliminar --}}
                             <button type="button" class="btn btn-danger btn-sm" onclick="confirmarEliminar('{{ $resolucion->id_Reso }}')">
                                 <i class="fas fa-trash"></i> Eliminar
