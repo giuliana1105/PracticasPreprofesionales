@@ -55,6 +55,12 @@ class CarreraController extends Controller
     // Eliminar una carrera
     public function destroy(Carrera $carrera)
     {
+        // Verifica si la carrera está referenciada en personas
+        if (\App\Models\Persona::where('carrera_id', $carrera->id_carrera)->exists()) {
+            return redirect()->route('carreras.index')
+                ->with('error', 'No se puede eliminar este estado porque está referenciado en otras tablas.');
+        }
+
         $carrera->delete();
         return redirect()->route('carreras.index')->with('success', 'Carrera eliminada exitosamente.');
     }
