@@ -283,6 +283,17 @@
         </div>
     </div>
 
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
+
     <div class="table-container">
         <table class="table table-hover">
             <thead>
@@ -311,7 +322,7 @@
                                 @method('DELETE')
                                 <button type="submit"
                                         class="btn btn-sm btn-danger mx-1"
-                                        onclick="return confirm('¡Advertencia! Este estado puede estar relacionado con titulaciones. Si continúas, se eliminarán también todas las titulaciones relacionadas. ¿Deseas continuar?')"
+                                        onclick="return confirm('¿Está seguro de eliminar este estado?')"
                                         title="Eliminar">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>

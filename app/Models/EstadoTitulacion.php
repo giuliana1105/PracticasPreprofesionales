@@ -21,4 +21,9 @@ class EstadoTitulacion extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
     ];
+
+    public function titulaciones()
+    {
+        return $this->hasMany(\App\Models\Titulacion::class, 'estado_id', 'id_estado');
+    }
 }

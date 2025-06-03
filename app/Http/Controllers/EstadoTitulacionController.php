@@ -50,34 +50,46 @@ class EstadoTitulacionController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(EstadoTitulacion $estadoTitulacion)
+    public function edit($id)
     {
-        return view('estado_titulaciones.edit', compact('estadoTitulacion'));
+        $estado = \App\Models\EstadoTitulacion::findOrFail($id);
+        return view('estado_titulaciones.edit', compact('estado'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, EstadoTitulacion $estadoTitulacion)
+    public function update(Request $request, $id)
     {
+        $estado = \App\Models\EstadoTitulacion::findOrFail($id);
+
         $request->validate([
-            'nombre_estado' => 'required|string|max:255|unique:estado_titulaciones,nombre_estado,'.$estadoTitulacion->id_estado.',id_estado'
+            'nombre_estado' => 'required|string|max:255',
         ]);
 
-        $estadoTitulacion->update($request->all());
+        $estado->nombre_estado = $request->nombre_estado;
+        $estado->save();
 
         return redirect()->route('estado-titulaciones.index')
-                         ->with('success', 'Estado de titulación actualizado exitosamente.');
+            ->with('success', 'Estado actualizado exitosamente.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(EstadoTitulacion $estadoTitulacion)
+    public function destroy($id)
     {
-        $estadoTitulacion->delete();
+        $estado = \App\Models\EstadoTitulacion::findOrFail($id);
+
+        // Verifica si está referenciado en titulaciones
+        if ($estado->titulaciones()->exists()) {
+            return redirect()->route('estado-titulaciones.index')
+                ->with('error', 'No se puede eliminar este estado porque está referenciado en otras tablas.');
+        }
+
+        $estado->delete();
 
         return redirect()->route('estado-titulaciones.index')
-                         ->with('success', 'Estado de titulación eliminado exitosamente.');
+            ->with('success', 'Estado eliminado exitosamente.');
     }
 }
