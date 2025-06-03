@@ -155,18 +155,41 @@ class ResolucionController extends Controller
         return redirect()->route('resoluciones.index')->with('success', 'Resoluciones limpiadas. Seleccione nuevas resoluciones.');
     }
 
+    // public function destroy($id)
+    // {
+    //     $resolucion = Resolucion::findOrFail($id);
+
+    //     // Si tienes archivos asociados, puedes eliminarlos del storage si lo deseas:
+    //     // Storage::delete('public/resoluciones/' . $resolucion->archivo_pdf);
+
+    //     $resolucion->delete();
+
+    //     return redirect()->route('resoluciones.index')->with('success', 'Resolución eliminada exitosamente.');
+    // }
     public function destroy($id)
-    {
-        $resolucion = Resolucion::findOrFail($id);
+{
+    $resolucion = Resolucion::findOrFail($id);
 
-        // Si tienes archivos asociados, puedes eliminarlos del storage si lo deseas:
-        // Storage::delete('public/resoluciones/' . $resolucion->archivo_pdf);
+    // Validar si la resolución está referenciada en otras tablas
+    // Puedes verificar relaciones como temas, titulaciones y resoluciones seleccionadas
+    $estaReferenciada = 
+        $resolucion->temas()->exists() || 
+        $resolucion->titulaciones()->exists() ||
+        $resolucion->resolucionesSeleccionadas()->exists();
 
-        $resolucion->delete();
-
-        return redirect()->route('resoluciones.index')->with('success', 'Resolución eliminada exitosamente.');
+    if ($estaReferenciada) {
+        return redirect()->route('resoluciones.index')
+            ->with('error', 'No se puede eliminar la resolución porque está referenciada en otra tabla.');
     }
-    
+
+    // Si tienes archivos asociados, puedes eliminarlos del storage si lo deseas:
+    // Storage::delete('public/' . $resolucion->archivo_pdf);
+
+    $resolucion->delete();
+
+    return redirect()->route('resoluciones.index')->with('success', 'Resolución eliminada exitosamente.');
+}
+
     public function show($id)
     {
         // Puedes dejarlo vacío o redirigir a index

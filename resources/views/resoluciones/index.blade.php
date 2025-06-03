@@ -396,7 +396,15 @@
             margin-top: 10px;
         }
     }
-</style>
+    </style>
+
+@if(session('success'))
+    <div class="alert alert-success">{{ session('success') }}</div>
+@endif
+
+@if(session('error'))
+    <div class="alert alert-danger">{{ session('error') }}</div>
+@endif
 
 <div class="container">
     <div class="header-container">
@@ -422,52 +430,71 @@
     </div>
 
     <div class="table-container">
-        <form action="{{ route('resoluciones.seleccionar') }}" method="POST">
-            @csrf
-            <table class="table table-hover">
-                <thead>
+
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th class="text-center">Seleccionar</th>
+                    <th>Número</th>
+                    <th>Fecha aprobación</th>
+                    <th>Tipo de Resolución</th>
+                    <th>Ver PDF</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($resoluciones as $resolucion)
                     <tr>
-                        <th class="text-center">Seleccionar</th>
-                        <th>Número</th>
-                        <th>Fecha aprobación</th>
-                        <th>Tipo de Resolución</th> <!-- Nueva columna -->
-                        <th>Ver PDF</th>
+                        <td class="text-center align-middle">
+                            <input type="checkbox" name="resoluciones[]" value="{{ $resolucion->id_Reso }}" form="form-seleccionar">
+                        </td>
+                        <td class="align-middle">{{ $resolucion->numero_res }}</td>
+                        <td class="align-middle">{{ $resolucion->fecha_res }}</td>
+                        <td class="align-middle">{{ $resolucion->tipoResolucion->nombre_tipo_res ?? '-' }}</td>
+                        <td class="align-middle">
+                            @if($resolucion->archivo_url)
+                                <a href="{{ $resolucion->archivo_url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-file-pdf"></i> Ver PDF
+                                </a>
+                            @else
+                                -
+                            @endif
+                        </td>
+                        <td class="align-middle">
+                            {{-- Botón eliminar --}}
+                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmarEliminar('{{ $resolucion->id_Reso }}')">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                            {{-- Formulario eliminar oculto --}}
+                            <form id="form-eliminar-{{ $resolucion->id_Reso }}" action="{{ route('resoluciones.destroy', $resolucion->id_Reso) }}" method="POST" style="display:none;">
+                                @csrf
+                                @method('DELETE')
+                            </form>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach($resoluciones as $resolucion)
-                        <tr>
-                            <td class="text-center align-middle">
-                                <input type="checkbox" name="resoluciones[]" value="{{ $resolucion->id_Reso }}">
-                            </td>
-                            <td class="align-middle">{{ $resolucion->numero_res }}</td>
-                            <td class="align-middle">{{ $resolucion->fecha_res }}</td>
-                            <td class="align-middle">
-                                {{ $resolucion->tipoResolucion->nombre_tipo_res ?? '-' }}
-                            </td>
-                            <td class="align-middle">
-                                @if($resolucion->archivo_url)
-                                    <a href="{{ $resolucion->archivo_url }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-file-pdf"></i> Ver PDF
-                                    </a>
-                                @else
-                                    -
-                                @endif
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-            <div class="d-flex justify-content-center mt-3">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Guardar Resoluciones Seleccionadas
-                </button>
-            </div>
+                @endforeach
+            </tbody>
+        </table>
+
+        {{-- Formulario separado solo para enviar las resoluciones seleccionadas --}}
+        <form id="form-seleccionar" action="{{ route('resoluciones.seleccionar') }}" method="POST" class="d-flex justify-content-center mt-3">
+            @csrf
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Guardar Resoluciones Seleccionadas
+            </button>
         </form>
+
     </div>
 </div>
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script>
+    function confirmarEliminar(id) {
+        if (confirm('¿Está seguro que desea eliminar esta resolución?')) {
+            document.getElementById('form-eliminar-' + id).submit();
+        }
+    }
+</script>
 @endpush
 @endsection

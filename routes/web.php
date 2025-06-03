@@ -86,3 +86,4 @@ Route::get('titulaciones/{titulacion}/edit', [TitulacionController::class, 'edit
 Route::put('titulaciones/{titulacion}', [TitulacionController::class, 'update'])->name('titulaciones.update');
 Route::delete('titulaciones/{titulacion}', [TitulacionController::class, 'destroy'])->name('titulaciones.destroy');
 Route::post('titulaciones/import-csv', [TitulacionController::class, 'importCsv'])->name('titulaciones.importCsv');
+Route::delete('/resoluciones/{id}', [ResolucionController::class, 'destroy'])->name('resoluciones.destroy');
