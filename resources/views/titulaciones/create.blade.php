@@ -354,7 +354,7 @@
         @foreach($personas as $persona)
             @if($persona->cargo && $persona->cargo->nombre_cargo == 'Estudiante')
                 <option value="{{ $persona->id }}" data-cedula="{{ $persona->cedula }}">
-                    {{ $persona->nombres }}
+                    {{ $persona->nombres }} {{ $persona->apellidos }}
                 </option>
             @endif
         @endforeach
@@ -372,7 +372,7 @@
         @foreach($personas as $persona)
             @if($persona->cargo && $persona->cargo->nombre_cargo == 'Docente')
                 <option value="{{ $persona->id }}" data-cedula="{{ $persona->cedula }}">
-                    {{ $persona->nombres }}
+                    {{ $persona->nombres }} {{ $persona->apellidos }}
                 </option>
             @endif
         @endforeach
@@ -390,7 +390,7 @@
         @foreach($personas as $persona)
             @if($persona->cargo && $persona->cargo->nombre_cargo == 'Docente')
                 <option value="{{ $persona->id }}" data-cedula="{{ $persona->cedula }}">
-                    {{ $persona->nombres }}
+                    {{ $persona->nombres }} {{ $persona->apellidos }}
                 </option>
             @endif
         @endforeach

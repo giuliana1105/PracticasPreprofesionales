@@ -496,9 +496,15 @@
                 @foreach($titulaciones as $tit)
                 <tr>
                     <td>{{ $tit->tema }}</td>
-                    <td>{{ $tit->estudiantePersona->nombres ?? '' }}</td>
-                    <td>{{ $tit->directorPersona->nombres ?? '' }}</td>
-                    <td>{{ $tit->asesor1Persona->nombres ?? '' }}</td>
+                    <td>
+                        {{ $tit->estudiantePersona->nombres ?? '' }} {{ $tit->estudiantePersona->apellidos ?? '' }}
+                    </td>
+                    <td>
+                        {{ $tit->directorPersona->nombres ?? '' }} {{ $tit->directorPersona->apellidos ?? '' }}
+                    </td>
+                    <td>
+                        {{ $tit->asesor1Persona->nombres ?? '' }} {{ $tit->asesor1Persona->apellidos ?? '' }}
+                    </td>
                     <td>{{ $tit->periodo->periodo_academico ?? '' }}</td>
                     <td>{{ $tit->estado->nombre_estado ?? '' }}</td>
                     <td>

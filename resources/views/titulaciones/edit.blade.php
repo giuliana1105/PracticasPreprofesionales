@@ -241,7 +241,7 @@
                             <option value="{{ $persona->id }}"
                                 data-cedula="{{ $persona->cedula }}"
                                 {{ (old('persona_estudiante_id', $personaEstudiante->id ?? '') == $persona->id) ? 'selected' : '' }}>
-                                {{ $persona->nombres }}
+                                {{ $persona->nombres }} {{ $persona->apellidos }}
                             </option>
                         @endif
                     @endforeach
@@ -264,7 +264,7 @@
                                 data-cedula="{{ $persona->cedula }}"
 
                                 {{ (old('persona_director_id', $personaDirector->id ?? '') == $persona->id) ? 'selected' : '' }}>
-                                {{ $persona->nombres }}
+                                {{ $persona->nombres }} {{ $persona->apellidos }}
                             </option>
                         @endif
                     @endforeach
@@ -286,7 +286,7 @@
                                 data-cedula="{{ $persona->cedula }}"
 
                                 {{ (old('persona_asesor_id', $personaAsesor->id ?? '') == $persona->id) ? 'selected' : '' }}>
-                                {{ $persona->nombres }}
+                                {{ $persona->nombres }} {{ $persona->apellidos }}
                             </option>
                         @endif
                     @endforeach

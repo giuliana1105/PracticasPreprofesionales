@@ -125,7 +125,7 @@
         </tr>
         <tr>
             <th>Estudiante</th>
-            <td>{{ $titulacion->estudiantePersona->nombres ?? '' }}</td>
+            <td>{{ $titulacion->estudiantePersona->nombres ?? '' }} {{ $titulacion->estudiantePersona->apellidos ?? '' }}</td>
         </tr>
         <tr>
             <th>Cédula Estudiante</th>
@@ -133,7 +133,7 @@
         </tr>
         <tr>
             <th>Director</th>
-            <td>{{ $titulacion->directorPersona->nombres ?? '' }}</td>
+            <td>{{ $titulacion->directorPersona->nombres ?? '' }} {{ $titulacion->directorPersona->apellidos ?? '' }}</td>
         </tr>
         <tr>
             <th>Cédula Director</th>
@@ -141,7 +141,7 @@
         </tr>
         <tr>
             <th>Asesor 1</th>
-            <td>{{ $titulacion->asesor1Persona->nombres ?? '' }}</td>
+            <td>{{ $titulacion->asesor1Persona->nombres ?? '' }} {{ $titulacion->asesor1Persona->apellidos ?? '' }}</td>
         </tr>
         <tr>
             <th>Cédula Asesor 1</th>
