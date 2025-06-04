@@ -15,6 +15,12 @@
     <div class="container">
         @yield('content')
     </div>
+    @auth
+        <form action="{{ route('logout') }}" method="POST" style="display:inline;">
+            @csrf
+            <button type="submit" class="btn btn-link" style="padding:0;">Cerrar sesión</button>
+        </form>
+    @endauth
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
 </body>

@@ -2,25 +2,33 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Persona extends Model
+class Persona extends Authenticatable
 {
-    use HasFactory;
-
     protected $table = 'personas';
-    protected $primaryKey = 'id';
-    
+
     protected $fillable = [
         'cedula',
         'nombres',
-        'apellidos', // <-- agrega aquí
+        'apellidos',
         'celular',
         'correo',
         'carrera_id',
-        'cargo_id'
+        'cargo_id',
+        'password',
+        'role'
     ];
+
+    protected $hidden = [
+        'password',
+    ];
+
+    // Si usas otro campo para login, por ejemplo 'correo'
+    public function getAuthIdentifierName()
+    {
+        return 'id';
+    }
 
     public function carrera()
     {
@@ -31,4 +39,8 @@ class Persona extends Model
     {
         return $this->belongsTo(Cargo::class, 'cargo_id', 'id_cargo');
     }
+
+    protected $primaryKey = 'id';
+    public $incrementing = true;
+    protected $keyType = 'int';
 }
