@@ -15,6 +15,7 @@ class Persona extends Model
     protected $fillable = [
         'cedula',
         'nombres',
+        'apellidos', // <-- agrega aquí
         'celular',
         'correo',
         'carrera_id',

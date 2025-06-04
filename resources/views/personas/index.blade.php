@@ -303,6 +303,7 @@
                 <tr>
                     <th>Cédula</th>
                     <th>Nombres</th>
+                    <th>Apellidos</th>
                     <th>Celular</th>
                     <th>Correo</th>
                     <th>Carrera</th>
@@ -315,6 +316,7 @@
                     <tr>
                         <td>{{ $persona->cedula }}</td>
                         <td>{{ $persona->nombres }}</td>
+                        <td>{{ $persona->apellidos }}</td>
                         <td>{{ $persona->celular }}</td>
                         <td>{{ $persona->correo }}</td>
                         <td>{{ $persona->carrera->nombre_carrera ?? 'N/A' }}</td>
@@ -334,7 +336,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center">No hay personas registradas</td>
+                        <td colspan="8" class="text-center">No hay personas registradas</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -358,7 +360,7 @@
                             <label for="archivo_csv">Archivo CSV</label>
                             <input type="file" class="form-control" id="archivo_csv" name="archivo_csv" required>
                             <small class="form-text text-muted">
-                                El archivo debe tener las columnas: cedula, nombres, carrera, cargo, celular, correo
+                                El archivo debe tener las columnas: cedula, nombres, apellidos, celular, correo, carrera, cargo
                             </small>
                         </div>
                         <div class="alert alert-info">

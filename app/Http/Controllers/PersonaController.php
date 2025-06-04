@@ -33,6 +33,7 @@ class PersonaController extends Controller
         $validator = Validator::make($request->all(), [
             'cedula' => 'required|string|max:20|unique:personas,cedula',
             'nombres' => 'required|string|max:100',
+            'apellidos' => 'required|string|max:100',
             'celular' => 'required|string|max:15',
             'correo' => 'required|email|max:100|unique:personas,correo',
             'carrera_id' => 'required|exists:carreras,id_carrera',
@@ -41,6 +42,7 @@ class PersonaController extends Controller
             'cedula.required' => 'La cédula es obligatoria',
             'cedula.unique' => 'Esta cédula ya está registrada',
             'nombres.required' => 'Los nombres son obligatorios',
+            'apellidos.required' => 'Los apellidos son obligatorios',
             'celular.required' => 'El celular es obligatorio',
             'correo.required' => 'El correo electrónico es obligatorio',
             'correo.email' => 'Ingrese un correo electrónico válido',
@@ -85,6 +87,7 @@ class PersonaController extends Controller
         $validator = Validator::make($request->all(), [
             'cedula' => 'required|string|max:20|unique:personas,cedula,'.$id,
             'nombres' => 'required|string|max:100',
+            'apellidos' => 'required|string|max:100',
             'celular' => 'required|string|max:15',
             'correo' => 'required|email|max:100|unique:personas,correo,'.$id,
             'carrera_id' => 'required|exists:carreras,id_carrera',
@@ -93,6 +96,7 @@ class PersonaController extends Controller
             'cedula.required' => 'La cédula es obligatoria',
             'cedula.unique' => 'Esta cédula ya está registrada',
             'nombres.required' => 'Los nombres son obligatorios',
+            'apellidos.required' => 'Los apellidos son obligatorios',
             'celular.required' => 'El celular es obligatorio',
             'correo.required' => 'El correo electrónico es obligatorio',
             'correo.email' => 'Ingrese un correo electrónico válido',
@@ -256,6 +260,213 @@ class PersonaController extends Controller
     //     }
     // }
     
+// public function import(Request $request)
+// {
+//     $request->validate([
+//         'archivo_csv' => 'required|file|mimes:csv,txt|max:2048',
+//     ]);
+
+//     $file = $request->file('archivo_csv');
+
+//     // Detecta delimitador
+//     $handle = fopen($file->getPathname(), 'r');
+//     $firstLine = fgets($handle);
+//     fclose($handle);
+//     $delimiter = (strpos($firstLine, ';') !== false) ? ';' : ',';
+
+//     $csv = Reader::createFromPath($file->getPathname(), 'r');
+//     $csv->setHeaderOffset(0);
+//     $csv->setDelimiter($delimiter);
+
+//     DB::beginTransaction();
+//     $importedCount = 0;
+//     $errores = [];
+
+//     try {
+//         foreach ($csv->getRecords() as $index => $row) {
+//             $fila = $index + 2;
+
+//             // Validar campos requeridos
+//             if (empty($row['cedula'])) {
+//                 $errores[$fila] = 'Cédula vacía';
+//                 continue;
+//             }
+//             if (empty($row['nombres'])) {
+//                 $errores[$fila] = 'Nombres vacíos';
+//                 continue;
+//             }
+//             if (empty($row['apellidos'])) {
+//                 $errores[$fila] = 'Apellidos vacíos';
+//                 continue;
+//             }
+//             if (empty($row['celular'])) {
+//                 $errores[$fila] = 'Celular vacío';
+//                 continue;
+//             }
+//             if (empty($row['correo'])) {
+//                 $errores[$fila] = 'Correo vacío';
+//                 continue;
+//             }
+//             if (empty($row['carrera'])) {
+//                 $errores[$fila] = 'Carrera vacía';
+//                 continue;
+//             }
+//             if (empty($row['cargo'])) {
+//                 $errores[$fila] = 'Cargo vacío';
+//                 continue;
+//             }
+
+//             // Verificar cédula única
+//             if (Persona::where('cedula', $row['cedula'])->exists()) {
+//                 $errores[$fila] = 'El número de cédula "' . $row['cedula'] . '" ya está registrado y no se puede volver a registrar.';
+//                 continue;
+//             }
+
+//             // Buscar carrera y cargo (ignorando mayúsculas/minúsculas)
+//             $carrera = \App\Models\Carrera::whereRaw('LOWER(nombre_carrera) = ?', [strtolower(trim($row['carrera']))])->first();
+//             if (! $carrera) {
+//                 $errores[$fila] = 'Carrera no encontrada: ' . $row['carrera'];
+//                 continue;
+//             }
+
+//             $cargo = \App\Models\Cargo::whereRaw('LOWER(nombre_cargo) = ?', [strtolower(trim($row['cargo']))])->first();
+//             if (! $cargo) {
+//                 $errores[$fila] = 'Cargo no encontrado: ' . $row['cargo'];
+//                 continue;
+//             }
+
+//             // Verificar correo único
+//             if (Persona::where('correo', $row['correo'])->exists()) {
+//                 $errores[$fila] = 'Correo ya registrado: ' . $row['correo'];
+//                 continue;
+//             }
+
+//             // Crear persona
+//             Persona::create([
+//                 'cedula'     => $row['cedula'],
+//                 'nombres'    => $row['nombres'],
+//                 'apellidos'    => $row['apellidos'],
+//                 'celular'    => $row['celular'],
+//                 'correo'     => $row['correo'],
+//                 'carrera_id' => $carrera->id_carrera,
+//                 'cargo_id'   => $cargo->id_cargo,
+//             ]);
+
+//             $importedCount++;
+//         }
+
+//         DB::commit();
+
+//         return redirect()->route('personas.index')->with([
+//             'success'       => "Se importaron {$importedCount} registros correctamente.",
+//             'import_errors' => $errores,
+//         ]);
+//     } catch (\Throwable $e) {
+//         DB::rollBack();
+//         return back()->with('error', 'Error en la importación: ' . $e->getMessage());
+//     }
+// }
+
+
+
+// public function import(Request $request)
+// {
+//     $request->validate([
+//         'archivo_csv' => 'required|file|mimes:csv,txt|max:2048',
+//     ]);
+
+//     $file = $request->file('archivo_csv');
+//     $handle = fopen($file->getPathname(), 'r');
+//     $firstLine = fgets($handle);
+//     fclose($handle);
+//     $delimiter = (strpos($firstLine, ';') !== false) ? ';' : ',';
+
+//     $csv = \League\Csv\Reader::createFromPath($file->getPathname(), 'r');
+//     $csv->setHeaderOffset(0);
+//     $csv->setDelimiter($delimiter);
+
+//     DB::beginTransaction();
+//     $importedCount = 0;
+//     $errores = [];
+
+//     try {
+//         foreach ($csv->getRecords() as $index => $row) {
+//             $fila = $index + 2;
+
+//             // Validar campos requeridos
+//             if (empty($row['cedula'])) {
+//                 $errores[$fila] = 'Cédula vacía';
+//                 continue;
+//             }
+//             if (empty($row['celular'])) {
+//                 $errores[$fila] = 'Celular vacío';
+//                 continue;
+//             }
+//             if (empty($row['correo'])) {
+//                 $errores[$fila] = 'Correo vacío';
+//                 continue;
+//             }
+//             if (empty($row['carrera'])) {
+//                 $errores[$fila] = 'Carrera vacía';
+//                 continue;
+//             }
+//             if (empty($row['cargo'])) {
+//                 $errores[$fila] = 'Cargo vacío';
+//                 continue;
+//             }
+
+//             // Buscar persona por cédula para obtener nombres y apellidos
+//             $personaExistente = \App\Models\Persona::where('cedula', $row['cedula'])->first();
+//             if (!$personaExistente) {
+//                 $errores[$fila] = 'No existe persona con cédula: ' . $row['cedula'] . '. Debe registrar primero la persona manualmente.';
+//                 continue;
+//             }
+
+//             // Buscar carrera y cargo (ignorando mayúsculas/minúsculas)
+//             $carrera = \App\Models\Carrera::whereRaw('LOWER(nombre_carrera) = ?', [strtolower(trim($row['carrera']))])->first();
+//             if (! $carrera) {
+//                 $errores[$fila] = 'Carrera no encontrada: ' . $row['carrera'];
+//                 continue;
+//             }
+
+//             $cargo = \App\Models\Cargo::whereRaw('LOWER(nombre_cargo) = ?', [strtolower(trim($row['cargo']))])->first();
+//             if (! $cargo) {
+//                 $errores[$fila] = 'Cargo no encontrado: ' . $row['cargo'];
+//                 continue;
+//             }
+
+//             // Verificar correo único
+//             if (\App\Models\Persona::where('correo', $row['correo'])->exists()) {
+//                 $errores[$fila] = 'Correo ya registrado: ' . $row['correo'];
+//                 continue;
+//             }
+
+//             // Crear persona usando nombres y apellidos de la persona existente
+//             \App\Models\Persona::create([
+//                 'cedula'     => $row['cedula'],
+//                 'nombres'    => $row['nombres'],
+//                 'apellidos'  => $row['apellidos'],
+//                 'celular'    => $row['celular'],
+//                 'correo'     => $row['correo'],
+//                 'carrera_id' => $carrera->id_carrera,
+//                 'cargo_id'   => $cargo->id_cargo,
+//             ]);
+
+//             $importedCount++;
+//         }
+
+//         DB::commit();
+
+//         return redirect()->route('personas.index')->with([
+//             'success'       => "Se importaron {$importedCount} registros correctamente.",
+//             'import_errors' => $errores,
+//         ]);
+//     } catch (\Throwable $e) {
+//         DB::rollBack();
+//         return back()->with('error', 'Error en la importación: ' . $e->getMessage());
+//     }
+// }
+
 public function import(Request $request)
 {
     $request->validate([
@@ -263,14 +474,12 @@ public function import(Request $request)
     ]);
 
     $file = $request->file('archivo_csv');
-
-    // Detecta delimitador
     $handle = fopen($file->getPathname(), 'r');
     $firstLine = fgets($handle);
     fclose($handle);
     $delimiter = (strpos($firstLine, ';') !== false) ? ';' : ',';
 
-    $csv = Reader::createFromPath($file->getPathname(), 'r');
+    $csv = \League\Csv\Reader::createFromPath($file->getPathname(), 'r');
     $csv->setHeaderOffset(0);
     $csv->setDelimiter($delimiter);
 
@@ -282,13 +491,17 @@ public function import(Request $request)
         foreach ($csv->getRecords() as $index => $row) {
             $fila = $index + 2;
 
-            // Validar campos requeridos
+            // Validar campos requeridos mínimos
             if (empty($row['cedula'])) {
                 $errores[$fila] = 'Cédula vacía';
                 continue;
             }
             if (empty($row['nombres'])) {
                 $errores[$fila] = 'Nombres vacíos';
+                continue;
+            }
+            if (empty($row['apellidos'])) {
+                $errores[$fila] = 'Apellidos vacíos';
                 continue;
             }
             if (empty($row['celular'])) {
@@ -304,13 +517,7 @@ public function import(Request $request)
                 continue;
             }
             if (empty($row['cargo'])) {
-                $errores[$fila] = 'Cargo vacío';
-                continue;
-            }
-
-            // Verificar cédula única
-            if (Persona::where('cedula', $row['cedula'])->exists()) {
-                $errores[$fila] = 'El número de cédula "' . $row['cedula'] . '" ya está registrado y no se puede volver a registrar.';
+                $errores[$fila] = 'Cargo vacía';
                 continue;
             }
 
@@ -327,16 +534,11 @@ public function import(Request $request)
                 continue;
             }
 
-            // Verificar correo único
-            if (Persona::where('correo', $row['correo'])->exists()) {
-                $errores[$fila] = 'Correo ya registrado: ' . $row['correo'];
-                continue;
-            }
-
-            // Crear persona
-            Persona::create([
+            // Guardar persona tal como viene en el CSV
+            \App\Models\Persona::create([
                 'cedula'     => $row['cedula'],
                 'nombres'    => $row['nombres'],
+                'apellidos'  => $row['apellidos'],
                 'celular'    => $row['celular'],
                 'correo'     => $row['correo'],
                 'carrera_id' => $carrera->id_carrera,
@@ -357,7 +559,5 @@ public function import(Request $request)
         return back()->with('error', 'Error en la importación: ' . $e->getMessage());
     }
 }
-
-
 
 }

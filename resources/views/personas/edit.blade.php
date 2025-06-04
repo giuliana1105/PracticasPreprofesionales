@@ -233,6 +233,16 @@
             </div>
 
             <div class="form-group">
+                <label for="apellidos" class="form-label">Apellidos:</label>
+                <input type="text" name="apellidos" id="apellidos"
+                       class="form-control @error('apellidos') is-invalid @enderror"
+                       value="{{ old('apellidos', $persona->apellidos ?? '') }}" required>
+                @error('apellidos')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="form-group">
                 <label for="celular" class="form-label">Celular:</label>
                 <input type="text" id="celular" name="celular" 
                        class="form-control @error('celular') is-invalid @enderror" 
