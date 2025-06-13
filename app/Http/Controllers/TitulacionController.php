@@ -118,6 +118,15 @@ class TitulacionController extends Controller
             'acta_grado' => 'nullable|file|mimes:pdf|max:2048',
         ]);
 
+        $resolucionesSeleccionadas = \App\Models\ResolucionSeleccionada::pluck('resolucion_id');
+
+        // VALIDACIÓN: No permitir crear si no hay resoluciones seleccionadas
+        if ($resolucionesSeleccionadas->isEmpty()) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Debe seleccionar resoluciones para poder crear una titulación.');
+        }
+
         $data = $request->only([
             'tema',
             'cedula_estudiante',
@@ -253,6 +262,13 @@ public function edit($id)
             'csv_file' => 'required|file|mimes:csv,txt'
         ]);
 
+        // Verifica si hay resoluciones seleccionadas
+        $resolucionesSeleccionadas = \App\Models\ResolucionSeleccionada::pluck('resolucion_id');
+        if ($resolucionesSeleccionadas->isEmpty()) {
+            return redirect()->back()
+                ->with('error', 'Debe seleccionar resoluciones para poder importar titulaciones desde CSV.');
+        }
+
         $file = $request->file('csv_file');
         $handle = fopen($file, 'r');
 
@@ -315,8 +331,6 @@ public function edit($id)
         $importados = 0;
         $saltados = 0;
         $errores = [];
-
-        $resolucionesSeleccionadas = \App\Models\ResolucionSeleccionada::pluck('resolucion_id');
 
         $filaActual = 1; // Para numerar filas (considerando encabezado)
         while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
