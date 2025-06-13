@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use League\Csv\Reader;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class PersonaController extends Controller
 {
@@ -60,7 +62,17 @@ class PersonaController extends Controller
         }
 
         try {
-            Persona::create($request->all());
+            $persona = Persona::create($request->all());
+
+            // Crea el usuario automáticamente si no existe
+            if (!User::where('email', $persona->correo)->exists()) {
+                User::create([
+                    'name' => $persona->nombres . ' ' . $persona->apellidos,
+                    'email' => $persona->correo,
+                    'password' => Hash::make($persona->cedula), // la contraseña será la cédula
+                ]);
+            }
+
             return redirect()->route('personas.index')
                 ->with('success', 'Persona registrada exitosamente');
                 
@@ -483,7 +495,7 @@ public function import(Request $request)
     $csv->setHeaderOffset(0);
     $csv->setDelimiter($delimiter);
 
-    \DB::beginTransaction();
+    DB::beginTransaction();
     $importedCount = 0;
     $duplicados = [];
     $errores = [];
@@ -549,7 +561,7 @@ public function import(Request $request)
             }
 
             // Crear persona
-            \App\Models\Persona::create([
+            $persona = \App\Models\Persona::create([
                 'cedula'     => $cedula,
                 'nombres'    => trim($row['nombres']),
                 'apellidos'  => trim($row['apellidos']),
@@ -559,10 +571,19 @@ public function import(Request $request)
                 'cargo_id'   => $cargo->id_cargo,
             ]);
 
+            // Crear usuario automáticamente si no existe
+            if (!User::where('email', $correo)->exists()) {
+                User::create([
+                    'name' => $persona->nombres . ' ' . $persona->apellidos,
+                    'email' => $correo,
+                    'password' => Hash::make($cedula), // contraseña = cédula
+                ]);
+            }
+
             $importedCount++;
         }
 
-        \DB::commit();
+        DB::commit();
 
         $mensaje = "Se importaron {$importedCount} registros correctamente.";
         if (count($duplicados) > 0) {
@@ -578,7 +599,7 @@ public function import(Request $request)
             'duplicados'    => $duplicados,
         ]);
     } catch (\Throwable $e) {
-        \DB::rollBack();
+        DB::rollBack();
         return back()->with('error', 'Error en la importación: ' . $e->getMessage());
     }
 }

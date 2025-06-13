@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use App\Models\Persona; // Asegúrate de importar el modelo Persona
 
 class PersonaSeeder extends Seeder
 {
@@ -15,6 +16,8 @@ class PersonaSeeder extends Seeder
      */
     public function run(): void
     {
+        Persona::truncate(); // Esto vaciará la tabla personas
+
         DB::table('personas')->insert([
             'cedula' => '1234567890',
             'nombres' => 'Irma Marilú',

@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             CarreraSeeder::class,
             CargoSeeder::class,
             PersonaSeeder::class,
+            PersonasToUsersSeeder::class, // <-- Agrega esta línea
         ]);
 
         // Si quieres mantener este usuario de prueba, puedes dejarlo:
