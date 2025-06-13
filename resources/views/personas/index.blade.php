@@ -288,6 +288,17 @@
         </div>
     @endif
 
+    @if(session('duplicados') && count(session('duplicados')) > 0)
+        <div class="alert alert-info">
+            <strong>Registros duplicados omitidos:</strong>
+            <ul>
+                @foreach(session('duplicados') as $fila => $razon)
+                    <li>Fila {{ $fila }}: {{ $razon }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="mb-4">
         <a href="{{ route('personas.create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Nueva Persona

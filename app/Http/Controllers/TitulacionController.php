@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 
 
@@ -19,11 +20,24 @@ class TitulacionController extends Controller
 {
     public function index(Request $request)
     {
-        $estados = \App\Models\EstadoTitulacion::orderBy('nombre_estado')->get();
+$user = Auth::user();        
+        if (!$user) {
+            abort(401, 'Debe iniciar sesión.');
+        }
 
-        $query = Titulacion::with([
-            'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
-        ]);
+        // Busca la persona asociada al usuario autenticado por correo
+        $persona = \App\Models\Persona::where('correo', $user->email)->with('cargo')->first();
+
+        // Si el usuario es estudiante, solo ve sus titulaciones
+        if ($persona && strtolower($persona->cargo->nombre_cargo ?? '') === 'estudiante') {
+            $query = \App\Models\Titulacion::with([
+                'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
+            ])->where('cedula_estudiante', $persona->cedula);
+        } else {
+            $query = \App\Models\Titulacion::with([
+                'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
+            ]);
+        }
 
         // Filtro de búsqueda por tema, estudiante, director o asesor (insensible a mayúsculas/minúsculas)
         if ($request->filled('busqueda')) {
@@ -60,8 +74,6 @@ class TitulacionController extends Controller
         if ($request->filled('fecha_fin')) {
             $query->whereDate('created_at', '<=', $request->fecha_fin);
         }
-
-        // Nueva lógica para filtrar por fecha en resoluciones
         if ($request->filled('fecha_inicio') || $request->filled('fecha_fin')) {
             $query->whereHas('resTemas.resolucion', function ($q) use ($request) {
                 $q->whereHas('tipoResolucion', function ($q2) {
@@ -78,10 +90,10 @@ class TitulacionController extends Controller
 
         $titulaciones = $query->get();
 
+        $estados = \App\Models\EstadoTitulacion::orderBy('nombre_estado')->get();
         $docentes = \App\Models\Persona::whereHas('cargo', function($q) {
             $q->where('nombre_cargo', 'Docente');
         })->orderBy('nombres')->get();
-
         $periodos = \App\Models\Periodo::orderBy('periodo_academico')->get();
 
         return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados'));
@@ -191,6 +203,12 @@ class TitulacionController extends Controller
  
 public function edit($id)
 {
+$user = Auth::user();
+    $persona = \App\Models\Persona::where('correo', $user->email)->with('cargo')->first();
+    if ($persona && strtolower($persona->cargo->nombre_cargo ?? '') === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+
     $titulacion = Titulacion::findOrFail($id);
     $periodos = \App\Models\Periodo::all();
     $estados = \App\Models\EstadoTitulacion::all();
@@ -416,6 +434,12 @@ public function edit($id)
 
     public function destroy($id)
     {
+$user = Auth::user();
+        $persona = \App\Models\Persona::where('correo', $user->email)->with('cargo')->first();
+        if ($persona && strtolower($persona->cargo->nombre_cargo ?? '') === 'estudiante') {
+            abort(403, 'No autorizado');
+        }
+
         $titulacion = Titulacion::findOrFail($id);
         $titulacion->delete();
         return redirect()->route('titulaciones.index')->with('success', 'Titulación eliminada correctamente.');

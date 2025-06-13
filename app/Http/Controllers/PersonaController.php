@@ -483,8 +483,9 @@ public function import(Request $request)
     $csv->setHeaderOffset(0);
     $csv->setDelimiter($delimiter);
 
-    DB::beginTransaction();
+    \DB::beginTransaction();
     $importedCount = 0;
+    $duplicados = [];
     $errores = [];
 
     try {
@@ -534,13 +535,26 @@ public function import(Request $request)
                 continue;
             }
 
-            // Guardar persona tal como viene en el CSV
+            $correo = trim(str_replace(['"', "'", ' '], '', $row['correo']));
+            $cedula = trim($row['cedula']);
+
+            // Verificar duplicados por cédula o correo
+            if (\App\Models\Persona::where('cedula', $cedula)->exists()) {
+                $duplicados[$fila] = 'Cédula ya registrada: ' . $cedula;
+                continue;
+            }
+            if (\App\Models\Persona::where('correo', $correo)->exists()) {
+                $duplicados[$fila] = 'Correo ya registrado: ' . $correo;
+                continue;
+            }
+
+            // Crear persona
             \App\Models\Persona::create([
-                'cedula'     => $row['cedula'],
-                'nombres'    => $row['nombres'],
-                'apellidos'  => $row['apellidos'],
-                'celular'    => $row['celular'],
-                'correo'     => $row['correo'],
+                'cedula'     => $cedula,
+                'nombres'    => trim($row['nombres']),
+                'apellidos'  => trim($row['apellidos']),
+                'celular'    => trim($row['celular']),
+                'correo'     => $correo,
                 'carrera_id' => $carrera->id_carrera,
                 'cargo_id'   => $cargo->id_cargo,
             ]);
@@ -548,14 +562,23 @@ public function import(Request $request)
             $importedCount++;
         }
 
-        DB::commit();
+        \DB::commit();
+
+        $mensaje = "Se importaron {$importedCount} registros correctamente.";
+        if (count($duplicados) > 0) {
+            $mensaje .= " " . count($duplicados) . " registros no se importaron porque ya existen (por cédula o correo).";
+        }
+        if (count($errores) > 0) {
+            $mensaje .= " " . count($errores) . " filas no se importaron por errores de datos.";
+        }
 
         return redirect()->route('personas.index')->with([
-            'success'       => "Se importaron {$importedCount} registros correctamente.",
+            'success'       => $mensaje,
             'import_errors' => $errores,
+            'duplicados'    => $duplicados,
         ]);
     } catch (\Throwable $e) {
-        DB::rollBack();
+        \DB::rollBack();
         return back()->with('error', 'Error en la importación: ' . $e->getMessage());
     }
 }

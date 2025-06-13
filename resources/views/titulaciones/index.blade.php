@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $user = auth()->user();
+    $persona = $user ? \App\Models\Persona::where('correo', $user->email)->with('cargo')->first() : null;
+    $esEstudiante = $persona && strtolower($persona->cargo->nombre_cargo ?? '') === 'estudiante';
+@endphp
+
 <style>
     body {
         background-color: #e9ecef;
@@ -376,12 +382,15 @@
 
     {{-- 1. Botón Nueva Titulación y Cambiar Resoluciones --}}
     <div class="d-flex flex-column flex-md-row justify-content-start mb-4">
-        <a href="{{ route('titulaciones.create') }}" class="btn btn-primary me-2 mb-2 mb-md-0">
-            <i class="fas fa-plus"></i> Nueva Titulación
-        </a>
+        @if(!$esEstudiante)
+            <a href="{{ route('titulaciones.create') }}" class="btn btn-primary me-2 mb-2 mb-md-0">
+                <i class="fas fa-plus"></i> Nueva Titulación
+            </a>
+        
         <a href="{{ route('resoluciones.cambiar') }}" class="btn btn-secondary ms-0 ms-md-2 mb-2 mb-md-0">
             <i class="fas fa-sync-alt"></i> Cambiar resoluciones seleccionadas
         </a>
+        @endif
         <a href="{{ route('home') }}" class="btn btn-secondary ms-0 ms-md-2 mb-2 mb-md-0">
             <i class="fas fa-home"></i> Home
         </a>
@@ -520,36 +529,46 @@
                         {{ $fechaConsejo ?? '' }}
                     </td>
                     <td>
+                        @php
+                            $user = auth()->user();
+                            $persona = $user ? \App\Models\Persona::where('correo', $user->email)->with('cargo')->first() : null;
+                            $esEstudiante = $persona && strtolower($persona->cargo->nombre_cargo ?? '') === 'estudiante';
+                        @endphp
+
                         <div class="d-flex justify-content-center flex-wrap">
                             <a href="{{ route('titulaciones.show', $tit->id_titulacion) }}" class="btn btn-outline-primary btn-sm mx-1 mb-1">
                                 <i class="fas fa-eye"></i> Ver detalles
                             </a>
-                            <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" 
-                               class="btn btn-sm btn-warning mx-1 mb-1" 
-                               title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <form action="{{ route('titulaciones.destroy', $tit->id_titulacion) }}" 
-                                  method="POST" 
-                                  class="d-inline mx-1 mb-1">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" 
-                                        class="btn btn-sm btn-danger" 
-                                        onclick="return confirm('¿Está seguro de eliminar esta titulación?')" 
-                                        title="Eliminar">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </form>
+                            @if(!$esEstudiante)
+                                <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" 
+                                   class="btn btn-sm btn-warning mx-1 mb-1" 
+                                   title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="{{ route('titulaciones.destroy', $tit->id_titulacion) }}" 
+                                      method="POST" 
+                                      class="d-inline mx-1 mb-1">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" 
+                                            class="btn btn-sm btn-danger" 
+                                            onclick="return confirm('¿Está seguro de eliminar esta titulación?')" 
+                                            title="Eliminar">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            @endif
                             @if($tit->estado && strtolower($tit->estado->nombre_estado) === 'graduado')
                                 @if($tit->acta_grado)
                                     <a href="{{ asset('storage/' . $tit->acta_grado) }}" target="_blank" class="btn btn-success btn-sm mx-1 mb-1">
                                         Ver acta de grado
                                     </a>
                                 @else
-                                    <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}#acta_grado" class="btn btn-info btn-sm mx-1 mb-1">
-                                        Subir acta de grado
-                                    </a>
+                                    @if(!$esEstudiante)
+                                        <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}#acta_grado" class="btn btn-info btn-sm mx-1 mb-1">
+                                            Subir acta de grado
+                                        </a>
+                                    @endif
                                 @endif
                             @endif
                         </div>
