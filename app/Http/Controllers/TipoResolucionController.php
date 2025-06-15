@@ -7,6 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 class TipoResolucionController extends Controller
 {
+    public function __construct()
+    {
+     $user = Auth::user();
+        $persona = $user ? ($user instanceof \App\Models\User ? $user->persona : $user) : null;
+        if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente') {
+            abort(403, 'No autorizado');
+        }
+    }
     /**
      * Display a listing of the resource.
      */

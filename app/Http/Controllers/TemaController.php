@@ -7,9 +7,19 @@ use App\Models\Resolucion;
 use App\Models\ResolucionSeleccionada;
 use App\Models\ResTema;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TemaController extends Controller
 {
+    public function __construct()
+    {
+        $user = Auth::user();
+                $persona = $user ? ($user instanceof \App\Models\User ? $user->persona : $user) : null;
+        if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente') {
+            abort(403, 'No autorizado');
+        }
+    }
+
     // Mostrar todos los temas
     public function index()
     {
