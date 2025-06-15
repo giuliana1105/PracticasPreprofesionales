@@ -6,6 +6,7 @@
     $user = auth()->user();
     $persona = $user ? \App\Models\Persona::where('correo', $user->email)->with('cargo')->first() : null;
     $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
+    $esDocente = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente';
 @endphp
 
 <style>
@@ -383,7 +384,7 @@
 
     {{-- Botones de acción --}}
     <div class="d-flex flex-column flex-md-row justify-content-start mb-4">
-        @if(!$esEstudiante)
+        @if(!$esEstudiante && !$esDocente)
             <a href="{{ route('titulaciones.create') }}" class="btn btn-primary me-2 mb-2 mb-md-0">
                 <i class="fas fa-plus"></i> Nueva Titulación
             </a>
@@ -401,28 +402,30 @@
     <div class="filter-container mb-3" style="background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.06); padding: 18px 18px 8px 18px;">
         <form method="GET" action="{{ route('titulaciones.index') }}">
             <div class="d-flex flex-wrap align-items-end gap-2">
-                <div class="mb-2 me-3">
-                    <label for="director_filtro" class="form-label mb-1 fw-bold">Director</label>
-                    <select name="director_filtro" id="director_filtro" class="form-control">
-                        <option value="">-- Todos --</option>
-                        @foreach($docentes as $docente)
-                            <option value="{{ $docente->cedula }}" {{ request('director_filtro') == $docente->cedula ? 'selected' : '' }}>
-                                {{ $docente->nombres }}
+                @if(!$esDocente)
+                    <div class="mb-2 me-3">
+                        <label for="director_filtro" class="form-label mb-1 fw-bold">Director</label>
+                        <select name="director_filtro" id="director_filtro" class="form-control">
+                            <option value="">-- Todos --</option>
+                            @foreach($docentes as $docente)
+                                <option value="{{ $docente->cedula }}" {{ request('director_filtro') == $docente->cedula ? 'selected' : '' }}>
+                                    {{ $docente->nombres }}
                             </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="mb-2 me-3">
-                    <label for="asesor1_filtro" class="form-label mb-1 fw-bold">Asesor 1</label>
-                    <select name="asesor1_filtro" id="asesor1_filtro" class="form-control">
-                        <option value="">-- Todos --</option>
-                        @foreach($docentes as $docente)
-                            <option value="{{ $docente->cedula }}" {{ request('asesor1_filtro') == $docente->cedula ? 'selected' : '' }}>
-                                {{ $docente->nombres }}
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-2 me-3">
+                        <label for="asesor1_filtro" class="form-label mb-1 fw-bold">Asesor 1</label>
+                        <select name="asesor1_filtro" id="asesor1_filtro" class="form-control">
+                            <option value="">-- Todos --</option>
+                            @foreach($docentes as $docente)
+                                <option value="{{ $docente->cedula }}" {{ request('asesor1_filtro') == $docente->cedula ? 'selected' : '' }}>
+                                    {{ $docente->nombres }}
                             </option>
-                        @endforeach
-                    </select>
-                </div>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
                 <div class="mb-2 me-3">
                     <label for="periodo_filtro" class="form-label mb-1 fw-bold">Periodo</label>
                     <select name="periodo_filtro" id="periodo_filtro" class="form-control">
@@ -434,7 +437,6 @@
                         @endforeach
                     </select>
                 </div>
-                {{-- Filtro de Estado como select --}}
                 <div class="mb-2 me-3">
                     <label for="estado_filtro" class="form-label mb-1 fw-bold">Estado</label>
                     <select name="estado_filtro" id="estado_filtro" class="form-control">
@@ -460,7 +462,7 @@
                     <label for="busqueda" class="form-label mb-1 fw-bold">Buscar</label>
                     <input type="text" name="busqueda" id="busqueda" class="form-control"
                         value="{{ request('busqueda') }}"
-                        placeholder="Tema, estudiante, director, asesor...">
+                        placeholder="Nombre del estudiante...">
                 </div>
             </div>
             <div class="d-flex flex-wrap gap-2 mt-2">
@@ -476,19 +478,7 @@
     </div>
     @endif
 
-    {{-- Resultados --}}
-    <div class="mb-2">
-        <span class="fw-bold">
-            Resultados: {{ $titulaciones->count() }}
-            @if(request('estado_filtro'))
-                (Estado: {{ $estados->firstWhere('id_estado', request('estado_filtro'))->nombre_estado ?? '' }})
-            @endif
-            @if(request('director_filtro') || request('asesor1_filtro') || request('periodo_filtro') || request('fecha_inicio') || request('fecha_fin'))
-                (Filtrado)
-            @endif
-        </span>
-    </div>
-
+    {{-- Tabla de resultados --}}
     <div class="table-container">
         <table class="table table-hover">
             <thead>
@@ -535,7 +525,7 @@
                             <a href="{{ route('titulaciones.show', $tit->id_titulacion) }}" class="btn btn-outline-primary btn-sm mx-1 mb-1">
                                 <i class="fas fa-eye"></i> Ver detalles
                             </a>
-                            @if(!$esEstudiante)
+                            @if(!$esEstudiante && !$esDocente)
                                 <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" class="btn btn-sm btn-warning mx-1 mb-1" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
@@ -546,6 +536,10 @@
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </form>
+                            @elseif($esDocente)
+                                <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" class="btn btn-sm btn-warning mx-1 mb-1" title="Editar avance y observaciones">
+                                    <i class="fas fa-edit"></i>
+                                </a>
                             @endif
                             @if($tit->estado && strtolower($tit->estado->nombre_estado) === 'graduado')
                                 @if($tit->acta_grado)
@@ -553,7 +547,7 @@
                                         Ver acta de grado
                                     </a>
                                 @else
-                                    @if(!$esEstudiante)
+                                    @if(!$esEstudiante && !$esDocente)
                                         <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}#acta_grado" class="btn btn-info btn-sm mx-1 mb-1">
                                             Subir acta de grado
                                         </a>

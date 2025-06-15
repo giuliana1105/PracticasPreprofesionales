@@ -6,11 +6,21 @@
     $user = auth()->user();
     $persona = $user ? \App\Models\Persona::where('correo', $user->email)->with('cargo')->first() : null;
     $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
+    $esDocente = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente';
 @endphp
 @if($esEstudiante)
     <div class="alert alert-danger">No autorizado.</div>
     @php exit; @endphp
 @endif
+
+@if($esDocente)
+    <script>
+        window.onload = function() {
+            alert('Sólo puede editar el avance y las observaciones de la titulación. Los demás campos no son editables.');
+        }
+    </script>
+@endif
+
 <style>
     body {
         background-color: #e9ecef;
@@ -228,130 +238,159 @@
         </div>
     @endif
 
+    @if($esDocente)
+        <div class="alert alert-info">
+            Sólo puede editar el <strong>avance</strong> y las <strong>observaciones</strong> de la titulación. Los demás campos no son editables.
+        </div>
+    @endif
+
     <div class="form-container">
         <form action="{{ route('titulaciones.update', $titulacion->id_titulacion) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
-            
+
+            {{-- Tema --}}
             <div class="form-group">
-                <label for="tema" class="form-label">Tema</label>
-                <input type="text" id="tema" name="tema" class="form-control @error('tema') is-invalid @enderror" 
-                       value="{{ $titulacion->tema }}" required>
-                @error('tema')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                <label class="form-label">Tema</label>
+                @if($esDocente)
+                    <input type="text" class="form-control" value="{{ $titulacion->tema }}" readonly>
+                @else
+                    <input type="text" id="tema" name="tema" class="form-control" value="{{ $titulacion->tema }}" required>
+                @endif
             </div>
-            
+
+            {{-- Estudiante --}}
             <div class="form-group">
-                <label for="persona_estudiante_id" class="form-label">Estudiante</label>
-                <select id="persona_estudiante_id" name="persona_estudiante_id" class="form-control" required>
-                    <option value="">Seleccione un estudiante</option>
-                    @foreach($personas as $persona)
-                        @if($persona->cargo && $persona->cargo->nombre_cargo == 'Estudiante')
-                            <option value="{{ $persona->id }}"
-                                data-cedula="{{ $persona->cedula }}"
-                                {{ (old('persona_estudiante_id', $personaEstudiante->id ?? '') == $persona->id) ? 'selected' : '' }}>
-                                {{ $persona->nombres }} {{ $persona->apellidos }}
+                <label class="form-label">Estudiante</label>
+                @if($esDocente)
+                    <input type="text" class="form-control" value="{{ $personaEstudiante->nombres ?? '' }} {{ $personaEstudiante->apellidos ?? '' }}" readonly>
+                @else
+                    <select id="persona_estudiante_id" name="persona_estudiante_id" class="form-control" required>
+                        <option value="">Seleccione un estudiante</option>
+                        @foreach($personas as $persona)
+                            @if($persona->cargo && $persona->cargo->nombre_cargo == 'Estudiante')
+                                <option value="{{ $persona->id }}"
+                                    data-cedula="{{ $persona->cedula }}"
+                                    {{ (old('persona_estudiante_id', $personaEstudiante->id ?? '') == $persona->id) ? 'selected' : '' }}>
+                                    {{ $persona->nombres }} {{ $persona->apellidos }}
+                                </option>
+                            @endif
+                        @endforeach
+                    </select>
+                @endif
+            </div>
+            <div class="form-group">
+                <label class="form-label">Cédula Estudiante</label>
+                <input type="text" class="form-control" value="{{ old('cedula_estudiante', $titulacion->cedula_estudiante) }}" readonly>
+            </div>
+
+            {{-- Director --}}
+            <div class="form-group">
+                <label class="form-label">Director</label>
+                @if($esDocente)
+                    <input type="text" class="form-control" value="{{ $personaDirector->nombres ?? '' }} {{ $personaDirector->apellidos ?? '' }}" readonly>
+                @else
+                    <select id="persona_director_id" name="persona_director_id" class="form-control" required>
+                        <option value="">Seleccione un director</option>
+                        @foreach($personas as $persona)
+                            @if($persona->cargo && $persona->cargo->nombre_cargo == 'Docente')
+                                <option value="{{ $persona->id }}"
+                                    data-cedula="{{ $persona->cedula }}"
+                                    {{ (old('persona_director_id', $personaDirector->id ?? '') == $persona->id) ? 'selected' : '' }}>
+                                    {{ $persona->nombres }} {{ $persona->apellidos }}
+                                </option>
+                            @endif
+                        @endforeach
+                    </select>
+                @endif
+            </div>
+            <div class="form-group">
+                <label class="form-label">Cédula Director</label>
+                <input type="text" class="form-control" value="{{ old('cedula_director', $titulacion->cedula_director) }}" readonly>
+            </div>
+
+            {{-- Asesor 1 --}}
+            <div class="form-group">
+                <label class="form-label">Asesor 1</label>
+                @if($esDocente)
+                    <input type="text" class="form-control" value="{{ $personaAsesor->nombres ?? '' }} {{ $personaAsesor->apellidos ?? '' }}" readonly>
+                @else
+                    <select id="persona_asesor_id" name="persona_asesor_id" class="form-control" required>
+                        <option value="">Seleccione un asesor</option>
+                        @foreach($personas as $persona)
+                            @if($persona->cargo && $persona->cargo->nombre_cargo == 'Docente')
+                                <option value="{{ $persona->id }}"
+                                    data-cedula="{{ $persona->cedula }}"
+                                    {{ (old('persona_asesor_id', $personaAsesor->id ?? '') == $persona->id) ? 'selected' : '' }}>
+                                    {{ $persona->nombres }} {{ $persona->apellidos }}
+                                </option>
+                            @endif
+                        @endforeach
+                    </select>
+                @endif
+            </div>
+            <div class="form-group">
+                <label class="form-label">Cédula Asesor 1</label>
+                <input type="text" class="form-control" value="{{ old('cedula_asesor1', $titulacion->cedula_asesor1) }}" readonly>
+            </div>
+
+            {{-- Periodo --}}
+            <div class="form-group">
+                <label class="form-label">Periodo</label>
+                @if($esDocente)
+                    <input type="text" class="form-control" value="{{ optional($periodos->firstWhere('id_periodo', $titulacion->periodo_id))->periodo_academico }}" readonly>
+                @else
+                    <select id="periodo_id" name="periodo_id" class="form-control @error('periodo_id') is-invalid @enderror" required>
+                        @foreach($periodos as $periodo)
+                            <option value="{{ $periodo->id_periodo }}" @if($titulacion->periodo_id == $periodo->id_periodo) selected @endif>
+                                {{ $periodo->periodo_academico }}
                             </option>
-                        @endif
-                    @endforeach
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="cedula_estudiante" class="form-label">Cédula Estudiante</label>
-                <input type="text" id="cedula_estudiante" name="cedula_estudiante" class="form-control"
-                       value="{{ old('cedula_estudiante', $titulacion->cedula_estudiante) }}" readonly required>
+                        @endforeach
+                    </select>
+                    @error('periodo_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                @endif
             </div>
 
+            {{-- Estado --}}
             <div class="form-group">
-                <label for="persona_director_id" class="form-label">Director</label>
-                <select id="persona_director_id" name="persona_director_id" class="form-control" required>
-                    <option value="">Seleccione un director</option>
-                    @foreach($personas as $persona)
-                        @if($persona->cargo && $persona->cargo->nombre_cargo == 'Docente')
-                            <option value="{{ $persona->id }}"
-
-                                data-cedula="{{ $persona->cedula }}"
-
-                                {{ (old('persona_director_id', $personaDirector->id ?? '') == $persona->id) ? 'selected' : '' }}>
-                                {{ $persona->nombres }} {{ $persona->apellidos }}
+                <label class="form-label">Estado</label>
+                @if($esDocente)
+                    <input type="text" class="form-control" value="{{ optional($estados->firstWhere('id_estado', $titulacion->estado_id))->nombre_estado }}" readonly>
+                @else
+                    <select id="estado_id" name="estado_id" class="form-control @error('estado_id') is-invalid @enderror" required>
+                        @foreach($estados as $estado)
+                            <option value="{{ $estado->id_estado }}" @if($titulacion->estado_id == $estado->id_estado) selected @endif>
+                                {{ $estado->nombre_estado }}
                             </option>
-                        @endif
-                    @endforeach
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="cedula_director" class="form-label">Cédula Director</label>
-                <input type="text" id="cedula_director" name="cedula_director" class="form-control" value="{{ old('cedula_director', $titulacion->cedula_director) }}" readonly required>
+                        @endforeach
+                    </select>
+                    @error('estado_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                @endif
             </div>
 
-            <div class="form-group">
-                <label for="persona_asesor_id" class="form-label">Asesor 1</label>
-                <select id="persona_asesor_id" name="persona_asesor_id" class="form-control" required>
-                    <option value="">Seleccione un asesor</option>
-                    @foreach($personas as $persona)
-                        @if($persona->cargo && $persona->cargo->nombre_cargo == 'Docente')
-                            <option value="{{ $persona->id }}"
-
-                                data-cedula="{{ $persona->cedula }}"
-
-                                {{ (old('persona_asesor_id', $personaAsesor->id ?? '') == $persona->id) ? 'selected' : '' }}>
-                                {{ $persona->nombres }} {{ $persona->apellidos }}
-                            </option>
-                        @endif
-                    @endforeach
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="cedula_asesor1" class="form-label">Cédula Asesor 1</label>
-                <input type="text" id="cedula_asesor1" name="cedula_asesor1" class="form-control" value="{{ old('cedula_asesor1', $titulacion->cedula_asesor1) }}" readonly required>
-            </div>
-            
-            <div class="form-group">
-                <label for="periodo_id" class="form-label">Periodo</label>
-                <select id="periodo_id" name="periodo_id" class="form-control @error('periodo_id') is-invalid @enderror" required>
-                    @foreach($periodos as $periodo)
-                        <option value="{{ $periodo->id_periodo }}" @if($titulacion->periodo_id == $periodo->id_periodo) selected @endif>
-                            {{ $periodo->periodo_academico }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('periodo_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-            
-            <div class="form-group">
-                <label for="estado_id" class="form-label">Estado</label>
-                <select id="estado_id" name="estado_id" class="form-control @error('estado_id') is-invalid @enderror" required>
-                    @foreach($estados as $estado)
-                        <option value="{{ $estado->id_estado }}" @if($titulacion->estado_id == $estado->id_estado) selected @endif>
-                            {{ $estado->nombre_estado }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('estado_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-            
+            {{-- AVANCE y OBSERVACIONES siempre editables --}}
             <div class="form-group">
                 <label for="avance" class="form-label">Avance (%)</label>
-                <input type="number" id="avance" name="avance" class="form-control @error('avance') is-invalid @enderror" 
-                       value="{{ $titulacion->avance }}" min="0" max="100" required>
+                <input type="number" id="avance" name="avance" class="form-control @error('avance') is-invalid @enderror"
+                       value="{{ old('avance', $titulacion->avance) }}" min="0" max="100" required>
                 @error('avance')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
-            
+
             <div class="form-group">
                 <label for="observaciones" class="form-label">Observaciones</label>
-                <textarea id="observaciones" name="observaciones" class="form-control @error('observaciones') is-invalid @enderror">{{ $titulacion->observaciones }}</textarea>
+                <textarea id="observaciones" name="observaciones" class="form-control @error('observaciones') is-invalid @enderror">{{ old('observaciones', $titulacion->observaciones) }}</textarea>
                 @error('observaciones')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
-            
+
+            {{-- Acta de grado --}}
             <div class="form-group">
                 <label for="acta_grado" class="form-label">Acta de grado (PDF)</label>
                 @if($titulacion->acta_grado)
@@ -361,9 +400,9 @@
                         </a>
                     </div>
                 @endif
-                <input type="file" id="acta_grado" name="acta_grado" class="form-control" accept="application/pdf" disabled>
+                <input type="file" id="acta_grado" name="acta_grado" class="form-control" accept="application/pdf" @if($esDocente) disabled @endif>
             </div>
-            
+
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Actualizar Titulación
@@ -378,6 +417,7 @@
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+@if(!$esDocente)
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const estadoSelect = document.getElementById('estado_id');
@@ -394,8 +434,6 @@ document.addEventListener('DOMContentLoaded', function() {
     estadoSelect.addEventListener('change', toggleActa);
     toggleActa();
 });
-</script>
-<script>
 document.addEventListener('DOMContentLoaded', function() {
     function actualizarCedula(selectId, inputCedulaId) {
         const select = document.getElementById(selectId);
@@ -419,5 +457,6 @@ document.addEventListener('DOMContentLoaded', function() {
     actualizarCedula('persona_asesor_id', 'cedula_asesor1');
 });
 </script>
+@endif
 @endpush
 @endsection

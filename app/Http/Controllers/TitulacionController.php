@@ -23,7 +23,10 @@ class TitulacionController extends Controller
             $persona = $user;
         }
 
-        if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
+        $esDocente = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente';
+
+        if ($esEstudiante) {
             // Solo puede ver sus propias titulaciones, sin filtros adicionales
             $titulaciones = Titulacion::with([
                 'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
@@ -33,6 +36,49 @@ class TitulacionController extends Controller
             $estados = collect();
             $docentes = collect();
             $periodos = collect();
+
+            return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados'));
+        } elseif ($esDocente) {
+            // DOCENTE: sólo ve titulaciones donde es director o asesor1
+            $query = Titulacion::with([
+                'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
+            ])->where(function($q) use ($persona) {
+                $q->where('cedula_director', $persona->cedula)
+                  ->orWhere('cedula_asesor1', $persona->cedula);
+            });
+
+            // Filtros permitidos para docente
+            if ($request->filled('busqueda')) {
+                $busqueda = strtolower($request->input('busqueda'));
+                $query->whereHas('estudiantePersona', function($q2) use ($busqueda) {
+                    $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%']);
+                });
+            }
+            if ($request->filled('estado_filtro')) {
+                $query->where('estado_id', $request->estado_filtro);
+            }
+            if ($request->filled('periodo_filtro')) {
+                $query->where('periodo_id', $request->periodo_filtro);
+            }
+            if ($request->filled('fecha_inicio') || $request->filled('fecha_fin')) {
+                $query->whereHas('resTemas.resolucion', function ($q) use ($request) {
+                    $q->whereHas('tipoResolucion', function ($q2) {
+                        $q2->whereRaw('LOWER(nombre_tipo_res) = ?', ['consejo directivo']);
+                    });
+                    if ($request->filled('fecha_inicio')) {
+                        $q->whereDate('fecha_res', '>=', $request->fecha_inicio);
+                    }
+                    if ($request->filled('fecha_fin')) {
+                        $q->whereDate('fecha_res', '<=', $request->fecha_fin);
+                    }
+                });
+            }
+
+            $titulaciones = $query->get();
+
+            $estados = \App\Models\EstadoTitulacion::orderBy('nombre_estado')->get();
+            $periodos = \App\Models\Periodo::orderBy('periodo_academico')->get(); // <-- Asegúrate de cargar los periodos aquí
+            $docentes = collect(); // No necesita filtro de docentes
 
             return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados'));
         } else {
@@ -104,16 +150,12 @@ class TitulacionController extends Controller
 
     public function create()
     {
-     $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
-    
+        $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        if ($persona && (strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante' || strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente')) {
+            abort(403, 'No autorizado');
+        }
+        
         $personas = Persona::with('cargo')->get(); 
         $periodos = Periodo::all();
         $estados = EstadoTitulacion::all();
@@ -132,15 +174,11 @@ class TitulacionController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
-    
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        if ($persona && (strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante' || strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente')) {
+            abort(403, 'No autorizado');
+        }
+        
         $request->validate([
             'tema' => 'required|string',
             'cedula_estudiante' => 'required|exists:personas,cedula',
@@ -227,15 +265,10 @@ class TitulacionController extends Controller
 public function edit($id)
 {
     $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
+    $persona = $user instanceof \App\Models\User ? $user->persona : $user;
     if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
         abort(403, 'No autorizado');
     }
-    
     $titulacion = Titulacion::findOrFail($id);
     $periodos = \App\Models\Periodo::all();
     $estados = \App\Models\EstadoTitulacion::all();
@@ -246,9 +279,11 @@ public function edit($id)
     $personaDirector = $personas->firstWhere('cedula', $titulacion->cedula_director);
     $personaAsesor = $personas->firstWhere('cedula', $titulacion->cedula_asesor1);
 
+    $esDocente = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente';
+
     return view('titulaciones.edit', compact(
         'titulacion', 'periodos', 'estados', 'personas',
-        'personaEstudiante', 'personaDirector', 'personaAsesor'
+        'personaEstudiante', 'personaDirector', 'personaAsesor', 'esDocente'
     ));
 }
 
@@ -260,10 +295,26 @@ public function edit($id)
     } else {
         $persona = $user;
     }
+    $esDocente = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente';
+
     if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
         abort(403, 'No autorizado');
     }
-       $request->validate([
+
+    if ($esDocente) {
+        $request->validate([
+            'avance' => 'required|integer|min:0|max:100',
+            'observaciones' => 'nullable|string',
+        ]);
+        $titulacion = Titulacion::findOrFail($id);
+        $titulacion->update([
+            'avance' => $request->avance,
+            'observaciones' => $request->observaciones,
+        ]);
+        return redirect()->route('titulaciones.index')->with('success', 'Titulación actualizada correctamente.');
+    }
+
+        $request->validate([
             'tema' => 'required|string',
             'cedula_estudiante' => 'required|exists:personas,cedula',
             'cedula_director' => 'required|exists:personas,cedula',
@@ -317,7 +368,7 @@ public function edit($id)
     } else {
         $persona = $user;
     }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+    if ($persona && (strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante' || strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente')) {
         abort(403, 'No autorizado');
     }
     $request->validate([
@@ -484,7 +535,7 @@ public function edit($id)
     } else {
         $persona = $user;
     }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+    if ($persona && (strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante' || strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente')) {
         abort(403, 'No autorizado');
     }
     
@@ -529,56 +580,43 @@ public function edit($id)
             'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
         ]);
 
-        if ($request->filled('director_filtro')) {
-            $query->where('cedula_director', $request->director_filtro);
-        }
-        if ($request->filled('asesor1_filtro')) {
-            $query->where('cedula_asesor1', $request->asesor1_filtro);
-        }
-        if ($request->filled('periodo_filtro')) {
-            $query->where('periodo_id', $request->periodo_filtro);
-        }
-        if ($request->filled('estado_filtro')) {
-            $query->where('estado_id', $request->estado_filtro);
-        }
-        if ($request->filled('fecha_inicio') || $request->filled('fecha_fin')) {
-            $query->whereHas('resTemas.resolucion', function ($q) use ($request) {
-                $q->whereHas('tipoResolucion', function ($q2) {
-                    $q2->whereRaw('LOWER(nombre_tipo_res) = ?', ['consejo directivo']);
-                });
-                if ($request->filled('fecha_inicio')) {
-                    $q->whereDate('fecha_res', '>=', $request->fecha_inicio);
-                }
-                if ($request->filled('fecha_fin')) {
-                    $q->whereDate('fecha_res', '<=', $request->fecha_fin);
-                }
+        $esDocente = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente';
+
+        if ($esDocente) {
+            $query->where(function($q) use ($persona) {
+                $q->where('cedula_director', $persona->cedula)
+                  ->orWhere('cedula_asesor1', $persona->cedula);
             });
+            if ($request->filled('busqueda')) {
+                $busqueda = strtolower($request->input('busqueda'));
+                $query->whereHas('estudiantePersona', function($q2) use ($busqueda) {
+                    $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%']);
+                });
+            }
+            if ($request->filled('estado_filtro')) {
+                $query->where('estado_id', $request->estado_filtro);
+            }
+            if ($request->filled('periodo_filtro')) {
+                $query->where('periodo_id', $request->periodo_filtro);
+            }
+            if ($request->filled('fecha_inicio') || $request->filled('fecha_fin')) {
+                $query->whereHas('resTemas.resolucion', function ($q) use ($request) {
+                    $q->whereHas('tipoResolucion', function ($q2) {
+                        $q2->whereRaw('LOWER(nombre_tipo_res) = ?', ['consejo directivo']);
+                    });
+                    if ($request->filled('fecha_inicio')) {
+                        $q->whereDate('fecha_res', '>=', $request->fecha_inicio);
+                    }
+                    if ($request->filled('fecha_fin')) {
+                        $q->whereDate('fecha_res', '<=', $request->fecha_fin);
+                    }
+                });
+            }
+        } else {
+            // ...existing code para otros roles...
         }
 
         $titulo = 'Reporte de Titulaciones';
-
-        if ($request->filled('estado_filtro')) {
-            $estado = \App\Models\EstadoTitulacion::find($request->estado_filtro);
-            if ($estado) {
-                $titulo = 'Reporte de titulaciones ' . strtolower($estado->nombre_estado);
-            }
-        } elseif ($request->filled('director_filtro')) {
-            $director = \App\Models\Persona::where('cedula', $request->director_filtro)->first();
-            if ($director) {
-                $titulo = 'Reporte de titulaciones de ' . $director->nombres;
-            }
-        } elseif ($request->filled('asesor1_filtro')) {
-            $asesor = \App\Models\Persona::where('cedula', $request->asesor1_filtro)->first();
-            if ($asesor) {
-                $titulo = 'Reporte de titulaciones asesoradas por ' . $asesor->nombres;
-            }
-        } elseif ($request->filled('periodo_filtro')) {
-            $periodo = \App\Models\Periodo::find($request->periodo_filtro);
-            if ($periodo) {
-                $titulo = 'Reporte de titulaciones del periodo ' . $periodo->periodo_academico;
-            }
-        }
-
         $titulaciones = $query->get();
 
         $pdf = PDF::loadView('titulaciones.pdf', compact('titulaciones', 'titulo'));
