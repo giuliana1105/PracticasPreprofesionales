@@ -294,6 +294,16 @@
         </div>
     @endif
 
+    @php
+        $user = auth()->user();
+        $persona = $user ? \App\Models\Persona::where('correo', $user->email)->with('cargo')->first() : null;
+        $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
+    @endphp
+    @if($esEstudiante)
+        <div class="alert alert-danger">No autorizado.</div>
+        @php exit; @endphp
+    @endif
+
     <div class="table-container">
         <table class="table table-hover">
             <thead>

@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\EstadoTitulacion;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 class EstadoTitulacionController extends Controller
 {
     /**
@@ -12,6 +13,16 @@ class EstadoTitulacionController extends Controller
      */
     public function index()
     {
+        $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $estados = EstadoTitulacion::all();
         return view('estado_titulaciones.index', compact('estados'));
     }
@@ -21,6 +32,16 @@ class EstadoTitulacionController extends Controller
      */
     public function create()
     {
+        $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         return view('estado_titulaciones.create');
     }
 
@@ -29,6 +50,16 @@ class EstadoTitulacionController extends Controller
      */
     public function store(Request $request)
     {
+        $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $request->validate([
             'nombre_estado' => 'required|string|max:255|unique:estado_titulaciones,nombre_estado'
         ]);
@@ -44,6 +75,16 @@ class EstadoTitulacionController extends Controller
      */
     public function show(EstadoTitulacion $estadoTitulacion)
     {
+        $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         return view('estado_titulaciones.show', compact('estadoTitulacion'));
     }
 
@@ -52,6 +93,16 @@ class EstadoTitulacionController extends Controller
      */
     public function edit($id)
     {
+        $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $estado = \App\Models\EstadoTitulacion::findOrFail($id);
         return view('estado_titulaciones.edit', compact('estado'));
     }
@@ -61,6 +112,16 @@ class EstadoTitulacionController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $estado = \App\Models\EstadoTitulacion::findOrFail($id);
 
         $request->validate([
@@ -79,6 +140,16 @@ class EstadoTitulacionController extends Controller
      */
     public function destroy($id)
     {
+        $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $estado = \App\Models\EstadoTitulacion::findOrFail($id);
 
         // Verifica si está referenciado en titulaciones

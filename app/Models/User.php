@@ -46,4 +46,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function persona()
+    {
+        return $this->hasOne(\App\Models\Persona::class, 'correo', 'email');
+    }
 }

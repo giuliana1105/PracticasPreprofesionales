@@ -34,7 +34,6 @@ class Persona extends Authenticatable
     {
         return $this->belongsTo(Carrera::class, 'carrera_id', 'id_carrera');
     }
-
     public function cargo()
     {
         return $this->belongsTo(Cargo::class, 'cargo_id', 'id_cargo');

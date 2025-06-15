@@ -1,10 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
+
 @php
     $user = auth()->user();
     $persona = $user ? \App\Models\Persona::where('correo', $user->email)->with('cargo')->first() : null;
-    $esEstudiante = $persona && strtolower($persona->cargo->nombre_cargo ?? '') === 'estudiante';
+    $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
 @endphp
 
 <style>
@@ -380,23 +381,23 @@
         </div>
     @endif
 
-    {{-- 1. Botón Nueva Titulación y Cambiar Resoluciones --}}
+    {{-- Botones de acción --}}
     <div class="d-flex flex-column flex-md-row justify-content-start mb-4">
         @if(!$esEstudiante)
             <a href="{{ route('titulaciones.create') }}" class="btn btn-primary me-2 mb-2 mb-md-0">
                 <i class="fas fa-plus"></i> Nueva Titulación
             </a>
-        
-        <a href="{{ route('resoluciones.cambiar') }}" class="btn btn-secondary ms-0 ms-md-2 mb-2 mb-md-0">
-            <i class="fas fa-sync-alt"></i> Cambiar resoluciones seleccionadas
-        </a>
+            <a href="{{ route('resoluciones.cambiar') }}" class="btn btn-secondary ms-0 ms-md-2 mb-2 mb-md-0">
+                <i class="fas fa-sync-alt"></i> Cambiar resoluciones seleccionadas
+            </a>
         @endif
         <a href="{{ route('home') }}" class="btn btn-secondary ms-0 ms-md-2 mb-2 mb-md-0">
             <i class="fas fa-home"></i> Home
         </a>
     </div>
 
-    {{-- 2. Filtros principales (ahora incluye Estado) --}}
+    {{-- Filtros --}}
+    @if(!$esEstudiante)
     <div class="filter-container mb-3" style="background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.06); padding: 18px 18px 8px 18px;">
         <form method="GET" action="{{ route('titulaciones.index') }}">
             <div class="d-flex flex-wrap align-items-end gap-2">
@@ -473,8 +474,9 @@
             </div>
         </form>
     </div>
+    @endif
 
-    {{-- 3. Resultados --}}
+    {{-- Resultados --}}
     <div class="mb-2">
         <span class="fw-bold">
             Resultados: {{ $titulaciones->count() }}
@@ -529,31 +531,18 @@
                         {{ $fechaConsejo ?? '' }}
                     </td>
                     <td>
-                        @php
-                            $user = auth()->user();
-                            $persona = $user ? \App\Models\Persona::where('correo', $user->email)->with('cargo')->first() : null;
-                            $esEstudiante = $persona && strtolower($persona->cargo->nombre_cargo ?? '') === 'estudiante';
-                        @endphp
-
                         <div class="d-flex justify-content-center flex-wrap">
                             <a href="{{ route('titulaciones.show', $tit->id_titulacion) }}" class="btn btn-outline-primary btn-sm mx-1 mb-1">
                                 <i class="fas fa-eye"></i> Ver detalles
                             </a>
                             @if(!$esEstudiante)
-                                <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" 
-                                   class="btn btn-sm btn-warning mx-1 mb-1" 
-                                   title="Editar">
+                                <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" class="btn btn-sm btn-warning mx-1 mb-1" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('titulaciones.destroy', $tit->id_titulacion) }}" 
-                                      method="POST" 
-                                      class="d-inline mx-1 mb-1">
+                                <form action="{{ route('titulaciones.destroy', $tit->id_titulacion) }}" method="POST" class="d-inline mx-1 mb-1">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" 
-                                            class="btn btn-sm btn-danger" 
-                                            onclick="return confirm('¿Está seguro de eliminar esta titulación?')" 
-                                            title="Eliminar">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Está seguro de eliminar esta titulación?')" title="Eliminar">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </form>

@@ -7,34 +7,24 @@ use App\Models\Periodo;
 use App\Models\EstadoTitulacion;
 use App\Models\Persona;
 use App\Models\ResTema;
-use App\Models\Resolucion;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Auth;
-
-
 
 class TitulacionController extends Controller
 {
     public function index(Request $request)
     {
-$user = Auth::user();        
-        if (!$user) {
-            abort(401, 'Debe iniciar sesión.');
-        }
-
-        // Busca la persona asociada al usuario autenticado por correo
-        $persona = \App\Models\Persona::where('correo', $user->email)->with('cargo')->first();
-
-        // Si el usuario es estudiante, solo ve sus titulaciones
-        if ($persona && strtolower($persona->cargo->nombre_cargo ?? '') === 'estudiante') {
-            $query = \App\Models\Titulacion::with([
+        $user = Auth::user();
+        $persona = $user->persona ?? null;
+        if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+            // Solo puede ver sus propias titulaciones
+            $query = Titulacion::with([
                 'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
             ])->where('cedula_estudiante', $persona->cedula);
         } else {
-            $query = \App\Models\Titulacion::with([
+            $query = Titulacion::with([
                 'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
             ]);
         }
@@ -101,6 +91,16 @@ $user = Auth::user();
 
     public function create()
     {
+     $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $personas = Persona::with('cargo')->get(); 
         $periodos = Periodo::all();
         $estados = EstadoTitulacion::all();
@@ -118,6 +118,16 @@ $user = Auth::user();
 
     public function store(Request $request)
     {
+        $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $request->validate([
             'tema' => 'required|string',
             'cedula_estudiante' => 'required|exists:personas,cedula',
@@ -203,12 +213,16 @@ $user = Auth::user();
  
 public function edit($id)
 {
-$user = Auth::user();
-    $persona = \App\Models\Persona::where('correo', $user->email)->with('cargo')->first();
-    if ($persona && strtolower($persona->cargo->nombre_cargo ?? '') === 'estudiante') {
+    $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
         abort(403, 'No autorizado');
     }
-
+    
     $titulacion = Titulacion::findOrFail($id);
     $periodos = \App\Models\Periodo::all();
     $estados = \App\Models\EstadoTitulacion::all();
@@ -227,7 +241,16 @@ $user = Auth::user();
 
     public function update(Request $request, $id)
     {
-        $request->validate([
+     $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+       $request->validate([
             'tema' => 'required|string',
             'cedula_estudiante' => 'required|exists:personas,cedula',
             'cedula_director' => 'required|exists:personas,cedula',
@@ -275,8 +298,16 @@ $user = Auth::user();
     }
 
     public function importCsv(Request $request)
-    {
-        $request->validate([
+    {   $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    $request->validate([
             'csv_file' => 'required|file|mimes:csv,txt'
         ]);
 
@@ -434,12 +465,16 @@ $user = Auth::user();
 
     public function destroy($id)
     {
-$user = Auth::user();
-        $persona = \App\Models\Persona::where('correo', $user->email)->with('cargo')->first();
-        if ($persona && strtolower($persona->cargo->nombre_cargo ?? '') === 'estudiante') {
-            abort(403, 'No autorizado');
-        }
-
+        $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $titulacion = Titulacion::findOrFail($id);
         $titulacion->delete();
         return redirect()->route('titulaciones.index')->with('success', 'Titulación eliminada correctamente.');
@@ -447,16 +482,35 @@ $user = Auth::user();
 
     public function show($id)
     {
+        $user = Auth::user();
+        $persona = $user->persona ?? null;
         $titulacion = Titulacion::with([
             'estudiantePersona', 'directorPersona', 'asesor1Persona',
             'periodo', 'estado', 'resTemas.resolucion.tipoResolucion'
         ])->findOrFail($id);
+
+        // Si es estudiante, solo puede ver su propia titulación
+        if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+            if ($titulacion->cedula_estudiante !== $persona->cedula) {
+                abort(403, 'No autorizado');
+            }
+        }
 
         return view('titulaciones.show', compact('titulacion'));
     }
 
     public function pdf(Request $request)
     {
+        $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         // Repite la lógica de filtros del index
         $query = Titulacion::with([
             'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
@@ -518,3 +572,5 @@ $user = Auth::user();
         return $pdf->stream('titulaciones_filtradas.pdf');
     }
 }
+
+

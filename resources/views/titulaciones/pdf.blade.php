@@ -139,3 +139,12 @@
 </div>
 </body>
 </html>
+@php
+    $user = auth()->user();
+    $persona = $user ? \App\Models\Persona::where('correo', $user->email)->with('cargo')->first() : null;
+    $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
+@endphp
+@if($esEstudiante)
+    <div class="alert alert-danger">No autorizado para generar PDF de todas las titulaciones.</div>
+    @php exit; @endphp
+@endif

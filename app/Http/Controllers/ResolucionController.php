@@ -10,11 +10,21 @@ use App\Models\ResolucionSeleccionada;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Support\Facades\Auth;
 class ResolucionController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $resoluciones = Resolucion::with('tipoResolucion')
                      ->orderBy('fecha_res', 'desc')
                      ->paginate(10);
@@ -31,7 +41,16 @@ class ResolucionController extends Controller
 
 
     public function createTemas(Request $request)
-    {
+    {$user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $resolucionesIds = $request->input('resoluciones', []);
         $resolucionesSeleccionadas = Resolucion::whereIn('id_Reso', $resolucionesIds)->get();
         $temas = Tema::all();
@@ -41,7 +60,16 @@ class ResolucionController extends Controller
 
     // En ResolucionController.php
     public function procesarSeleccion(Request $request)
-    {
+    {$user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $request->validate([
             'resoluciones' => 'required|array|min:1',
         ]);
@@ -53,7 +81,16 @@ class ResolucionController extends Controller
     }
 
     public function create()
-    {
+    {$user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         // Obtener los tipos de resolución para mostrarlos en el formulario
         $tipos = TipoResolucion::all();
 
@@ -63,7 +100,16 @@ class ResolucionController extends Controller
     }
 
     public function storeTemas(Request $request)
-    {
+    {$user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         // Depurar los datos enviados desde el formulario
         dd($request->all());
 
@@ -99,7 +145,16 @@ class ResolucionController extends Controller
     }
 
     public function store(Request $request)
-    {
+    {$user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         // Validar los datos del formulario
         $request->validate([
             'numero_res' => 'required|string|max:50',
@@ -125,7 +180,16 @@ class ResolucionController extends Controller
     }
 
     public function seleccionarResoluciones(Request $request)
-    {
+    {$user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $resolucionesIds = $request->input('resoluciones', []);
 
         // Filtrar solo valores numéricos
@@ -147,7 +211,16 @@ class ResolucionController extends Controller
     }
 
     public function cambiarResoluciones()
-    {
+    {$user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         // Eliminar todas las resoluciones seleccionadas
         \App\Models\ResolucionSeleccionada::truncate();
 
@@ -168,6 +241,16 @@ class ResolucionController extends Controller
     // }
     public function destroy($id)
 {
+    $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
     $resolucion = Resolucion::findOrFail($id);
 
     // Validar si la resolución está referenciada en otras tablas
@@ -191,20 +274,47 @@ class ResolucionController extends Controller
 }
 
     public function show($id)
-    {
+    {$user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         // Puedes dejarlo vacío o redirigir a index
         return redirect()->route('resoluciones.index');
     }
 
     public function edit($id)
-    {
+    {$user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $resolucion = \App\Models\Resolucion::findOrFail($id);
         $tipos = \App\Models\TipoResolucion::all(); // Si necesitas tipos para un select
         return view('resoluciones.edit', compact('resolucion', 'tipos'));
     }
 
     public function update(Request $request, $id)
-    {
+    {$user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $resolucion = \App\Models\Resolucion::findOrFail($id);
 
         $request->validate([

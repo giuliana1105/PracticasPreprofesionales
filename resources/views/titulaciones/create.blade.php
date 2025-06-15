@@ -1,6 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
+
+@php
+    $user = auth()->user();
+    $persona = $user ? \App\Models\Persona::where('correo', $user->email)->with('cargo')->first() : null;
+    $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
+@endphp
+@if($esEstudiante)
+    <div class="alert alert-danger">No autorizado.</div>
+    @php exit; @endphp
+@endif
 <style>
     body {
         background-color: #e9ecef;

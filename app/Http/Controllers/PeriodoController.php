@@ -4,22 +4,51 @@ namespace App\Http\Controllers;
 
 use App\Models\Periodo;
 use Illuminate\Http\Request;
-
+USE Illuminate\Support\Facades\Auth;    
 class PeriodoController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $periodos = Periodo::all();
         return view('periodos.index', compact('periodos'));
     }
 
     public function create()
     {
+        $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         return view('periodos.create');
     }
 
     public function store(Request $request)
-    {
+    {$user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $request->validate([
             'mes_ini' => 'required|string|max:255',
             'mes_fin' => 'required|string|max:255',
@@ -41,13 +70,31 @@ class PeriodoController extends Controller
     }
 
     public function edit($id)
-    {
+    {$user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $periodo = Periodo::findOrFail($id);
         return view('periodos.edit', compact('periodo'));
     }
 
     public function update(Request $request, $id)
-    {
+    {$user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $request->validate([
             'mes_ini' => 'required|string|max:255',
             'mes_fin' => 'required|string|max:255',
@@ -71,7 +118,16 @@ class PeriodoController extends Controller
     }
 
     public function destroy($id)
-    {
+    {$user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
+    
         $periodo = Periodo::findOrFail($id);
 
         // Verifica si el periodo está referenciado en titulaciones

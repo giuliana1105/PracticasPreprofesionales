@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TipoResolucion;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
 class TipoResolucionController extends Controller
 {
     /**
@@ -18,7 +18,15 @@ class TipoResolucionController extends Controller
 
 
     public function index()
-{
+{ $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
     $query = TipoResolucion::query();
     
     // Aplicar filtros
@@ -41,6 +49,15 @@ class TipoResolucionController extends Controller
      */
     public function create()
     {
+         $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
         return view('tipo_resoluciones.create');
     }
 
@@ -49,6 +66,15 @@ class TipoResolucionController extends Controller
      */
     public function store(Request $request)
     {
+         $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
         $request->validate([
             'nombre_tipo_res' => 'required|string|max:255',
         ]);
@@ -63,7 +89,15 @@ class TipoResolucionController extends Controller
      * Show the form for editing the specified resource.
      */
     public function edit($id)
-    {
+    { $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
         $tipo = TipoResolucion::findOrFail($id);
         return view('tipo_resoluciones.edit', compact('tipo'));
     }
@@ -72,7 +106,15 @@ class TipoResolucionController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, $id)
-    {
+    { $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
         $request->validate([
             'nombre_tipo_res' => 'required|string|max:255',
         ]);
@@ -88,7 +130,15 @@ class TipoResolucionController extends Controller
      * Remove the specified resource from storage.
      */
     public function destroy($id)
-    {
+    { $user = Auth::user();
+    if ($user instanceof \App\Models\User) {
+        $persona = $user->persona;
+    } else {
+        $persona = $user;
+    }
+    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        abort(403, 'No autorizado');
+    }
         try {
             $tipo = \App\Models\TipoResolucion::findOrFail($id);
             $tipo->delete();
