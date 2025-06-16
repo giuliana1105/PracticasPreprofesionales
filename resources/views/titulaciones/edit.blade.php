@@ -249,15 +249,21 @@
             @csrf
             @method('PUT')
 
+          
+
             {{-- Tema --}}
-            <div class="form-group">
-                <label class="form-label">Tema</label>
-                @if($esDocente)
-                    <input type="text" class="form-control" value="{{ $titulacion->tema }}" readonly>
-                @else
-                    <input type="text" id="tema" name="tema" class="form-control" value="{{ $titulacion->tema }}" required>
-                @endif
-            </div>
+<div class="form-group">
+    <label class="form-label">Tema</label>
+
+    @if ($esDocente)
+        <input type="text" class="form-control" value="{{ $titulacion->tema }}" readonly>
+        {{-- Campo oculto para que se envíe el valor original en el form, si necesitas --}}
+        <input type="hidden" name="tema" value="{{ $titulacion->tema }}">
+    @else
+        <input type="text" id="tema" name="tema" class="form-control" value="{{ $titulacion->tema }}" required>
+    @endif
+</div>
+
 
             {{-- Estudiante --}}
             <div class="form-group">
