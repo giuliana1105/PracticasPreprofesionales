@@ -281,7 +281,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Cédula Estudiante</label>
-                <input type="text" class="form-control" value="{{ old('cedula_estudiante', $titulacion->cedula_estudiante) }}" readonly>
+                <input type="text" id="cedula_estudiante" name="cedula_estudiante" class="form-control" readonly>
             </div>
 
             {{-- Director --}}
@@ -306,7 +306,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Cédula Director</label>
-                <input type="text" class="form-control" value="{{ old('cedula_director', $titulacion->cedula_director) }}" readonly>
+                <input type="text" id="cedula_director" name="cedula_director" class="form-control" readonly>
             </div>
 
             {{-- Asesor 1 --}}
@@ -331,7 +331,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Cédula Asesor 1</label>
-                <input type="text" class="form-control" value="{{ old('cedula_asesor1', $titulacion->cedula_asesor1) }}" readonly>
+                <input type="text" id="cedula_asesor1" name="cedula_asesor1" class="form-control" readonly>
             </div>
 
             {{-- Periodo --}}
