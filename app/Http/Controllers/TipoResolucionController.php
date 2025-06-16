@@ -9,10 +9,12 @@ class TipoResolucionController extends Controller
 {
     public function __construct()
     {
-     $user = Auth::user();
-        $persona = $user ? ($user instanceof \App\Models\User ? $user->persona : $user) : null;
-        if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente') {
-            abort(403, 'No autorizado');
+     
+        $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
     }
     /**
@@ -26,15 +28,13 @@ class TipoResolucionController extends Controller
 
 
     public function index()
-{ $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+{  $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
     $query = TipoResolucion::query();
     
     // Aplicar filtros
@@ -57,15 +57,13 @@ class TipoResolucionController extends Controller
      */
     public function create()
     {
-         $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+        $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
         return view('tipo_resoluciones.create');
     }
 
@@ -75,14 +73,12 @@ class TipoResolucionController extends Controller
     public function store(Request $request)
     {
          $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
         $request->validate([
             'nombre_tipo_res' => 'required|string|max:255',
         ]);
@@ -97,15 +93,13 @@ class TipoResolucionController extends Controller
      * Show the form for editing the specified resource.
      */
     public function edit($id)
-    { $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+    {  $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
         $tipo = TipoResolucion::findOrFail($id);
         return view('tipo_resoluciones.edit', compact('tipo'));
     }
@@ -114,15 +108,13 @@ class TipoResolucionController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, $id)
-    { $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+    {  $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
         $request->validate([
             'nombre_tipo_res' => 'required|string|max:255',
         ]);
@@ -138,15 +130,13 @@ class TipoResolucionController extends Controller
      * Remove the specified resource from storage.
      */
     public function destroy($id)
-    { $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+    {  $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
         try {
             $tipo = \App\Models\TipoResolucion::findOrFail($id);
             $tipo->delete();

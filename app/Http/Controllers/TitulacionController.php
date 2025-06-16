@@ -152,8 +152,9 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        if ($persona && (strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante' || strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente')) {
-            abort(403, 'No autorizado');
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
         
         $personas = Persona::with('cargo')->get(); 
@@ -175,8 +176,9 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        if ($persona && (strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante' || strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente')) {
-            abort(403, 'No autorizado');
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
         
         $request->validate([
@@ -266,8 +268,9 @@ public function edit($id)
 {
     $user = Auth::user();
     $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
+    $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+    if (in_array($cargo, ['estudiante', 'coordinador', 'decano'])) {
+        abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
     }
     $titulacion = Titulacion::findOrFail($id);
     $periodos = \App\Models\Periodo::all();
@@ -528,17 +531,24 @@ public function edit($id)
     }
 
     public function destroy($id)
-    {
-        $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && (strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante' || strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente')) {
-        abort(403, 'No autorizado');
-    }
-    
+    {   $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+        
+
+
+
+        // $user = Auth::user();
+        // $persona = $user->persona ?? \App\Models\Persona::where('correo', $user->email)->with('cargo')->first();
+        // $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        // // Ahora también restringe a coordinador y decano
+        // if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano'])) {
+        //     abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        // }
+
         $titulacion = Titulacion::findOrFail($id);
         $titulacion->delete();
         return redirect()->route('titulaciones.index')->with('success', 'Titulación eliminada correctamente.');

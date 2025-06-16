@@ -9,24 +9,23 @@ class PeriodoController extends Controller
 {
     public function __construct()
     {
-          $user = Auth::user();
-        
-        $persona = $user ? ($user instanceof \App\Models\User ? $user->persona : $user) : null;
-        if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente') {
-            abort(403, 'No autorizado');
+          
+        $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
     }
     public function index()
     {
-        $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+         $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
     
         $periodos = Periodo::all();
         return view('periodos.index', compact('periodos'));
@@ -35,28 +34,24 @@ class PeriodoController extends Controller
     public function create()
     {
         $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
     
         return view('periodos.create');
     }
 
     public function store(Request $request)
-    {$user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+    { $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
     
         $request->validate([
             'mes_ini' => 'required|string|max:255',
@@ -79,31 +74,28 @@ class PeriodoController extends Controller
     }
 
     public function edit($id)
-    {$user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+    {
+        $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
     
         $periodo = Periodo::findOrFail($id);
         return view('periodos.edit', compact('periodo'));
     }
 
     public function update(Request $request, $id)
-    {$user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
-    
+    {
+        $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
         $request->validate([
             'mes_ini' => 'required|string|max:255',
             'mes_fin' => 'required|string|max:255',
@@ -127,15 +119,13 @@ class PeriodoController extends Controller
     }
 
     public function destroy($id)
-    {$user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+    {  $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
     
         $periodo = Periodo::findOrFail($id);
 

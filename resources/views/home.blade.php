@@ -136,6 +136,14 @@
     }
 </style>
 
+
+@php
+    $user = auth()->user();
+    $persona = $user ? ($user->persona ?? \App\Models\Persona::where('correo', $user->email)->with('cargo')->first()) : null;
+    $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+    $sinPermisoPersonas = in_array($cargo, ['coordinador', 'decano']);
+@endphp
+
 <div class="container">
     <div class="header-container">
         <div class="header-logo">
@@ -148,15 +156,24 @@
 
     <h1 class="page-title">PORTAFOLIOS</h1>
 
+    <div id="alertaPermisoHome"></div>
+
     <div class="module-container">
         <a href="{{ route('cargos.index') }}" class="module-card">
             <i class="fas fa-briefcase module-icon"></i>
             <div class="module-title">Cargos</div>
         </a>
-        <a href="{{ route('personas.index') }}" class="module-card">
-            <i class="fas fa-user module-icon"></i>
-            <div class="module-title">Personas</div>
-        </a>
+        @if($sinPermisoPersonas)
+            <button type="button" class="module-card" id="btnPersonas" style="cursor:not-allowed;">
+                <i class="fas fa-user module-icon"></i>
+                <div class="module-title">Personas</div>
+            </button>
+        @else
+            <a href="{{ route('personas.index') }}" class="module-card">
+                <i class="fas fa-user module-icon"></i>
+                <div class="module-title">Personas</div>
+            </a>
+        @endif
         <a href="{{ route('carreras.index') }}" class="module-card">
             <i class="fas fa-graduation-cap module-icon"></i>
             <div class="module-title">Carreras</div>
@@ -184,8 +201,21 @@
         </a>
     </div>
 </div>
-@endsection
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+@if($sinPermisoPersonas)
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('btnPersonas');
+    if(btn){
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var alerta = document.getElementById('alertaPermisoHome');
+            alerta.innerHTML = '<div class="alert alert-danger mt-2 text-center"><strong>403</strong><br>El cargo {{ ucfirst($cargo) }} no tiene permisos para acceder a esta funcionalidad del sistema.</div>';
+        });
+    }
+});
+</script>
+@endif
 @endpush

@@ -17,25 +17,26 @@ class PersonaController extends Controller
 {
     public function __construct()
     {
-           $user = Auth::user();
-        $persona = $user ? ($user instanceof \App\Models\User ? $user->persona : $user) : null;
-        if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente') {
-            abort(403, 'No autorizado');
+         
+        $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
     }
 
     // Mostrar todas las personas
     public function index()
-    {$user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
-       $personas = Persona::with(['carrera', 'cargo'])->get();
+    {
+        $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
+        $personas = Persona::with(['carrera', 'cargo'])->get();
         return view('personas.index', compact('personas'));
     }
 
@@ -43,14 +44,12 @@ class PersonaController extends Controller
     public function create()
     {
         $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
     
         $carreras = Carrera::all();
         $cargos = Cargo::all();
@@ -60,15 +59,14 @@ class PersonaController extends Controller
     // Almacenar nueva persona
     public function store(Request $request)
     {
-        $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+       
+         $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
     
         $validator = Validator::make($request->all(), [
             'cedula' => 'required|string|max:20|unique:personas,cedula',
@@ -122,16 +120,13 @@ class PersonaController extends Controller
 
     // Mostrar formulario de edición
     public function edit($id)
-    {
-        $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+    { $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
     
         $persona = Persona::findOrFail($id);
         $carreras = Carrera::all();
@@ -142,16 +137,13 @@ class PersonaController extends Controller
     // Actualizar persona existente
     public function update(Request $request, $id)
     {
-       $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
-    
+        $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
         $persona = Persona::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
@@ -197,15 +189,13 @@ class PersonaController extends Controller
     // Eliminar persona
     public function destroy($id)
     {
-        $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+       $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
     
         try {
             $persona = Persona::findOrFail($id);
@@ -238,15 +228,14 @@ class PersonaController extends Controller
 
     public function import(Request $request)
     {
+       
         $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+
        $request->validate([
             'archivo_csv' => 'required|file|mimes:csv,txt|max:2048',
         ]);

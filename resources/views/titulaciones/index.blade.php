@@ -7,6 +7,9 @@
     $persona = $user ? \App\Models\Persona::where('correo', $user->email)->with('cargo')->first() : null;
     $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
     $esDocente = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente';
+    $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+    $esDecano = $persona && $cargo === 'decano';
+    $esCoordinador = $persona && $cargo === 'coordinador';
 @endphp
 
 <style>
@@ -384,8 +387,8 @@
 
     {{-- Botones de acción --}}
     <div class="d-flex flex-column flex-md-row justify-content-start mb-4">
-        @if(!$esEstudiante && !$esDocente)
-            <a href="{{ route('titulaciones.create') }}" class="btn btn-primary me-2 mb-2 mb-md-0">
+        @if(!$esEstudiante && !$esDocente && !$esDecano && !$esCoordinador)
+            <a href="{{ route('titulaciones.create') }}" class="btn btn-primary me-2 mb-2 mb-md-0" id="btnNuevaTitulacion">
                 <i class="fas fa-plus"></i> Nueva Titulación
             </a>
             <a href="{{ route('resoluciones.cambiar') }}" class="btn btn-secondary ms-0 ms-md-2 mb-2 mb-md-0">
@@ -396,6 +399,7 @@
             <i class="fas fa-home"></i> Home
         </a>
     </div>
+    <div id="alertaPermiso"></div>
 
     {{-- Filtros --}}
     @if(!$esEstudiante)
@@ -525,7 +529,7 @@
                             <a href="{{ route('titulaciones.show', $tit->id_titulacion) }}" class="btn btn-outline-primary btn-sm mx-1 mb-1">
                                 <i class="fas fa-eye"></i> Ver detalles
                             </a>
-                            @if(!$esEstudiante && !$esDocente)
+                            @if(!$esEstudiante && !$esDocente && !$esDecano && !$esCoordinador)
                                 <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" class="btn btn-sm btn-warning mx-1 mb-1" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
@@ -547,7 +551,7 @@
                                         Ver acta de grado
                                     </a>
                                 @else
-                                    @if(!$esEstudiante && !$esDocente)
+                                    @if(!$esEstudiante && !$esDocente && !$esDecano && !$esCoordinador)
                                         <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}#acta_grado" class="btn btn-info btn-sm mx-1 mb-1">
                                             Subir acta de grado
                                         </a>
@@ -565,5 +569,19 @@
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+@if($esEstudiante || $esDocente || $esDecano || $esCoordinador)
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('btnNuevaTitulacion');
+    if(btn){
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var alerta = document.getElementById('alertaPermiso');
+            alerta.innerHTML = '<div class="alert alert-danger mt-2">El usuario con el cargo {{ $esDocente ? "Docente" : ($esEstudiante ? "Estudiante" : ($esDecano ? "Decano" : "Coordinador")) }} no tiene permisos para acceder a esta funcionalidad del sistema.</div>';
+        });
+    }
+});
+</script>
+@endif
 @endpush
 @endsection
