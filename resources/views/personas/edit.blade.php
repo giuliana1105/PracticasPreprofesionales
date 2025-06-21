@@ -253,11 +253,11 @@
             </div>
 
             <div class="form-group">
-                <label for="correo" class="form-label">Correo:</label>
-                <input type="email" id="correo" name="correo" 
-                       class="form-control @error('correo') is-invalid @enderror" 
-                       value="{{ old('correo', $persona->correo) }}">
-                @error('correo')
+                <label for="email" class="form-label">email:</label>
+                <input type="email" id="email" name="email" 
+                       class="form-control @error('email') is-invalid @enderror" 
+                       value="{{ old('email', $persona->email) }}">
+                @error('email')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>

@@ -317,10 +317,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="correo" class="form-label">Correo:</label>
-                        <input type="email" name="correo" class="form-control @error('correo') is-invalid @enderror" 
-                               value="{{ old('correo') }}" required>
-                        @error('correo')
+                        <label for="email" class="form-label">email:</label>
+                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
+                               value="{{ old('email') }}" required>
+                        @error('email')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
@@ -372,7 +372,7 @@
                 <h3 class="section-title" style="margin-top: 0;">Importar personas desde un archivo CSV</h3>
                 <div class="alert alert-info">
                     <strong>Formato requerido:</strong> El archivo debe contener las columnas: 
-                    cedula, nombres, celular, correo, carrera, cargo
+                    cedula, nombres, celular, email, carrera, cargo
                 </div>
                 <form action="{{ route('personas.import') }}" method="POST" enctype="multipart/form-data">
                     @csrf

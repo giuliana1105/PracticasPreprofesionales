@@ -43,12 +43,11 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
         ];
     }
 
     public function persona()
     {
-        return $this->hasOne(\App\Models\Persona::class, 'correo', 'email');
+        return $this->hasOne(\App\Models\Persona::class, 'email', 'email');
     }
 }

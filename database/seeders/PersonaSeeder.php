@@ -16,18 +16,31 @@ class PersonaSeeder extends Seeder
      */
     public function run(): void
     {
+        \App\Models\User::truncate(); // Opcional: limpia la tabla users si quieres empezar de cero
         Persona::truncate(); // Esto vaciará la tabla personas
 
-        DB::table('personas')->insert([
+        $personaData = [
             'cedula' => '1234567890',
             'nombres' => 'Irma Marilú',
             'apellidos' => 'Basantes Cevallos',
             'celular' => '0999999999',
-            'correo' => 'admin@ejemplo.com',
+            'email' => 'admin@ejemplo.com',
             'carrera_id' => 1, // Debe existir en la tabla 'carreras'
             'cargo_id' => 1,   // Debe existir en la tabla 'cargos'
             'created_at' => now(),
             'updated_at' => now(),
-        ]);
+        ];
+
+        // Insertar persona
+        DB::table('personas')->insert($personaData);
+
+        // Crear usuario automáticamente si no existe y el email no es nulo/ vacío
+        if (!empty($personaData['email']) && !\App\Models\User::where('email', $personaData['email'])->exists()) {
+            \App\Models\User::create([
+                'name' => $personaData['nombres'] . ' ' . $personaData['apellidos'],
+                'email' => $personaData['email'],
+                'password' => Hash::make($personaData['cedula']), // contraseña = cédula
+            ]);
+        }
     }
 }

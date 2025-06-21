@@ -11,7 +11,7 @@
                     <label for="csv_file">Archivo CSV</label>
                     <input type="file" class="form-control-file" id="csv_file" name="csv_file" required>
                     <small class="form-text text-muted">
-                        El archivo CSV debe tener las siguientes columnas: cedula, nombres,celular, correo, carrera_id, cargo_id
+                        El archivo CSV debe tener las siguientes columnas: cedula, nombres,celular, email, carrera_id, cargo_id
                     </small>
                 </div>
                 <button type="submit" class="btn btn-primary">Importar</button>

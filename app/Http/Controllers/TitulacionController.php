@@ -542,7 +542,7 @@ public function edit($id)
 
 
         // $user = Auth::user();
-        // $persona = $user->persona ?? \App\Models\Persona::where('correo', $user->email)->with('cargo')->first();
+        // $persona = $user->persona ?? \App\Models\Persona::where('email', $user->email)->with('cargo')->first();
         // $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
         // // Ahora también restringe a coordinador y decano
         // if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano'])) {

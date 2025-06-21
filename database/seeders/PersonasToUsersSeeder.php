@@ -16,14 +16,17 @@ class PersonasToUsersSeeder extends Seeder
     public function run(): void
     {
         $personas = Persona::all();
+        $count = 0;
         foreach ($personas as $persona) {
-            if (!User::where('email', $persona->correo)->exists()) {
+            if (!empty($persona->email) && !User::where('email', $persona->email)->exists()) {
                 User::create([
                     'name' => $persona->nombres . ' ' . $persona->apellidos,
-                    'email' => $persona->correo,
+                    'email' => $persona->email,
                     'password' => Hash::make($persona->cedula), // La contraseña será la cédula
                 ]);
+                $count++;
             }
         }
+        $this->command->info("Usuarios creados: $count");
     }
 }

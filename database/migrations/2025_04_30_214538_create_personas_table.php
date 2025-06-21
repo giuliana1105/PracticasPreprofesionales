@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('nombres');
            // $table->string('apellidos');
             $table->string('celular')->nullable();
-            $table->string('correo')->unique()->nullable();
+            $table->string('email')->unique()->nullable();
             
             // Claves foráneas (asumiendo que 'carreras' y 'cargos' ya existen)
             $table->unsignedBigInteger('carrera_id'); // Relación con carreras

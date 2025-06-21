@@ -316,7 +316,7 @@
                     <th>Nombres</th>
                     <th>Apellidos</th>
                     <th>Celular</th>
-                    <th>Correo</th>
+                    <th>email</th>
                     <th>Carrera</th>
                     <th>Cargo</th>
                     <th class="text-center">Acciones</th>
@@ -329,7 +329,7 @@
                         <td>{{ $persona->nombres }}</td>
                         <td>{{ $persona->apellidos }}</td>
                         <td>{{ $persona->celular }}</td>
-                        <td>{{ $persona->correo }}</td>
+                        <td>{{ $persona->email }}</td>
                         <td>{{ $persona->carrera->nombre_carrera ?? 'N/A' }}</td>
                         <td>{{ $persona->cargo->nombre_cargo ?? 'N/A' }}</td>
                         <td class="text-center">
@@ -371,7 +371,7 @@
                             <label for="archivo_csv">Archivo CSV</label>
                             <input type="file" class="form-control" id="archivo_csv" name="archivo_csv" required>
                             <small class="form-text text-muted">
-                                El archivo debe tener las columnas: cedula, nombres, apellidos, celular, correo, carrera, cargo
+                                El archivo debe tener las columnas: cedula, nombres, apellidos, celular, email, carrera, cargo
                             </small>
                         </div>
                         <div class="alert alert-info">
@@ -406,7 +406,7 @@
 
 @php
     $user = auth()->user();
-    $persona = $user ? \App\Models\Persona::where('correo', $user->email)->with('cargo')->first() : null;
+    $persona = $user ? \App\Models\Persona::where('email', $user->email)->with('cargo')->first() : null;
     $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
 @endphp
 @if($esEstudiante)

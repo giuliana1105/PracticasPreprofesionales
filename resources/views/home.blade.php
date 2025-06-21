@@ -139,7 +139,7 @@
 
 @php
     $user = auth()->user();
-    $persona = $user ? ($user->persona ?? \App\Models\Persona::where('correo', $user->email)->with('cargo')->first()) : null;
+    $persona = $user ? ($user->persona ?? \App\Models\Persona::where('email', $user->email)->with('cargo')->first()) : null;
     $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
     $sinPermisoPersonas = in_array($cargo, ['coordinador', 'decano']);
 @endphp
@@ -159,46 +159,47 @@
     <div id="alertaPermisoHome"></div>
 
     <div class="module-container">
-        <a href="{{ route('cargos.index') }}" class="module-card">
-            <i class="fas fa-briefcase module-icon"></i>
-            <div class="module-title">Cargos</div>
-        </a>
-        @if($sinPermisoPersonas)
-            <button type="button" class="module-card" id="btnPersonas" style="cursor:not-allowed;">
-                <i class="fas fa-user module-icon"></i>
-                <div class="module-title">Personas</div>
-            </button>
+        @if($cargo === 'estudiante' || $cargo === 'docente')
+            <a href="{{ route('titulaciones.index') }}" class="module-card">
+                <i class="fas fa-certificate module-icon"></i>
+                <div class="module-title">Titulaciones</div>
+            </a>
         @else
-            <a href="{{ route('personas.index') }}" class="module-card">
-                <i class="fas fa-user module-icon"></i>
-                <div class="module-title">Personas</div>
+            <a href="{{ route('cargos.index') }}" class="module-card">
+                <i class="fas fa-briefcase module-icon"></i>
+                <div class="module-title">Cargos</div>
+            </a>
+            @if(!$sinPermisoPersonas)
+                <a href="{{ route('personas.index') }}" class="module-card">
+                    <i class="fas fa-user module-icon"></i>
+                    <div class="module-title">Personas</div>
+                </a>
+            @endif
+            <a href="{{ route('carreras.index') }}" class="module-card">
+                <i class="fas fa-graduation-cap module-icon"></i>
+                <div class="module-title">Carreras</div>
+            </a>
+            <a href="{{ route('periodos.index') }}" class="module-card">
+                <i class="fas fa-calendar-alt module-icon"></i>
+                <div class="module-title">Periodos</div>
+            </a>
+            <a href="{{ route('estado-titulaciones.index') }}" class="module-card">
+                <i class="fas fa-flag-checkered module-icon"></i>
+                <div class="module-title">Estados de Titulación</div>
+            </a>
+            <a href="{{ route('resoluciones.index') }}" class="module-card">
+                <i class="fas fa-file-alt module-icon"></i>
+                <div class="module-title">Resoluciones</div>
+            </a>
+            <a href="{{ route('titulaciones.index') }}" class="module-card">
+                <i class="fas fa-certificate module-icon"></i>
+                <div class="module-title">Titulaciones</div>
+            </a>
+            <a href="{{ route('tipo_resoluciones.index') }}" class="module-card">
+                <i class="fas fa-tags module-icon"></i>
+                <div class="module-title">Tipos de Resoluciones</div>
             </a>
         @endif
-        <a href="{{ route('carreras.index') }}" class="module-card">
-            <i class="fas fa-graduation-cap module-icon"></i>
-            <div class="module-title">Carreras</div>
-        </a>
-        <a href="{{ route('periodos.index') }}" class="module-card">
-            <i class="fas fa-calendar-alt module-icon"></i>
-            <div class="module-title">Periodos</div>
-        </a>
-        <a href="{{ route('estado-titulaciones.index') }}" class="module-card">
-            <i class="fas fa-flag-checkered module-icon"></i>
-            <div class="module-title">Estados de Titulación</div>
-        </a>
-        <a href="{{ route('resoluciones.index') }}" class="module-card">
-            <i class="fas fa-file-alt module-icon"></i>
-            <div class="module-title">Resoluciones</div>
-        </a>
-       
-        <a href="{{ route('titulaciones.index') }}" class="module-card">
-            <i class="fas fa-certificate module-icon"></i>
-            <div class="module-title">Titulaciones</div>
-        </a>
-        <a href="{{ route('tipo_resoluciones.index') }}" class="module-card">
-            <i class="fas fa-tags module-icon"></i>
-            <div class="module-title">Tipos de Resoluciones</div>
-        </a>
     </div>
 </div>
 

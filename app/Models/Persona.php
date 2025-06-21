@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Model;
 
-class Persona extends Authenticatable
+class Persona extends Model
 {
     protected $table = 'personas';
 
@@ -13,22 +13,10 @@ class Persona extends Authenticatable
         'nombres',
         'apellidos',
         'celular',
-        'correo',
+        'email',
         'carrera_id',
         'cargo_id',
-        'password',
-        'role'
     ];
-
-    protected $hidden = [
-        'password',
-    ];
-
-    // Si usas otro campo para login, por ejemplo 'correo'
-    public function getAuthIdentifierName()
-    {
-        return 'id';
-    }
 
     public function carrera()
     {
