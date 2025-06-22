@@ -205,17 +205,6 @@
     </div>
 
     <h1 class="page-title">Gestión de Carreras</h1>
-<!-- 
-    <div class="d-flex flex-column flex-md-row justify-content-between mb-4">
-        <div class="btn-group mb-2 mb-md-0">
-            <a href="{{ route('carreras.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Crear Carrera
-            </a>
-            <a href="{{ route('home') }}" class="btn btn-secondary ms-2">
-                <i class="fas fa-home"></i> Home
-            </a>
-        </div>
-    </div> -->
 
      <div class="flex mb-4">
         <a href="{{ route('carreras.create') }}"

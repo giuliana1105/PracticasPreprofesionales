@@ -1,3 +1,4 @@
+
 @extends('layouts.app')
 
 @section('content')
@@ -168,6 +169,46 @@
     .shadow-sm {
         box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.071);
     }
+    /* Mensaje de éxito personalizado */
+    .custom-success {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+        padding: 16px 24px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        position: relative;
+    }
+    .custom-success button {
+        position: absolute;
+        top: 12px;
+        right: 18px;
+        background: none;
+        border: none;
+        color: #155724;
+        font-size: 18px;
+        cursor: pointer;
+    }
+    /* Mensaje de error personalizado */
+    .custom-error {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 16px 24px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        position: relative;
+    }
+    .custom-error button {
+        position: absolute;
+        top: 12px;
+        right: 18px;
+        background: none;
+        border: none;
+        color: #721c24;
+        font-size: 18px;
+        cursor: pointer;
+    }
     @media (max-width: 768px) {
         .header-logo {
             height: 30px;
@@ -207,20 +248,22 @@
 
     <h1 class="page-title">Gestión de Períodos</h1>
 
-    {{-- Mostrar mensajes de éxito/error --}}
+    {{-- Mensaje de error personalizado --}}
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show">
+        <div class="custom-error">
             {{ session('error') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
+            <button type="button" onclick="this.parentElement.style.display='none';">
+                &times;
             </button>
         </div>
     @endif
+
+    {{-- Mensaje de éxito personalizado --}}
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show">
+        <div class="custom-success">
             {{ session('success') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
+            <button type="button" onclick="this.parentElement.style.display='none';">
+                &times;
             </button>
         </div>
     @endif
@@ -231,19 +274,19 @@
         $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
     @endphp
     @if($esEstudiante)
-        <div class="alert alert-danger">No autorizado.</div>
+        <div class="custom-error">No autorizado.</div>
         @php exit; @endphp
     @endif
 
-    <div class="d-flex flex-column flex-md-row justify-content-between mb-4">
-        <div class="btn-group mb-2 mb-md-0">
-            <a href="{{ route('periodos.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Nuevo Período
-            </a>
-            <a href="{{ route('home') }}" class="btn btn-secondary ms-2">
-                <i class="fas fa-home"></i> Home
-            </a>
-        </div>
+     <div class="flex mb-4">
+        <a href="{{ route('periodos.create') }}"
+           class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded shadow hover:bg-red-700 transition">
+            <i class="fas fa-plus mr-2"></i> Nuevo Periodo
+        </a>
+        <a href="{{ route('home') }}"
+           class="inline-flex items-center px-4 py-2 bg-gray-500 text-white text-sm font-semibold rounded shadow hover:bg-gray-800 transition ml-2">
+            <i class="fas fa-home mr-2"></i> Home
+        </a>
     </div>
 
     <div class="table-container">
@@ -289,11 +332,11 @@
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 <script>
-    // Cierra automáticamente las alertas después de 10 segundos
-    $(document).ready(function(){
-        setTimeout(function(){
-            $('.alert').alert('close');
-        }, 10000);
-    });
+    // Cierra automáticamente los mensajes personalizados después de 10 segundos
+    setTimeout(function(){
+        document.querySelectorAll('.custom-success, .custom-error').forEach(function(el){
+            el.style.display = 'none';
+        });
+    }, 10000);
 </script>
 @endpush

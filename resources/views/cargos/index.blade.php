@@ -167,6 +167,48 @@
     .shadow-sm {
         box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.071);
     }
+    /* Mensaje de éxito personalizado */
+    .custom-success {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+        padding: 16px 24px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        position: relative;
+        text-align: left;
+    }
+    .custom-success button {
+        position: absolute;
+        top: 12px;
+        right: 18px;
+        background: none;
+        border: none;
+        color: #155724;
+        font-size: 18px;
+        cursor: pointer;
+    }
+    /* Mensaje de error personalizado */
+    .custom-error {
+        background-color: #fde8e8;
+        border: 1px solid #f8b4b4;
+        color: #b91c1c;
+        padding: 16px 24px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        position: relative;
+        text-align: left;
+    }
+    .custom-error button {
+        position: absolute;
+        top: 12px;
+        right: 18px;
+        background: none;
+        border: none;
+        color: #b91c1c;
+        font-size: 18px;
+        cursor: pointer;
+    }
     @media (max-width: 768px) {
         .header-logo {
             height: 30px;
@@ -218,22 +260,18 @@
     </div>
 
     @if(session('error'))
-        <div class="px-4 py-3 rounded relative mb-4 text-center"
-             style="background-color: #fde8e8; border: 1px solid #f8b4b4; color: #b91c1c;">
+        <div class="custom-error">
             {{ session('error') }}
-            <button type="button"
-                class="absolute top-0 bottom-0 right-0 px-4 py-3 text-xl leading-none"
-                style="color: #b91c1c;"
-                onclick="this.parentElement.style.display='none';">
+            <button type="button" onclick="this.parentElement.style.display='none';">
                 &times;
             </button>
         </div>
     @endif
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show">
+        <div class="custom-success">
             {{ session('success') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
+            <button type="button" onclick="this.parentElement.style.display='none';">
+                &times;
             </button>
         </div>
     @endif
@@ -244,7 +282,7 @@
         $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
     @endphp
     @if($esEstudiante)
-        <div class="alert alert-danger">No autorizado.</div>
+        <div class="custom-error">No autorizado.</div>
         @php exit; @endphp
     @endif
 
@@ -291,5 +329,13 @@
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script>
+    // Cierra automáticamente los mensajes personalizados después de 10 segundos
+    setTimeout(function(){
+        document.querySelectorAll('.custom-success, .custom-error').forEach(function(el){
+            el.style.display = 'none';
+        });
+    }, 10000);
+</script>
 @endpush
 @endsection
