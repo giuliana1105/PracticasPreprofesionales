@@ -51,7 +51,8 @@ class TitulacionController extends Controller
             if ($request->filled('busqueda')) {
                 $busqueda = strtolower($request->input('busqueda'));
                 $query->whereHas('estudiantePersona', function($q2) use ($busqueda) {
-                    $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%']);
+                    $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%'])
+                       ->orWhereRaw('LOWER(apellidos) LIKE ?', ['%' . $busqueda . '%']);
                 });
             }
             if ($request->filled('estado_filtro')) {
@@ -116,12 +117,7 @@ class TitulacionController extends Controller
             if ($request->filled('estado_filtro')) {
                 $query->where('estado_id', $request->estado_filtro);
             }
-            if ($request->filled('fecha_inicio')) {
-                $query->whereDate('created_at', '>=', $request->fecha_inicio);
-            }
-            if ($request->filled('fecha_fin')) {
-                $query->whereDate('created_at', '<=', $request->fecha_fin);
-            }
+            // Elimina el filtro por created_at y deja solo el filtro por fecha de resolucion
             if ($request->filled('fecha_inicio') || $request->filled('fecha_fin')) {
                 $query->whereHas('resTemas.resolucion', function ($q) use ($request) {
                     $q->whereHas('tipoResolucion', function ($q2) {
@@ -600,7 +596,9 @@ public function edit($id)
             if ($request->filled('busqueda')) {
                 $busqueda = strtolower($request->input('busqueda'));
                 $query->whereHas('estudiantePersona', function($q2) use ($busqueda) {
-                    $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%']);
+                    $q2->whereRaw('LOWER(CONCAT(nombres, " ", apellidos)) LIKE ?', ["%$busqueda%"])
+                       ->orWhereRaw('LOWER(nombres) LIKE ?', ["%$busqueda%"])
+                       ->orWhereRaw('LOWER(apellidos) LIKE ?', ["%$busqueda%"]);
                 });
             }
             if ($request->filled('estado_filtro')) {

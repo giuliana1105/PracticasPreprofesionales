@@ -357,59 +357,50 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+<!-- Estudiante -->
 <div class="form-group">
-    <label for="persona_estudiante_id" class="form-label">Estudiante</label>
-    <select id="persona_estudiante_id" name="persona_estudiante_id" class="form-control" required>
-        <option value="">Seleccione un estudiante</option>
-        @foreach($personas as $persona)
-            @if($persona->cargo && $persona->cargo->nombre_cargo == 'Estudiante')
-                <option value="{{ $persona->id }}" data-cedula="{{ $persona->cedula }}">
-                    {{ $persona->nombres }} {{ $persona->apellidos }}
-                </option>
-            @endif
+    <label for="estudiante_nombre">Estudiante</label>
+    <select id="estudiante_nombre" class="form-control">
+        <option value="">Seleccione...</option>
+        @foreach($personas->where('cargo.nombre_cargo', 'Estudiante') as $persona)
+            <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_estudiante') == $persona->cedula ? 'selected' : '' }}>
+                {{ $persona->nombres }} {{ $persona->apellidos }}
+            </option>
         @endforeach
     </select>
+    <div class="cedula-mostrada mt-2">Cédula: <span id="cedula_estudiante_mostrada"></span></div>
+    <input type="hidden" name="cedula_estudiante" id="cedula_estudiante">
 </div>
-<div class="form-group">
-    <label for="cedula_estudiante" class="form-label">Cédula Estudiante</label>
-    <input type="text" id="cedula_estudiante" name="cedula_estudiante" class="form-control" readonly required>
-</div>
+                    <!-- Director -->
+                    <div class="form-group">
+                        <label for="director_nombre">Director</label>
+                        <select id="director_nombre" class="form-control">
+                            <option value="">Seleccione...</option>
+                            @foreach($personas->where('cargo.nombre_cargo', 'Docente') as $persona)
+                                <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_director') == $persona->cedula ? 'selected' : '' }}>
+                                    {{ $persona->nombres }} {{ $persona->apellidos }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="cedula-mostrada mt-2">Cédula: <span id="cedula_director_mostrada"></span></div>
+                        <input type="hidden" name="cedula_director" id="cedula_director">
+                    </div>
 
-<div class="form-group">
-    <label for="persona_director_id" class="form-label">Director</label>
-    <select id="persona_director_id" name="persona_director_id" class="form-control" required>
-        <option value="">Seleccione un director</option>
-        @foreach($personas as $persona)
-            @if($persona->cargo && $persona->cargo->nombre_cargo == 'Docente')
-                <option value="{{ $persona->id }}" data-cedula="{{ $persona->cedula }}">
-                    {{ $persona->nombres }} {{ $persona->apellidos }}
-                </option>
-            @endif
-        @endforeach
-    </select>
-</div>
-<div class="form-group">
-    <label for="cedula_director" class="form-label">Cédula Director</label>
-    <input type="text" id="cedula_director" name="cedula_director" class="form-control" readonly required>
-</div>
+                    <!-- Asesor 1 -->
+                    <div class="form-group">
+                        <label for="asesor1_nombre">Asesor 1</label>
+                        <select id="asesor1_nombre" class="form-control">
+                            <option value="">Seleccione...</option>
+                            @foreach($personas->where('cargo.nombre_cargo', 'Docente') as $persona)
+                                <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_asesor1') == $persona->cedula ? 'selected' : '' }}>
+                                    {{ $persona->nombres }} {{ $persona->apellidos }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="cedula-mostrada mt-2">Cédula: <span id="cedula_asesor1_mostrada"></span></div>
+                        <input type="hidden" name="cedula_asesor1" id="cedula_asesor1">
+                    </div>
 
-<div class="form-group">
-    <label for="persona_asesor_id" class="form-label">Asesor 1</label>
-    <select id="persona_asesor_id" name="persona_asesor_id" class="form-control" required>
-        <option value="">Seleccione un asesor</option>
-        @foreach($personas as $persona)
-            @if($persona->cargo && $persona->cargo->nombre_cargo == 'Docente')
-                <option value="{{ $persona->id }}" data-cedula="{{ $persona->cedula }}">
-                    {{ $persona->nombres }} {{ $persona->apellidos }}
-                </option>
-            @endif
-        @endforeach
-    </select>
-</div>
-<div class="form-group">
-    <label for="cedula_asesor1" class="form-label">Cédula Asesor 1</label>
-    <input type="text" id="cedula_asesor1" name="cedula_asesor1" class="form-control" readonly required>
-</div>
                     <div class="form-group">
                         <label for="periodo_id" class="form-label">Periodo</label>
                         <select id="periodo_id" name="periodo_id" class="form-control @error('periodo_id') is-invalid @enderror" required>
@@ -495,27 +486,28 @@
 {{-- Script para la funcionalidad de autocompletar cédula y manejo de tabs --}}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    function actualizarCedula(selectId, inputCedulaId) {
-        const select = document.getElementById(selectId);
-        const inputCedula = document.getElementById(inputCedulaId);
-
-        function setCedula() {
-            const selectedOption = select.options[select.selectedIndex];
-            console.log('ID:', selectId, 'Seleccionado:', selectedOption.value, 'Cédula:', selectedOption.getAttribute('data-cedula'));
-            if (selectedOption && selectedOption.value) {
-                inputCedula.value = selectedOption.getAttribute('data-cedula') || '';
-            } else {
-                inputCedula.value = '';
+    function setupCedulaAutocomplete(selectId, inputCedulaId, spanCedulaId) {
+        const selectElement = document.getElementById(selectId);
+        const cedulaInput = document.getElementById(inputCedulaId);
+        const cedulaSpan = document.getElementById(spanCedulaId);
+        if (selectElement && cedulaInput && cedulaSpan) {
+            function updateInput() {
+                const selectedOption = selectElement.options[selectElement.selectedIndex];
+                if (selectedOption && selectedOption.value) {
+                    cedulaInput.value = selectedOption.getAttribute('data-cedula');
+                    cedulaSpan.textContent = selectedOption.getAttribute('data-cedula');
+                } else {
+                    cedulaInput.value = '';
+                    cedulaSpan.textContent = '';
+                }
             }
+            selectElement.addEventListener('change', updateInput);
+            updateInput(); // Inicializa al cargar
         }
-
-        select.addEventListener('change', setCedula);
-        setCedula();
     }
-
-    actualizarCedula('persona_estudiante_id', 'cedula_estudiante');
-    actualizarCedula('persona_director_id', 'cedula_director');
-    actualizarCedula('persona_asesor_id', 'cedula_asesor1');
+    setupCedulaAutocomplete('estudiante_nombre', 'cedula_estudiante', 'cedula_estudiante_mostrada');
+    setupCedulaAutocomplete('director_nombre', 'cedula_director', 'cedula_director_mostrada');
+    setupCedulaAutocomplete('asesor1_nombre', 'cedula_asesor1', 'cedula_asesor1_mostrada');
 
     // Habilitar campo acta de grado solo si estado es Graduado
     const estadoSelect = document.getElementById('estado_id');

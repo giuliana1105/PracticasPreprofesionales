@@ -190,7 +190,7 @@
         $titulacion->acta_grado
     )
         <div class="mt-2">
-            <a href="{{ asset('storage/' . $titulacion->acta_grado) }}" target="_blank" class="btn btn-success">
+            <a href="{{ asset('storage/' . $titulacion->acta_grado) }}" target="_blank" class="btn btn-outline-primary btn-sm" style="border: 1px solid #d32f2f;">
                 <i class="fas fa-file-pdf"></i> Ver acta de grado
             </a>
         </div>

@@ -526,8 +526,8 @@
                     </td>
                     <td>
                         <div class="d-flex justify-content-center flex-wrap">
-                            <a href="{{ route('titulaciones.show', $tit->id_titulacion) }}" class="btn btn-outline-primary btn-sm mx-1 mb-1">
-                                <i class="fas fa-eye"></i> Ver detalles
+                            <a href="{{ route('titulaciones.show', $tit->id_titulacion) }}" class="btn btn-outline-primary btn-sm mx-1 mb-1" style="border: 1px solid #d32f2f;">
+                                <i class="fas fa-file-pdf"></i> Ver detalles
                             </a>
                             @if(!$esEstudiante && !$esDocente && !$esDecano && !$esCoordinador)
                                 <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" class="btn btn-sm btn-warning mx-1 mb-1" title="Editar">
@@ -547,8 +547,8 @@
                             @endif
                             @if($tit->estado && strtolower($tit->estado->nombre_estado) === 'graduado')
                                 @if($tit->acta_grado)
-                                    <a href="{{ asset('storage/' . $tit->acta_grado) }}" target="_blank" class="btn btn-success btn-sm mx-1 mb-1">
-                                        Ver acta de grado
+                                    <a href="{{ asset('storage/' . $tit->acta_grado) }}" target="_blank" class="btn btn-outline-primary btn-sm mx-1 mb-1" style="border: 1px solid #d32f2f;">
+                                        <i class="fas fa-file-pdf"></i> Ver acta de grado
                                     </a>
                                 @else
                                     @if(!$esEstudiante && !$esDocente && !$esDecano && !$esCoordinador)
