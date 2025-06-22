@@ -334,7 +334,7 @@
                         <td>{{ $persona->cargo->nombre_cargo ?? 'N/A' }}</td>
                         <td class="text-center">
                             <a href="{{ route('personas.edit', $persona->id) }}" class="btn btn-sm btn-warning" title="Editar">
-                                <i class="fas fa-edit"></i>
+                                <i class="fas fa-edit text-white"></i>
                             </a>
                             <form action="{{ route('personas.destroy', $persona->id) }}" method="POST" class="d-inline">
                                 @csrf
@@ -353,45 +353,6 @@
             </tbody>
         </table>
     </div>
-
-    <!-- Modal para importar CSV -->
-    <div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="importModalLabel">Importar Personas desde CSV</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <form action="{{ route('personas.import') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="archivo_csv">Archivo CSV</label>
-                            <input type="file" class="form-control" id="archivo_csv" name="archivo_csv" required>
-                            <small class="form-text text-muted">
-                                El archivo debe tener las columnas: cedula, nombres, apellidos, celular, email, carrera, cargo
-                            </small>
-                        </div>
-                        <div class="alert alert-info">
-                            <strong>Formato requerido:</strong>
-                            <ul class="mb-0">
-                                <li>Encabezados en la primera fila</li>
-                                <li>Formato CSV estándar (delimitado por comas)</li>
-                                <li>Codificación UTF-8</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Importar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
 @push('scripts')
 <script>
