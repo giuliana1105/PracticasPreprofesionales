@@ -1,57 +1,65 @@
 @extends('layouts.app')
 
+@section('header')
+    <div class="header-container">
+        <div class="header-logo"></div>
+        <div class="header-text-container">
+            <span class="utn-text">UTN</span>
+            <span class="ibarra-text">IBARRA - ECUADOR</span>
+        </div>
+    </div>
+    <h1 class="page-title">PORTAFOLIOS</h1>
+@endsection
+
 @section('content')
 <style>
-    body {
-        background-color: #e9ecef; /* Fondo gris claro general */
-        color: #212529; /* Texto oscuro general */
+    /* Elimina estilos globales al body para no afectar el layout general */
+    /* body {
+        background-color: #e9ecef;
+        color: #212529;
         margin: 0;
         padding-bottom: 20px;
-        font-family: sans-serif; /* Fuente predeterminada */
-    }
+        font-family: sans-serif;
+    } */
 
     .container {
         max-width: 1200px;
         margin: 0 auto;
         padding: 20px;
+        background-color: #e9ecef; /* Fondo gris claro solo para el contenido */
+        color: #212529;
+        font-family: sans-serif;
+        min-height: 100vh;
     }
-
     .header-container {
-        background-color: #d32f2f; /* Fondo rojo para el encabezado */
+        background-color: #d32f2f;
         color: #fff;
         padding: 15px 20px;
         display: flex;
         align-items: center;
-        margin-bottom: 20px; /* Espacio debajo del encabezado */
-        border-radius: 5px; /* Bordes redondeados */
+        margin-bottom: 20px;
+        border-radius: 5px;
     }
-
     .header-logo {
-        /* Ruta o URL de tu logo de la UTN blanco horizontal */
-        
         background-repeat: no-repeat;
         background-size: contain;
-        height: 40px; /* Ajusta según la altura de tu logo */
-        width: auto; /* Ajusta según el ancho de tu logo */
+        height: 40px;
+        width: auto;
         margin-right: 15px;
     }
-
     .header-text-container {
         display: flex;
         flex-direction: column;
     }
-
     .utn-text {
         font-size: 1.2em;
         font-weight: bold;
     }
-
     .ibarra-text {
         font-size: 0.9em;
     }
-
     .page-title {
-        background-color: #343a40; /* Fondo gris oscuro para el título */
+        background-color: #343a40;
         color: #fff;
         padding: 20px;
         text-align: center;
@@ -60,16 +68,14 @@
         font-size: 1.5em;
         font-weight: bold;
     }
-
     .module-container {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 20px;
         padding: 20px;
-        background-color: #f8f9fa; /* Fondo gris claro para los módulos */
+        background-color: #f8f9fa;
         border-radius: 5px;
     }
-
     .module-card {
         display: flex;
         flex-direction: column;
@@ -83,25 +89,20 @@
         color: #495057;
         transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     }
-
     .module-card:hover {
         transform: scale(1.05);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
-
     .module-icon {
         font-size: 2.5em;
         margin-bottom: 15px;
-        color: #d32f2f; /* Rojo UTN */
+        color: #d32f2f;
     }
-
     .module-title {
         font-weight: bold;
         text-align: center;
         font-size: 1.1em;
     }
-
-    /* Ajustes responsivos */
     @media (max-width: 768px) {
         .module-container {
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -136,7 +137,6 @@
     }
 </style>
 
-
 @php
     $user = auth()->user();
     $persona = $user ? ($user->persona ?? \App\Models\Persona::where('email', $user->email)->with('cargo')->first()) : null;
@@ -145,21 +145,9 @@
 @endphp
 
 <div class="container">
-    <div class="header-container">
-        <div class="header-logo">
-            </div>
-        <div class="header-text-container">
-            <span class="utn-text">UTN</span>
-            <span class="ibarra-text">IBARRA - ECUADOR</span>
-        </div>
-    </div>
-
-    <h1 class="page-title">PORTAFOLIOS</h1>
-
     <div id="alertaPermisoHome"></div>
-
     <div class="module-container">
-        @if($cargo === 'estudiante' || $cargo === 'docente')
+        @if(in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano']))
             <a href="{{ route('titulaciones.index') }}" class="module-card">
                 <i class="fas fa-certificate module-icon"></i>
                 <div class="module-title">Titulaciones</div>
@@ -220,3 +208,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @endif
 @endpush
+@endsection
