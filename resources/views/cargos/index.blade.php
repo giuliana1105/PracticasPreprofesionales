@@ -206,22 +206,26 @@
 
     <h1 class="page-title">Gestión de Cargos</h1>
 
-    <div class="d-flex flex-column flex-md-row justify-content-between mb-4">
-        <div class="btn-group mb-2 mb-md-0">
-            <a href="{{ route('cargos.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Crear Cargo
-            </a>
-            <a href="{{ route('home') }}" class="btn btn-secondary ms-2">
-                <i class="fas fa-home"></i> Home
-            </a>
-        </div>
+    <div class="flex mb-4">
+        <a href="{{ route('cargos.create') }}"
+           class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded shadow hover:bg-red-700 transition">
+            <i class="fas fa-plus mr-2"></i> Crear Cargo
+        </a>
+        <a href="{{ route('home') }}"
+           class="inline-flex items-center px-4 py-2 bg-gray-500 text-white text-sm font-semibold rounded shadow hover:bg-gray-800 transition ml-2">
+            <i class="fas fa-home mr-2"></i> Home
+        </a>
     </div>
 
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show">
+        <div class="px-4 py-3 rounded relative mb-4 text-center"
+             style="background-color: #fde8e8; border: 1px solid #f8b4b4; color: #b91c1c;">
             {{ session('error') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
+            <button type="button"
+                class="absolute top-0 bottom-0 right-0 px-4 py-3 text-xl leading-none"
+                style="color: #b91c1c;"
+                onclick="this.parentElement.style.display='none';">
+                &times;
             </button>
         </div>
     @endif
