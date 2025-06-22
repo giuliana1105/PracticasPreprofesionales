@@ -206,6 +206,37 @@
         border-color: #bee5eb;
     }
 
+    .tab-switcher {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+    .tab-btn {
+        padding: 10px 24px;
+        border: none;
+        border-radius: 6px 6px 0 0;
+        background: #f1f1f1;
+        color: #333;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+        outline: none;
+    }
+    .tab-btn.active {
+        background: #198754;
+        color: #fff;
+    }
+    .tab-pane {
+        display: none;
+        background: #fff;
+        padding: 24px 18px 18px 18px;
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .tab-pane.active {
+        display: block;
+    }
+
     @media (max-width: 768px) {
         .header-logo {
             height: 30px;
@@ -265,133 +296,141 @@
     @endif
 
     <div class="form-container">
-        <ul class="nav nav-tabs" id="myTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <a class="nav-link active" id="manual-tab" data-bs-toggle="tab" href="#manual" role="tab" aria-controls="manual" aria-selected="true">Ingreso Manual</a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" id="csv-tab" data-bs-toggle="tab" href="#csv" role="tab" aria-controls="csv" aria-selected="false">Importar desde CSV</a>
-            </li>
-        </ul>
+        <div class="tab-switcher">
+            <button class="tab-btn active" id="manual-tab" type="button">Ingreso Manual</button>
+            <button class="tab-btn" id="csv-tab" type="button">Importar desde CSV</button>
+        </div>
 
-        <div class="tab-content" id="myTabContent">
-            <div class="tab-pane fade show active" id="manual" role="tabpanel" aria-labelledby="manual-tab">
-                <form action="{{ route('personas.store') }}" method="POST">
-                    @csrf
-
-                    <div class="form-group">
-                        <label for="cedula" class="form-label">Cédula:</label>
-                        <input type="text" name="cedula" class="form-control @error('cedula') is-invalid @enderror" 
-                               value="{{ old('cedula') }}" required>
-                        @error('cedula')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="nombres" class="form-label">Nombres:</label>
-                        <input type="text" name="nombres" class="form-control @error('nombres') is-invalid @enderror" 
-                               value="{{ old('nombres') }}" required>
-                        @error('nombres')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="apellidos" class="form-label">Apellidos:</label>
-                        <input type="text" name="apellidos" id="apellidos"
-                               class="form-control @error('apellidos') is-invalid @enderror"
-                               value="{{ old('apellidos', $persona->apellidos ?? '') }}" required>
-                        @error('apellidos')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="celular" class="form-label">Celular:</label>
-                        <input type="text" name="celular" class="form-control @error('celular') is-invalid @enderror" 
-                               value="{{ old('celular') }}" required>
-                        @error('celular')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email" class="form-label">email:</label>
-                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
-                               value="{{ old('email') }}" required>
-                        @error('email')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="carrera_id" class="form-label">Carrera:</label>
-                        <select name="carrera_id" class="form-control @error('carrera_id') is-invalid @enderror" required>
-                            <option value="">Seleccione una carrera</option>
-                            @foreach($carreras as $carrera)
-                                <option value="{{ $carrera->id_carrera }}" 
-                                    {{ old('carrera_id') == $carrera->id_carrera ? 'selected' : '' }}>
-                                    {{ $carrera->nombre_carrera }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('carrera_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <label for="cargo_id" class="form-label">Cargo:</label>
-                        <select name="cargo_id" class="form-control @error('cargo_id') is-invalid @enderror" required>
-                            <option value="">Seleccione un cargo</option>
-                            @foreach($cargos as $cargo)
-                                <option value="{{ $cargo->id_cargo }}" 
-                                    {{ old('cargo_id') == $cargo->id_cargo ? 'selected' : '' }}>
-                                    {{ $cargo->nombre_cargo }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('cargo_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Guardar
-                        </button>
-                        <a href="{{ route('personas.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Cancelar
-                        </a>
-                    </div>
-                </form>
-            </div>
-
-            <div class="tab-pane fade" id="csv" role="tabpanel" aria-labelledby="csv-tab">
-                <h3 class="section-title" style="margin-top: 0;">Importar personas desde un archivo CSV</h3>
-                <div class="alert alert-info">
-                    <strong>Formato requerido:</strong> El archivo debe contener las columnas: 
-                    cedula, nombres, celular, email, carrera, cargo
+        <div class="tab-pane active" id="manual-pane">
+            <form action="{{ route('personas.store') }}" method="POST">
+                @csrf
+                <div class="form-group">
+                    <label for="cedula" class="form-label">Cédula:</label>
+                    <input type="text" name="cedula" class="form-control @error('cedula') is-invalid @enderror" 
+                           value="{{ old('cedula') }}" required>
+                    @error('cedula')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
-                <form action="{{ route('personas.import') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div class="form-group">
-                        <label for="archivo_csv" class="form-label">Archivo CSV:</label>
-                        <input type="file" name="archivo_csv" class="form-control" accept=".csv" required>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-file-import"></i> Importar
-                        </button>
-                    </div>
-                </form>
+                <div class="form-group">
+                    <label for="nombres" class="form-label">Nombres:</label>
+                    <input type="text" name="nombres" class="form-control @error('nombres') is-invalid @enderror" 
+                           value="{{ old('nombres') }}" required>
+                    @error('nombres')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
+                    <label for="apellidos" class="form-label">Apellidos:</label>
+                    <input type="text" name="apellidos" id="apellidos"
+                           class="form-control @error('apellidos') is-invalid @enderror"
+                           value="{{ old('apellidos', $persona->apellidos ?? '') }}" required>
+                    @error('apellidos')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
+                    <label for="celular" class="form-label">Celular:</label>
+                    <input type="text" name="celular" class="form-control @error('celular') is-invalid @enderror" 
+                           value="{{ old('celular') }}" required>
+                    @error('celular')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
+                    <label for="email" class="form-label">email:</label>
+                    <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
+                           value="{{ old('email') }}" required>
+                    @error('email')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
+                    <label for="carrera_id" class="form-label">Carrera:</label>
+                    <select name="carrera_id" class="form-control @error('carrera_id') is-invalid @enderror" required>
+                        <option value="">Seleccione una carrera</option>
+                        @foreach($carreras as $carrera)
+                            <option value="{{ $carrera->id_carrera }}" 
+                                {{ old('carrera_id') == $carrera->id_carrera ? 'selected' : '' }}>
+                                {{ $carrera->nombre_carrera }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('carrera_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
+                    <label for="cargo_id" class="form-label">Cargo:</label>
+                    <select name="cargo_id" class="form-control @error('cargo_id') is-invalid @enderror" required>
+                        <option value="">Seleccione un cargo</option>
+                        @foreach($cargos as $cargo)
+                            <option value="{{ $cargo->id_cargo }}" 
+                                {{ old('cargo_id') == $cargo->id_cargo ? 'selected' : '' }}>
+                                {{ $cargo->nombre_cargo }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('cargo_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <a href="{{ route('personas.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="tab-pane" id="csv-pane">
+            <h3 class="section-title" style="margin-top: 0;">Importar personas desde un archivo CSV</h3>
+            <div class="alert alert-info">
+                <strong>Formato requerido:</strong> El archivo debe contener las columnas: 
+                cedula, nombres, celular, email, carrera, cargo
             </div>
+            <form action="{{ route('personas.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="form-group">
+                    <label for="archivo_csv" class="form-label">Archivo CSV:</label>
+                    <input type="file" name="archivo_csv" class="form-control" accept=".csv" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-file-import"></i> Importar
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const manualTab = document.getElementById('manual-tab');
+        const csvTab = document.getElementById('csv-tab');
+        const manualPane = document.getElementById('manual-pane');
+        const csvPane = document.getElementById('csv-pane');
+
+        manualTab.addEventListener('click', function() {
+            manualTab.classList.add('active');
+            csvTab.classList.remove('active');
+            manualPane.classList.add('active');
+            csvPane.classList.remove('active');
+        });
+
+        csvTab.addEventListener('click', function() {
+            csvTab.classList.add('active');
+            manualTab.classList.remove('active');
+            csvPane.classList.add('active');
+            manualPane.classList.remove('active');
+        });
+    });
+</script>
 @endpush
 @endsection
