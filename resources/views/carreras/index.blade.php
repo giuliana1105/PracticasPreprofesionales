@@ -205,7 +205,7 @@
     </div>
 
     <h1 class="page-title">Gestión de Carreras</h1>
-
+<!-- 
     <div class="d-flex flex-column flex-md-row justify-content-between mb-4">
         <div class="btn-group mb-2 mb-md-0">
             <a href="{{ route('carreras.create') }}" class="btn btn-primary">
@@ -215,21 +215,37 @@
                 <i class="fas fa-home"></i> Home
             </a>
         </div>
+    </div> -->
+
+     <div class="flex mb-4">
+        <a href="{{ route('carreras.create') }}"
+           class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded shadow hover:bg-red-700 transition">
+            <i class="fas fa-plus mr-2"></i> Crear Carrera
+        </a>
+        <a href="{{ route('home') }}"
+           class="inline-flex items-center px-4 py-2 bg-gray-500 text-white text-sm font-semibold rounded shadow hover:bg-gray-800 transition ml-2">
+            <i class="fas fa-home mr-2"></i> Home
+        </a>
     </div>
 
+
+
+
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show">
+        <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 16px 24px; border-radius: 8px; margin-bottom: 20px; position: relative;">
             {{ session('error') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
+            <button type="button" onclick="this.parentElement.style.display='none';"
+                style="position: absolute; top: 12px; right: 18px; background: none; border: none; color: #721c24; font-size: 18px; cursor: pointer;">
+                &times;
             </button>
         </div>
     @endif
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show">
+        <div style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 16px 24px; border-radius: 8px; margin-bottom: 20px; position: relative;">
             {{ session('success') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
+            <button type="button" onclick="this.parentElement.style.display='none';"
+                style="position: absolute; top: 12px; right: 18px; background: none; border: none; color: #155724; font-size: 18px; cursor: pointer;">
+                &times;
             </button>
         </div>
     @endif
