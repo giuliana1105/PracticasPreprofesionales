@@ -299,13 +299,13 @@ class PersonaController extends Controller
 
         // Mapeo de encabezados normalizados a los nombres internos
         $map = [
-            'cedula'   => ['cedula', 'cedula', 'cédula'],
-            'nombres'  => ['nombres'],
-            'apellidos'=> ['apellidos'],
-            'celular'  => ['celular'],
-            'email'    => ['email', 'correo', 'correo_electronico'],
-            'carrera'  => ['carrera'],
-            'cargo'    => ['cargo'],
+            'cedula'        => ['cedula', 'cédula'],
+            'nombres'       => ['nombres'],
+            'apellidos'     => ['apellidos'],
+            'celular'       => ['celular'],
+            'email'         => ['email', 'correo', 'correo_electronico'],
+            'sigla_carrera' => ['siglacarrera', 'sigla_carrera', 'sigla carrera', 'siglas', 'siglas_carrera', 'siglas carrera'],
+            'cargo'         => ['cargo'],
         ];
 
         // Crear un array de encabezados normalizados => nombre interno
@@ -360,8 +360,8 @@ class PersonaController extends Controller
                     $errores[$fila] = 'email vacío';
                     continue;
                 }
-                if (empty($normalizedRow['carrera'])) {
-                    $errores[$fila] = 'Carrera vacía';
+                if (empty($normalizedRow['sigla_carrera'])) {
+                    $errores[$fila] = 'Sigla de carrera vacía';
                     continue;
                 }
                 if (empty($normalizedRow['cargo'])) {
@@ -370,9 +370,9 @@ class PersonaController extends Controller
                 }
 
                 // Buscar carrera por SIGLAS (nuevo)
-                $carrera = \App\Models\Carrera::whereRaw('LOWER(siglas_carrera) = ?', [strtolower(trim($normalizedRow['carrera']))])->first();
+                $carrera = \App\Models\Carrera::whereRaw('LOWER(siglas_carrera) = ?', [strtolower(trim($normalizedRow['sigla_carrera']))])->first();
                 if (! $carrera) {
-                    $errores[$fila] = 'Carrera no encontrada por siglas: ' . $normalizedRow['carrera'];
+                    $errores[$fila] = 'Carrera no encontrada por sigla: ' . $normalizedRow['sigla_carrera'];
                     continue;
                 }
 
