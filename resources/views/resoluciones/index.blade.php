@@ -408,13 +408,6 @@
     @php exit; @endphp
 @endif
 
-<!-- @if(session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
-@endif
-
-@if(session('error'))
-    <div class="alert alert-danger">{{ session('error') }}</div>
-@endif -->
 
 <div class="container">
     <div class="header-container">
@@ -459,7 +452,7 @@
         <form action="{{ route('resoluciones.index') }}" method="GET" style="flex:1; min-width:220px; display:flex; align-items:center; gap:8px;">
             <input type="hidden" name="filtro" value="{{ request('filtro', 'todos') }}">
             <input type="text" name="buscar" value="{{ request('buscar') }}"
-                   placeholder="Buscar por número, tipo o fecha..."
+                   placeholder="Buscar por número o tipo"
                    style="flex:1; padding:8px 12px; border:1px solid #d32f2f; border-radius:5px; font-size:1em;">
             <button type="submit"
                     class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded shadow hover:bg-red-700 transition">
