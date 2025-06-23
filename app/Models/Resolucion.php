@@ -40,6 +40,6 @@ class Resolucion extends Model
     // Relación con Titulaciones
     public function titulaciones()
     {
-        return $this->belongsToMany(Titulacion::class, 'resoluciones_titulaciones', 'resolucion_id', 'titulacion_id');
+        return $this->belongsToMany(Titulacion::class, 'res_temas', 'resolucion_id', 'titulacion_id');
     }
 }

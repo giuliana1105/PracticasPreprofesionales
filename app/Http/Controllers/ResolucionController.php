@@ -291,7 +291,13 @@ class ResolucionController extends Controller
 
     
         $resolucion = \App\Models\Resolucion::findOrFail($id);
-        $tipos = \App\Models\TipoResolucion::all(); // Si necesitas tipos para un select
+        $tipos = \App\Models\TipoResolucion::all();
+
+        // Agrega la URL del archivo igual que en index
+        $resolucion->archivo_url = $resolucion->archivo_pdf
+            ? asset('storage/' . $resolucion->archivo_pdf)
+            : null;
+
         return view('resoluciones.edit', compact('resolucion', 'tipos'));
     }
 

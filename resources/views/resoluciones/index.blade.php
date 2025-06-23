@@ -428,30 +428,33 @@
 
     <h1 class="page-title">Gestión de Resoluciones</h1>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-body text-center py-3 d-flex justify-content-center">
-            <a href="{{ route('resoluciones.create') }}" class="btn btn-success me-2">
-                <i class="fas fa-plus"></i> Crear Nueva Resolución
-            </a>
-            <a href="{{ route('home') }}" class="btn btn-secondary ms-2">
-                <i class="fas fa-home"></i> Home
-            </a>
-        </div>
+    <div class="flex mb-4">
+        <a href="{{ route('resoluciones.create') }}"
+           class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded shadow hover:bg-red-700 transition">
+            <i class="fas fa-plus mr-2"></i> Crear Nueva Resolución
+        </a>
+        <a href="{{ route('home') }}"
+           class="inline-flex items-center px-4 py-2 bg-gray-500 text-white text-sm font-semibold rounded shadow hover:bg-gray-800 transition ml-2">
+            <i class="fas fa-home mr-2"></i> Home
+        </a>
     </div>
 
-    <div class="container">
-
-    {{-- Mensajes de éxito y error antes de la tabla --}}
+    {{-- Mensajes de éxito y error personalizados --}}
     @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+        <div style="background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:16px 24px;border-radius:8px;margin-bottom:20px;position:relative;">
+            {{ session('success') }}
+            <button type="button" onclick="this.parentElement.style.display='none';"
+                style="position:absolute;top:12px;right:18px;background:none;border:none;color:#155724;font-size:18px;cursor:pointer;">&times;</button>
+        </div>
     @endif
 
     @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
+        <div style="background:#f8d7da;border:1px solid #f5c6cb;color:#721c24;padding:16px 24px;border-radius:8px;margin-bottom:20px;position:relative;">
+            {{ session('error') }}
+            <button type="button" onclick="this.parentElement.style.display='none';"
+                style="position:absolute;top:12px;right:18px;background:none;border:none;color:#721c24;font-size:18px;cursor:pointer;">&times;</button>
+        </div>
     @endif
-
- 
-</div>
 
     <div class="table-container">
 
@@ -477,8 +480,11 @@
                         <td class="align-middle">{{ $resolucion->tipoResolucion->nombre_tipo_res ?? '-' }}</td>
                         <td class="align-middle">
                             @if($resolucion->archivo_url)
-                                <a href="{{ $resolucion->archivo_url }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-file-pdf"></i> Ver PDF
+                                <a href="{{ $resolucion->archivo_url }}" target="_blank"
+                                   style="border:1px solid #dc3545; border-radius:8px; color:#dc3545; background:#fff; padding:8px 18px; display:inline-flex; align-items:center; font-weight:500; font-size:1em; text-decoration:none; transition:box-shadow 0.2s;"
+                                   onmouseover="this.style.boxShadow='0 2px 8px rgba(220,53,69,0.15)'"
+                                   onmouseout="this.style.boxShadow='none'">
+                                    <i class="fas fa-file-pdf" style="margin-right:8px; font-size:1.3em;"></i> Ver PDF
                                 </a>
                             @else
                                 -
@@ -486,12 +492,19 @@
                         </td>
                         <td class="align-middle">
                             {{-- Botón editar --}}
-                            <a href="{{ route('resoluciones.edit', $resolucion->id_Reso) }}" class="btn btn-warning btn-sm" title="Editar">
-                                <i class="fas fa-edit"></i> Editar
+                            <a href="{{ route('resoluciones.edit', $resolucion->id_Reso) }}"
+                               class="btn btn-warning btn-sm"
+                               title="Editar"
+                               style="background:#f39c12;border:none;color:#fff;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;font-size:1.3em;border-radius:8px;margin-right:4px;">
+                                <i class="fas fa-edit"></i>
                             </a>
                             {{-- Botón eliminar --}}
-                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmarEliminar('{{ $resolucion->id_Reso }}')">
-                                <i class="fas fa-trash"></i> Eliminar
+                            <button type="button"
+                                    class="btn btn-danger btn-sm"
+                                    style="background:#dc3545;border:none;color:#fff;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;font-size:1.3em;border-radius:8px;"
+                                    onclick="confirmarEliminar('{{ $resolucion->id_Reso }}')"
+                                    title="Eliminar">
+                                <i class="fas fa-trash"></i>
                             </button>
                             {{-- Formulario eliminar oculto --}}
                             <form id="form-eliminar-{{ $resolucion->id_Reso }}" action="{{ route('resoluciones.destroy', $resolucion->id_Reso) }}" method="POST" style="display:none;">
@@ -504,13 +517,19 @@
             </tbody>
         </table>
 
-        {{-- Formulario separado solo para enviar las resoluciones seleccionadas --}}
-        <form id="form-seleccionar" action="{{ route('resoluciones.seleccionar') }}" method="POST" class="d-flex justify-content-center mt-3">
-            @csrf
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save"></i> Guardar Resoluciones Seleccionadas
-            </button>
-        </form>
+
+{{-- Formulario separado solo para enviar las resoluciones seleccionadas --}}
+<div style="display: flex; justify-content: center; width: 100%; margin-top: 1.5rem;">
+    <form id="form-seleccionar" action="{{ route('resoluciones.seleccionar') }}" method="POST">
+        @csrf
+        <button type="submit"
+            style="display:inline-flex;align-items:center;padding:8px 16px;background:#22c55e;color:#fff;font-size:0.95rem;font-weight:600;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,0.08);border:none;transition:background 0.2s;gap:8px;"
+            onmouseover="this.style.background='#16a34a';"
+            onmouseout="this.style.background='#22c55e';">
+            <i class="fas fa-save" style="margin-right:8px;"></i> Guardar Resoluciones Seleccionadas
+        </button>
+    </form>
+</div>
 
     </div>
 </div>
