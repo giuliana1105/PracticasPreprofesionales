@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\AvanceHistorial;
 
 class TitulacionController extends Controller
 {
@@ -289,30 +290,58 @@ public function edit($id)
 
     public function update(Request $request, $id)
     {
-     $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    $esDocente = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente';
+        $user = Auth::user();
+        if ($user instanceof \App\Models\User) {
+            $persona = $user->persona;
+        } else {
+            $persona = $user;
+        }
+        $esDocente = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente';
 
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
+        if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+            abort(403, 'No autorizado');
+        }
 
-    if ($esDocente) {
-        $request->validate([
-            'avance' => 'required|integer|min:0|max:100',
-            'observaciones' => 'nullable|string',
-        ]);
-        $titulacion = Titulacion::findOrFail($id);
-        $titulacion->update([
-            'avance' => $request->avance,
-            'observaciones' => $request->observaciones,
-        ]);
-        return redirect()->route('titulaciones.index')->with('success', 'Titulación actualizada correctamente.');
-    }
+        if ($esDocente) {
+            $request->validate([
+                'avance' => 'required|integer|min:0|max:100',
+                'observaciones' => 'nullable|string',
+            ]);
+            $titulacion = Titulacion::findOrFail($id);
+
+            // --- Registro de historial de cambios ---
+            $cambios = [];
+            if ($titulacion->avance != $request->avance) {
+                $cambios[] = [
+                    'campo' => 'avance',
+                    'valor_anterior' => $titulacion->avance,
+                    'valor_nuevo' => $request->avance,
+                ];
+            }
+            if ($titulacion->observaciones != $request->observaciones) {
+                $cambios[] = [
+                    'campo' => 'observaciones',
+                    'valor_anterior' => $titulacion->observaciones,
+                    'valor_nuevo' => $request->observaciones,
+                ];
+            }
+            foreach ($cambios as $cambio) {
+                \App\Models\AvanceHistorial::create([
+                    'titulacion_id' => $titulacion->id_titulacion,
+                    'docente_id' => $persona->id,
+                    'campo' => $cambio['campo'],
+                    'valor_anterior' => $cambio['valor_anterior'],
+                    'valor_nuevo' => $cambio['valor_nuevo'],
+                ]);
+            }
+            // --- Fin registro de historial ---
+
+            $titulacion->update([
+                'avance' => $request->avance,
+                'observaciones' => $request->observaciones,
+            ]);
+            return redirect()->route('titulaciones.index')->with('success', 'Titulación actualizada correctamente.');
+        }
 
         $request->validate([
             'tema' => 'required|string',
@@ -340,19 +369,19 @@ public function edit($id)
         ]);
 
         // Solo guardar acta de grado si el estado es Graduado y se subió archivo
-        $estadoGraduado = EstadoTitulacion::find($request->estado_id)?->nombre_estado === 'Graduado';
+        $estadoGraduado = \App\Models\EstadoTitulacion::find($request->estado_id)?->nombre_estado === 'Graduado';
 
         if ($estadoGraduado && $request->hasFile('acta_grado') && $request->file('acta_grado')->isValid()) {
             // Borra el archivo anterior si existe
             if ($titulacion->acta_grado) {
-                Storage::disk('public')->delete($titulacion->acta_grado);
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($titulacion->acta_grado);
             }
             $data['acta_grado'] = $request->file('acta_grado')->store('actas_grado', 'public');
         }
 
         // Si el estado ya no es Graduado, elimina el acta de grado
         if (!$estadoGraduado && $titulacion->acta_grado) {
-            Storage::disk('public')->delete($titulacion->acta_grado);
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($titulacion->acta_grado);
             $data['acta_grado'] = null;
         }
 
@@ -557,7 +586,8 @@ public function edit($id)
         $persona = $user->persona ?? null;
         $titulacion = Titulacion::with([
             'estudiantePersona', 'directorPersona', 'asesor1Persona',
-            'periodo', 'estado', 'resTemas.resolucion.tipoResolucion'
+            'periodo', 'estado', 'resTemas.resolucion.tipoResolucion',
+            'avanceHistorial.docente'
         ])->findOrFail($id);
 
         // Si es estudiante, solo puede ver su propia titulación

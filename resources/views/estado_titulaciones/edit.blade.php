@@ -191,9 +191,7 @@
                         <i class="fas fa-arrow-left"></i> Volver
                     </a>
                     
-                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </button>
+                
                 </div>
             </form>
             

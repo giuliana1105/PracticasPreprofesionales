@@ -386,7 +386,7 @@
     @endif
 
     {{-- Botones de acción --}}
-    <div class="d-flex flex-column flex-md-row justify-content-start mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-start mb-4" style="gap: 10px;">
         @if(!$esEstudiante && !$esDocente && !$esDecano && !$esCoordinador)
             <a href="{{ route('titulaciones.create') }}" class="btn btn-primary me-2 mb-2 mb-md-0" id="btnNuevaTitulacion">
                 <i class="fas fa-plus"></i> Nueva Titulación
@@ -395,7 +395,7 @@
                 <i class="fas fa-sync-alt"></i> Cambiar resoluciones seleccionadas
             </a>
         @endif
-        <a href="{{ route('home') }}" class="btn btn-secondary ms-0 ms-md-2 mb-2 mb-md-0">
+        <a href="{{ route('home') }}" class="btn btn-secondary ms-0 ms-md-2 mb-2 mb-md-0" style="margin-left:10px;">
             <i class="fas fa-home"></i> Home
         </a>
     </div>

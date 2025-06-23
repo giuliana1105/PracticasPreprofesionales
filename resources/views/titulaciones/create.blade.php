@@ -37,13 +37,12 @@
     }
 
     .header-logo {
-        /* Idealmente, aquí se definiría un background-image si el logo es vía CSS */
         background-repeat: no-repeat;
         background-size: contain;
         height: 40px;
-        width: 40px; /* Ajustado para tener un tamaño si no hay imagen */
+        width: 40px;
         margin-right: 15px;
-        background-color: #fff; /* Placeholder color si no hay logo */
+        background-color: #fff;
     }
 
     .header-text-container {
@@ -97,7 +96,7 @@
         border-radius: 5px;
         font-size: 1em;
         transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-        box-sizing: border-box; /* Añadido para consistencia en el tamaño */
+        box-sizing: border-box;
     }
 
     .form-control:focus {
@@ -114,7 +113,7 @@
         color: #dc3545;
         font-size: 0.875em;
         margin-top: 5px;
-        display: block; /* Asegura que el mensaje se muestre */
+        display: block;
     }
 
     textarea.form-control {
@@ -123,8 +122,8 @@
     }
 
     select.form-control {
-        height: auto; /* Puede ser problemático, mejor usar padding como en inputs */
-        padding: 10px; /* Asegurar padding consistente */
+        height: auto;
+        padding: 10px;
     }
 
     .btn {
@@ -200,7 +199,7 @@
 
     .nav-tabs {
         border-bottom: 1px solid #dee2e6;
-        margin-bottom: 0; /* Ajuste para que el contenido del tab se una mejor */
+        margin-bottom: 0;
     }
 
     .nav-tabs .nav-link {
@@ -209,7 +208,8 @@
         border-top-left-radius: 5px;
         border-top-right-radius: 5px;
         padding: 10px 20px;
-        margin-bottom: -1px; /* Para que el borde inferior se solape con el del tab-content */
+        margin-bottom: -1px;
+        cursor: pointer;
     }
 
     .nav-tabs .nav-link:hover {
@@ -231,6 +231,13 @@
         border-radius: 0 0 5px 5px;
     }
 
+    .tab-pane {
+        display: none;
+    }
+    .tab-pane.active {
+        display: block;
+    }
+
     .alert {
         padding: 15px;
         margin-bottom: 20px;
@@ -250,10 +257,42 @@
         border-color: #bee5eb;
     }
 
+    .custom-tabs {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 0;
+        margin-top: 0;
+    }
+    .custom-tab-btn {
+        padding: 16px 36px;
+        border: none;
+        border-radius: 8px 8px 0 0;
+        background: #f4f4f4;
+        color: #222;
+        font-weight: 500;
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+        outline: none;
+    }
+    .custom-tab-btn.active {
+        background: #219653;
+        color: #fff;
+        font-weight: bold;
+    }
+    .tab-content {
+        padding: 30px 20px 20px 20px;
+        background: #fff;
+        border-radius: 0 0 8px 8px;
+        border: 1px solid #e0e0e0;
+        border-top: none;
+        margin-bottom: 30px;
+    }
+
     @media (max-width: 768px) {
         .header-logo {
             height: 30px;
-            width: 30px; /* Ajustado */
+            width: 30px;
             margin-right: 10px;
         }
 
@@ -284,8 +323,7 @@
 
 <div class="container">
     <div class="header-container">
-        <div class="header-logo">
-            </div>
+        <div class="header-logo"></div>
         <div class="header-text-container">
             <span class="utn-text">UTN</span>
             <span class="ibarra-text">IBARRA - ECUADOR</span>
@@ -310,182 +348,186 @@
         </div>
     @endif
 
-    <div class="form-container">
-        <ul class="nav nav-tabs" id="myTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" id="csv-tab" data-bs-toggle="tab" href="#csv" role="tab" aria-controls="csv" aria-selected="false">Importar desde CSV</a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link active" id="manual-tab" data-bs-toggle="tab" href="#manual" role="tab" aria-controls="manual" aria-selected="true">Ingreso Manual</a>
-            </li>
-        </ul>
+    <div class="form-container" style="padding-top: 0;">
+        <div class="custom-tabs">
+            <button type="button" class="custom-tab-btn active" id="btnManual">Ingreso Manual</button>
+            <button type="button" class="custom-tab-btn" id="btnCSV">Importar desde CSV</button>
+        </div>
 
-        <div class="tab-content" id="myTabContent">
-            <div class="tab-pane fade" id="csv" role="tabpanel" aria-labelledby="csv-tab">
-                <h3 class="section-title" style="margin-top: 20px;">Importar Titulaciones desde CSV</h3>
-                <div class="alert alert-info">
-                    <strong>Formato requerido:</strong> El archivo debe contener las columnas: 
-                    Tema, Cédula estudiante, Cédula director, Cédula asesor 1, 
-                    Periodo, Estado, Avance, Observaciones
+        <div class="tab-content" id="manualTab">
+            {{-- FORMULARIO MANUAL --}}
+            <form action="{{ route('titulaciones.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                {{-- ...campos del formulario manual aquí... --}}
+                <div class="form-group">
+                    <label for="tema" class="form-label">Tema</label>
+                    <input type="text" id="tema" name="tema" class="form-control @error('tema') is-invalid @enderror" 
+                           placeholder="Tema" value="{{ old('tema') }}" required>
+                    @error('tema')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
-                <form action="{{ route('titulaciones.importCsv') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div class="form-group">
-                        <label for="csv_file" class="form-label">Archivo CSV:</label>
-                        <input type="file" name="csv_file" id="csv_file" class="form-control" accept=".csv" required>
-                    </div>
-                    <div class="form-group d-flex flex-column flex-md-row gap-2">
-                        <button type="submit" class="btn btn-success me-md-2 mb-2 mb-md-0">
-                            <i class="fas fa-file-import"></i> Importar
-                        </button>
-                        <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Volver
-                        </a>
-                    </div>
-                </form>
+                <!-- Estudiante -->
+                <div class="form-group">
+                    <label for="estudiante_nombre">Estudiante</label>
+                    <select id="estudiante_nombre" class="form-control">
+                        <option value="">Seleccione...</option>
+                        @foreach($personas->where('cargo.nombre_cargo', 'Estudiante') as $persona)
+                            <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_estudiante') == $persona->cedula ? 'selected' : '' }}>
+                                {{ $persona->nombres }} {{ $persona->apellidos }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="cedula-mostrada mt-2">Cédula: <span id="cedula_estudiante_mostrada"></span></div>
+                    <input type="hidden" name="cedula_estudiante" id="cedula_estudiante">
+                </div>
+                <!-- Director -->
+                <div class="form-group">
+                    <label for="director_nombre">Director</label>
+                    <select id="director_nombre" class="form-control">
+                        <option value="">Seleccione...</option>
+                        @foreach($personas->where('cargo.nombre_cargo', 'Docente') as $persona)
+                            <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_director') == $persona->cedula ? 'selected' : '' }}>
+                                {{ $persona->nombres }} {{ $persona->apellidos }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="cedula-mostrada mt-2">Cédula: <span id="cedula_director_mostrada"></span></div>
+                    <input type="hidden" name="cedula_director" id="cedula_director">
+                </div>
+                <!-- Asesor 1 -->
+                <div class="form-group">
+                    <label for="asesor1_nombre">Asesor 1</label>
+                    <select id="asesor1_nombre" class="form-control">
+                        <option value="">Seleccione...</option>
+                        @foreach($personas->where('cargo.nombre_cargo', 'Docente') as $persona)
+                            <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_asesor1') == $persona->cedula ? 'selected' : '' }}>
+                                {{ $persona->nombres }} {{ $persona->apellidos }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="cedula-mostrada mt-2">Cédula: <span id="cedula_asesor1_mostrada"></span></div>
+                    <input type="hidden" name="cedula_asesor1" id="cedula_asesor1">
+                </div>
+                <div class="form-group">
+                    <label for="periodo_id" class="form-label">Periodo</label>
+                    <select id="periodo_id" name="periodo_id" class="form-control @error('periodo_id') is-invalid @enderror" required>
+                        <option value="">Seleccione Periodo</option>
+                        @foreach($periodos as $periodo)
+                            <option value="{{ $periodo->id_periodo }}" {{ old('periodo_id') == $periodo->id_periodo ? 'selected' : '' }}>
+                                {{ $periodo->periodo_academico }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('periodo_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
+                    <label for="estado_id" class="form-label">Estado</label>
+                    <select id="estado_id" name="estado_id" class="form-control @error('estado_id') is-invalid @enderror" required>
+                        <option value="">Seleccione Estado</option>
+                        @foreach($estados as $estado)
+                            <option value="{{ $estado->id_estado }}" {{ old('estado_id') == $estado->id_estado ? 'selected' : '' }}>
+                                {{ $estado->nombre_estado }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('estado_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
+                    <label for="avance" class="form-label">Avance (%)</label>
+                    <input type="number" id="avance" name="avance" class="form-control @error('avance') is-invalid @enderror" 
+                           placeholder="Avance (%)" min="0" max="100" value="{{ old('avance') }}" required>
+                    @error('avance')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
+                    <label for="observaciones" class="form-label">Observaciones (opcional)</label>
+                    <textarea id="observaciones" name="observaciones" class="form-control @error('observaciones') is-invalid @enderror" 
+                              placeholder="Observaciones">{{ old('observaciones') }}</textarea>
+                    @error('observaciones')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                @if(isset($resolucionesSeleccionadas) && $resolucionesSeleccionadas->count() > 0)
+                <div class="form-group">
+                    <label class="form-label">Resoluciones seleccionadas:</label>
+                    <ul class="resoluciones-list">
+                        @foreach($resolucionesSeleccionadas as $res)
+                            <li>{{ $res->numero_res }} - {{ $res->tipoResolucion->nombre_tipo_res ?? 'Tipo no especificado' }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+                <div class="form-group">
+                    <label for="acta_grado" class="form-label">Acta de grado (PDF)</label>
+                    <input type="file" id="acta_grado" name="acta_grado" class="form-control" accept="application/pdf" disabled>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar Titulación
+                    </button>
+                    <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="tab-content" id="csvTab" style="display:none;">
+            <h3 class="section-title" style="margin-top: 20px;">Importar Titulaciones desde CSV</h3>
+            <div class="alert alert-info">
+                <strong>Formato requerido:</strong> El archivo debe contener las columnas: 
+                Tema, Cédula estudiante, Cédula director, Cédula asesor 1, 
+                Periodo, Estado, Avance, Observaciones
             </div>
-
-            <div class="tab-pane fade show active" id="manual" role="tabpanel" aria-labelledby="manual-tab">
-                <form action="{{ route('titulaciones.store') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    
-                    <div class="form-group">
-                        <label for="tema" class="form-label">Tema</label>
-                        <input type="text" id="tema" name="tema" class="form-control @error('tema') is-invalid @enderror" 
-                               placeholder="Tema" value="{{ old('tema') }}" required>
-                        @error('tema')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-<!-- Estudiante -->
-<div class="form-group">
-    <label for="estudiante_nombre">Estudiante</label>
-    <select id="estudiante_nombre" class="form-control">
-        <option value="">Seleccione...</option>
-        @foreach($personas->where('cargo.nombre_cargo', 'Estudiante') as $persona)
-            <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_estudiante') == $persona->cedula ? 'selected' : '' }}>
-                {{ $persona->nombres }} {{ $persona->apellidos }}
-            </option>
-        @endforeach
-    </select>
-    <div class="cedula-mostrada mt-2">Cédula: <span id="cedula_estudiante_mostrada"></span></div>
-    <input type="hidden" name="cedula_estudiante" id="cedula_estudiante">
-</div>
-                    <!-- Director -->
-                    <div class="form-group">
-                        <label for="director_nombre">Director</label>
-                        <select id="director_nombre" class="form-control">
-                            <option value="">Seleccione...</option>
-                            @foreach($personas->where('cargo.nombre_cargo', 'Docente') as $persona)
-                                <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_director') == $persona->cedula ? 'selected' : '' }}>
-                                    {{ $persona->nombres }} {{ $persona->apellidos }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="cedula-mostrada mt-2">Cédula: <span id="cedula_director_mostrada"></span></div>
-                        <input type="hidden" name="cedula_director" id="cedula_director">
-                    </div>
-
-                    <!-- Asesor 1 -->
-                    <div class="form-group">
-                        <label for="asesor1_nombre">Asesor 1</label>
-                        <select id="asesor1_nombre" class="form-control">
-                            <option value="">Seleccione...</option>
-                            @foreach($personas->where('cargo.nombre_cargo', 'Docente') as $persona)
-                                <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_asesor1') == $persona->cedula ? 'selected' : '' }}>
-                                    {{ $persona->nombres }} {{ $persona->apellidos }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="cedula-mostrada mt-2">Cédula: <span id="cedula_asesor1_mostrada"></span></div>
-                        <input type="hidden" name="cedula_asesor1" id="cedula_asesor1">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="periodo_id" class="form-label">Periodo</label>
-                        <select id="periodo_id" name="periodo_id" class="form-control @error('periodo_id') is-invalid @enderror" required>
-                            <option value="">Seleccione Periodo</option>
-                            @foreach($periodos as $periodo)
-                                <option value="{{ $periodo->id_periodo }}" {{ old('periodo_id') == $periodo->id_periodo ? 'selected' : '' }}>
-                                    {{ $periodo->periodo_academico }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('periodo_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="estado_id" class="form-label">Estado</label>
-                        <select id="estado_id" name="estado_id" class="form-control @error('estado_id') is-invalid @enderror" required>
-                            <option value="">Seleccione Estado</option>
-                            @foreach($estados as $estado)
-                                <option value="{{ $estado->id_estado }}" {{ old('estado_id') == $estado->id_estado ? 'selected' : '' }}>
-                                    {{ $estado->nombre_estado }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('estado_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="avance" class="form-label">Avance (%)</label>
-                        <input type="number" id="avance" name="avance" class="form-control @error('avance') is-invalid @enderror" 
-                               placeholder="Avance (%)" min="0" max="100" value="{{ old('avance') }}" required>
-                        @error('avance')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="observaciones" class="form-label">Observaciones (opcional)</label>
-                        <textarea id="observaciones" name="observaciones" class="form-control @error('observaciones') is-invalid @enderror" 
-                                  placeholder="Observaciones">{{ old('observaciones') }}</textarea>
-                        @error('observaciones')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    
-                    @if(isset($resolucionesSeleccionadas) && $resolucionesSeleccionadas->count() > 0)
-                    <div class="form-group">
-                        <label class="form-label">Resoluciones seleccionadas:</label>
-                        <ul class="resoluciones-list">
-                            @foreach($resolucionesSeleccionadas as $res)
-                                <li>{{ $res->numero_res }} - {{ $res->tipoResolucion->nombre_tipo_res ?? 'Tipo no especificado' }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                    @endif
-                    
-                    <div class="form-group">
-                        <label for="acta_grado" class="form-label">Acta de grado (PDF)</label>
-                        <input type="file" id="acta_grado" name="acta_grado" class="form-control" accept="application/pdf" disabled>
-                    </div>
-                    
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Guardar Titulación
-                        </button>
-                        <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Cancelar
-                        </a>
-                    </div>
-                </form>
-            </div>
+            <form action="{{ route('titulaciones.importCsv') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="form-group">
+                    <label for="csv_file" class="form-label">Archivo CSV:</label>
+                    <input type="file" name="csv_file" id="csv_file" class="form-control" accept=".csv" required>
+                </div>
+                <div class="form-group d-flex flex-column flex-md-row gap-2">
+                    <button type="submit" class="btn btn-success me-md-2 mb-2 mb-md-0">
+                        <i class="fas fa-file-import"></i> Importar
+                    </button>
+                    <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 @push('scripts')
-{{-- CDN de Font Awesome para los iconos --}}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-
-{{-- Script para la funcionalidad de autocompletar cédula y manejo de tabs --}}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Tabs personalizadas
+    const btnManual = document.getElementById('btnManual');
+    const btnCSV = document.getElementById('btnCSV');
+    const manualTab = document.getElementById('manualTab');
+    const csvTab = document.getElementById('csvTab');
+
+    btnManual.addEventListener('click', function() {
+        btnManual.classList.add('active');
+        btnCSV.classList.remove('active');
+        manualTab.style.display = '';
+        csvTab.style.display = 'none';
+    });
+    btnCSV.addEventListener('click', function() {
+        btnCSV.classList.add('active');
+        btnManual.classList.remove('active');
+        csvTab.style.display = '';
+        manualTab.style.display = 'none';
+    });
+
+    // Autocompletar cédula
     function setupCedulaAutocomplete(selectId, inputCedulaId, spanCedulaId) {
         const selectElement = document.getElementById(selectId);
         const cedulaInput = document.getElementById(inputCedulaId);
@@ -502,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             selectElement.addEventListener('change', updateInput);
-            updateInput(); // Inicializa al cargar
+            updateInput();
         }
     }
     setupCedulaAutocomplete('estudiante_nombre', 'cedula_estudiante', 'cedula_estudiante_mostrada');

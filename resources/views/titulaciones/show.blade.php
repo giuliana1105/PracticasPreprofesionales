@@ -183,6 +183,39 @@
                 @endforeach
             </td>
         </tr>
+        <tr>
+            <th>Cambios</th>
+            <td>
+                @if($titulacion->avanceHistorial && count($titulacion->avanceHistorial))
+                    <table style="width:100%; font-size:13px; border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#f8f9fa;">
+                                <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:110px;">Fecha</th>
+                                <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:180px;">Docente</th>
+                                <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:110px;">Campo</th>
+                                <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:120px;">Valor anterior</th>
+                                <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:120px;">Valor nuevo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($titulacion->avanceHistorial->sortByDesc('created_at') as $historial)
+                                <tr>
+                                    <td style="padding:8px; border-bottom:1px solid #f1f1f1;">{{ $historial->created_at->format('d/m/Y H:i') }}</td>
+                                    <td style="padding:8px; border-bottom:1px solid #f1f1f1;">
+                                        {{ $historial->docente->nombres ?? '' }} {{ $historial->docente->apellidos ?? '' }}
+                                    </td>
+                                    <td style="padding:8px; border-bottom:1px solid #f1f1f1;">{{ ucfirst($historial->campo) }}</td>
+                                    <td style="padding:8px; border-bottom:1px solid #f1f1f1; white-space:pre-line;">{{ $historial->valor_anterior }}</td>
+                                    <td style="padding:8px; border-bottom:1px solid #f1f1f1; white-space:pre-line;">{{ $historial->valor_nuevo }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @else
+                    <span class="text-muted">Sin cambios registrados</span>
+                @endif
+            </td>
+        </tr>
     </table>
     @if(
         $titulacion->estado &&

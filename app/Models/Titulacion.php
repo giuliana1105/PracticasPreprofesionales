@@ -53,4 +53,8 @@ class Titulacion extends Model
     {
         return $this->belongsTo(\App\Models\Persona::class, 'cedula_asesor1', 'cedula');
     }
+    public function avanceHistorial()
+    {
+        return $this->hasMany(\App\Models\AvanceHistorial::class, 'titulacion_id');
+    }
 }
