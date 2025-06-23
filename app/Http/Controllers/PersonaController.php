@@ -28,7 +28,7 @@ class PersonaController extends Controller
     }
 
     // Mostrar todas las personas
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
@@ -37,7 +37,27 @@ class PersonaController extends Controller
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-        $personas = Persona::with(['carrera', 'cargo'])->get();
+        $query = Persona::with(['carrera', 'cargo']);
+
+        // Búsqueda
+        if ($request->filled('buscar')) {
+            $buscar = $request->buscar;
+            $query->where(function($q) use ($buscar) {
+                $q->where('cedula', 'ILIKE', "%$buscar%")
+                  ->orWhere('nombres', 'ILIKE', "%$buscar%")
+                  ->orWhere('apellidos', 'ILIKE', "%$buscar%");
+            });
+        }
+
+        // Filtro de recientes
+        if ($request->filtro === 'recientes') {
+            $query->orderBy('created_at', 'desc');
+        } else {
+            $query->orderBy('id', 'desc');
+        }
+
+        $personas = $query->get();
+
         return view('personas.index', compact('personas'));
     }
 
