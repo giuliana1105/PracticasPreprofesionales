@@ -339,6 +339,12 @@ class PersonaController extends Controller
 
                 $email = trim(str_replace(['"', "'", ' '], '', $row['email']));
                 $cedula = trim($row['cedula']);
+                $celular = trim($row['celular']);
+
+                // Si el número tiene 9 dígitos y empieza por 9, agrega el 0 al inicio
+                if (preg_match('/^9\d{8}$/', $celular)) {
+                    $celular = '0' . $celular;
+                }
 
                 // Verificar duplicados por cédula o email
                 if (\App\Models\Persona::where('cedula', $cedula)->exists()) {
@@ -355,7 +361,7 @@ class PersonaController extends Controller
                     'cedula'     => $cedula,
                     'nombres'    => trim($row['nombres']),
                     'apellidos'  => trim($row['apellidos']),
-                    'celular'    => trim($row['celular']),
+                    'celular'    => $celular,
                     'email'      => $email,
                     'carrera_id' => $carrera->id_carrera,
                     'cargo_id'   => $cargo->id_cargo,

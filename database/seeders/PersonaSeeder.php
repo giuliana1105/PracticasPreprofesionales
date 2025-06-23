@@ -21,10 +21,10 @@ class PersonaSeeder extends Seeder
 
         $personaData = [
             'cedula' => '1234567890',
-            'nombres' => 'Irma Marilú',
-            'apellidos' => 'Basantes Cevallos',
+            'nombres' => 'Karina Maria',
+            'apellidos' => 'Chicaiza Pérez',
             'celular' => '0999999999',
-            'email' => 'admin@ejemplo.com',
+            'email' => 'csoft@utn.edu.ec',
             'carrera_id' => 1, // Debe existir en la tabla 'carreras'
             'cargo_id' => 1,   // Debe existir en la tabla 'cargos'
             'created_at' => now(),
@@ -41,6 +41,7 @@ class PersonaSeeder extends Seeder
                 'email' => $personaData['email'],
                 'password' => Hash::make($personaData['cedula']), // contraseña = cédula
             ]);
+            $this->command->info('Usuario creado: ' . $personaData['email']);
         }
     }
 }

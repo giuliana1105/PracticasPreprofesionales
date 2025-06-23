@@ -522,7 +522,7 @@
                                 ->pluck('resolucion.fecha_res')
                                 ->first();
                         @endphp
-                        {{ $fechaConsejo ?? '' }}
+                        {{ $fechaConsejo ? \Carbon\Carbon::parse($fechaConsejo)->format('d/m/Y') : '-' }}
                     </td>
                     <td>
                         <div class="d-flex justify-content-center flex-wrap">
