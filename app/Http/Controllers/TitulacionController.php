@@ -94,7 +94,8 @@ class TitulacionController extends Controller
                 $query->where(function($q) use ($busqueda) {
                     $q->whereRaw('LOWER(tema) LIKE ?', ['%' . $busqueda . '%'])
                         ->orWhereHas('estudiantePersona', function($q2) use ($busqueda) {
-                            $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%']);
+                            $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%'])
+                               ->orWhereRaw('LOWER(apellidos) LIKE ?', ['%' . $busqueda . '%']);
                         })
                         ->orWhereHas('directorPersona', function($q2) use ($busqueda) {
                             $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%']);

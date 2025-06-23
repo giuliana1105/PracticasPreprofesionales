@@ -413,7 +413,7 @@
                             <option value="">-- Todos --</option>
                             @foreach($docentes as $docente)
                                 <option value="{{ $docente->cedula }}" {{ request('director_filtro') == $docente->cedula ? 'selected' : '' }}>
-                                    {{ $docente->nombres }}
+                                    {{ $docente->nombres }} {{ $docente->apellidos }}
                             </option>
                             @endforeach
                         </select>
@@ -424,7 +424,7 @@
                             <option value="">-- Todos --</option>
                             @foreach($docentes as $docente)
                                 <option value="{{ $docente->cedula }}" {{ request('asesor1_filtro') == $docente->cedula ? 'selected' : '' }}>
-                                    {{ $docente->nombres }}
+                                    {{ $docente->nombres }} {{ $docente->apellidos }}
                             </option>
                             @endforeach
                         </select>
