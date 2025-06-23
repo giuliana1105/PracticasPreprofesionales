@@ -439,6 +439,35 @@
         </a>
     </div>
 
+    {{-- Filtros de Todos y Recientes + Buscador --}}
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-bottom: 24px;">
+        {{-- Tabs de Todos y Recientes --}}
+        <div style="display: flex; gap: 8px;">
+            <a href="{{ route('resoluciones.index', ['filtro' => 'todos']) }}"
+
+               class="px-4 py-2 {{ request('filtro', 'todos') == 'todos' ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-600' }} text-sm font-semibold rounded shadow transition"
+               style="text-decoration:none;">
+                Todos
+            </a>
+            <a href="{{ route('resoluciones.index', ['filtro' => 'recientes']) }}"
+               class="px-4 py-2 {{ request('filtro') == 'recientes' ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-600' }} text-sm font-semibold rounded shadow transition"
+               style="text-decoration:none;">
+                Recientes
+            </a>
+        </div>
+        {{-- Buscador --}}
+        <form action="{{ route('resoluciones.index') }}" method="GET" style="flex:1; min-width:220px; display:flex; align-items:center; gap:8px;">
+            <input type="hidden" name="filtro" value="{{ request('filtro', 'todos') }}">
+            <input type="text" name="buscar" value="{{ request('buscar') }}"
+                   placeholder="Buscar por número, tipo o fecha..."
+                   style="flex:1; padding:8px 12px; border:1px solid #d32f2f; border-radius:5px; font-size:1em;">
+            <button type="submit"
+                    class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded shadow hover:bg-red-700 transition">
+                <i class="fas fa-search mr-2"></i> Buscar
+            </button>
+        </form>
+    </div>
+
     {{-- Mensajes de éxito y error personalizados --}}
     @if(session('success'))
         <div style="background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:16px 24px;border-radius:8px;margin-bottom:20px;position:relative;">

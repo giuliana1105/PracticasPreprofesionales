@@ -23,7 +23,7 @@ class ResolucionController extends Controller
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
     }
-    public function index()
+    public function index(Request $request)
     {
          $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
@@ -32,10 +32,28 @@ class ResolucionController extends Controller
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-    
-        $resoluciones = Resolucion::with('tipoResolucion')
-                     ->orderBy('fecha_res', 'desc')
-                     ->paginate(10);
+        $query = Resolucion::with('tipoResolucion');
+
+        // Filtro de búsqueda
+        if ($request->filled('buscar')) {
+            $buscar = $request->buscar;
+            $query->where(function($q) use ($buscar) {
+                $q->where('numero_res', 'ILIKE', "%$buscar%")
+                  ->orWhere('fecha_res', 'ILIKE', "%$buscar%")
+                  ->orWhereHas('tipoResolucion', function($q2) use ($buscar) {
+                      $q2->where('nombre_tipo_res', 'ILIKE', "%$buscar%");
+                  });
+            });
+        }
+
+        // Filtro de recientes
+        if ($request->filtro === 'recientes') {
+            $query->orderBy('fecha_res', 'desc');
+        } else {
+            $query->orderBy('id_Reso', 'desc');
+        }
+
+        $resoluciones = $query->paginate(10);
 
         // Obtener la URL del archivo para cada resolución
         foreach ($resoluciones as $resolucion) {
