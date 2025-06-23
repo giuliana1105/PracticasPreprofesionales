@@ -345,7 +345,7 @@
                     <th>Nombres</th>
                     <th>Apellidos</th>
                     <th>Celular</th>
-                    <th>email</th>
+                    <th>Email</th>
                     <th>Carrera</th>
                     <th>Cargo</th>
                     <th class="text-center">Acciones</th>
@@ -359,7 +359,7 @@
                         <td>{{ $persona->apellidos }}</td>
                         <td>{{ $persona->celular }}</td>
                         <td>{{ $persona->email }}</td>
-                        <td>{{ $persona->carrera->nombre_carrera ?? 'N/A' }}</td>
+                        <td>{{ $persona->carrera->siglas_carrera ?? 'N/A' }}</td>
                         <td>{{ $persona->cargo->nombre_cargo ?? 'N/A' }}</td>
                         <td class="text-center">
                             <a href="{{ route('personas.edit', $persona->id) }}" class="btn btn-sm btn-warning" title="Editar">

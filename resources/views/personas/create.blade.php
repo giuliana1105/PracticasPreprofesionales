@@ -352,7 +352,7 @@
                         @foreach($carreras as $carrera)
                             <option value="{{ $carrera->id_carrera }}" 
                                 {{ old('carrera_id') == $carrera->id_carrera ? 'selected' : '' }}>
-                                {{ $carrera->nombre_carrera }}
+                                {{ $carrera->siglas_carrera }}
                             </option>
                         @endforeach
                     </select>

@@ -263,7 +263,6 @@ class PersonaController extends Controller
 
     public function import(Request $request)
     {
-       
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
@@ -271,7 +270,7 @@ class PersonaController extends Controller
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-       $request->validate([
+        $request->validate([
             'archivo_csv' => 'required|file|mimes:csv,txt|max:2048',
         ]);
 
@@ -285,6 +284,43 @@ class PersonaController extends Controller
         $csv->setHeaderOffset(0);
         $csv->setDelimiter($delimiter);
 
+        // Normalizar encabezados
+        $header = $csv->getHeader();
+        $normalize = function($str) {
+            $str = mb_strtolower($str, 'UTF-8');
+            $str = str_replace(
+                ['á','é','í','ó','ú','ñ','Á','É','Í','Ó','Ú','Ñ'],
+                ['a','e','i','o','u','n','a','e','i','o','u','n'],
+                $str
+            );
+            $str = preg_replace('/[^a-z0-9_]/', '', $str); // quitar espacios y símbolos
+            return $str;
+        };
+
+        // Mapeo de encabezados normalizados a los nombres internos
+        $map = [
+            'cedula'   => ['cedula', 'cedula', 'cédula'],
+            'nombres'  => ['nombres'],
+            'apellidos'=> ['apellidos'],
+            'celular'  => ['celular'],
+            'email'    => ['email', 'correo', 'correo_electronico'],
+            'carrera'  => ['carrera'],
+            'cargo'    => ['cargo'],
+        ];
+
+        // Crear un array de encabezados normalizados => nombre interno
+        $headerMap = [];
+        foreach ($header as $h) {
+            $norm = $normalize($h);
+            foreach ($map as $key => $variants) {
+                foreach ($variants as $variant) {
+                    if ($norm === $normalize($variant)) {
+                        $headerMap[$norm] = $key;
+                    }
+                }
+            }
+        }
+
         DB::beginTransaction();
         $importedCount = 0;
         $duplicados = [];
@@ -294,52 +330,62 @@ class PersonaController extends Controller
             foreach ($csv->getRecords() as $index => $row) {
                 $fila = $index + 2;
 
+                // Normalizar las claves del row
+                $normalizedRow = [];
+                foreach ($row as $k => $v) {
+                    $norm = $normalize($k);
+                    if (isset($headerMap[$norm])) {
+                        $normalizedRow[$headerMap[$norm]] = $v;
+                    }
+                }
+
                 // Validar campos requeridos mínimos
-                if (empty($row['cedula'])) {
+                if (empty($normalizedRow['cedula'])) {
                     $errores[$fila] = 'Cédula vacía';
                     continue;
                 }
-                if (empty($row['nombres'])) {
+                if (empty($normalizedRow['nombres'])) {
                     $errores[$fila] = 'Nombres vacíos';
                     continue;
                 }
-                if (empty($row['apellidos'])) {
+                if (empty($normalizedRow['apellidos'])) {
                     $errores[$fila] = 'Apellidos vacíos';
                     continue;
                 }
-                if (empty($row['celular'])) {
+                if (empty($normalizedRow['celular'])) {
                     $errores[$fila] = 'Celular vacío';
                     continue;
                 }
-                if (empty($row['email'])) {
+                if (empty($normalizedRow['email'])) {
                     $errores[$fila] = 'email vacío';
                     continue;
                 }
-                if (empty($row['carrera'])) {
+                if (empty($normalizedRow['carrera'])) {
                     $errores[$fila] = 'Carrera vacía';
                     continue;
                 }
-                if (empty($row['cargo'])) {
+                if (empty($normalizedRow['cargo'])) {
                     $errores[$fila] = 'Cargo vacía';
                     continue;
                 }
 
-                // Buscar carrera y cargo (ignorando mayúsculas/minúsculas)
-                $carrera = \App\Models\Carrera::whereRaw('LOWER(nombre_carrera) = ?', [strtolower(trim($row['carrera']))])->first();
+                // Buscar carrera por SIGLAS (nuevo)
+                $carrera = \App\Models\Carrera::whereRaw('LOWER(siglas_carrera) = ?', [strtolower(trim($normalizedRow['carrera']))])->first();
                 if (! $carrera) {
-                    $errores[$fila] = 'Carrera no encontrada: ' . $row['carrera'];
+                    $errores[$fila] = 'Carrera no encontrada por siglas: ' . $normalizedRow['carrera'];
                     continue;
                 }
 
-                $cargo = \App\Models\Cargo::whereRaw('LOWER(nombre_cargo) = ?', [strtolower(trim($row['cargo']))])->first();
+                // Buscar cargo por nombre (igual que antes)
+                $cargo = \App\Models\Cargo::whereRaw('LOWER(nombre_cargo) = ?', [strtolower(trim($normalizedRow['cargo']))])->first();
                 if (! $cargo) {
-                    $errores[$fila] = 'Cargo no encontrado: ' . $row['cargo'];
+                    $errores[$fila] = 'Cargo no encontrado: ' . $normalizedRow['cargo'];
                     continue;
                 }
 
-                $email = trim(str_replace(['"', "'", ' '], '', $row['email']));
-                $cedula = trim($row['cedula']);
-                $celular = trim($row['celular']);
+                $email = trim(str_replace(['"', "'", ' '], '', $normalizedRow['email']));
+                $cedula = trim($normalizedRow['cedula']);
+                $celular = trim($normalizedRow['celular']);
 
                 // Si el número tiene 9 dígitos y empieza por 9, agrega el 0 al inicio
                 if (preg_match('/^9\d{8}$/', $celular)) {
@@ -359,8 +405,8 @@ class PersonaController extends Controller
                 // Crear persona
                 $persona = \App\Models\Persona::create([
                     'cedula'     => $cedula,
-                    'nombres'    => trim($row['nombres']),
-                    'apellidos'  => trim($row['apellidos']),
+                    'nombres'    => trim($normalizedRow['nombres']),
+                    'apellidos'  => trim($normalizedRow['apellidos']),
                     'celular'    => $celular,
                     'email'      => $email,
                     'carrera_id' => $carrera->id_carrera,
