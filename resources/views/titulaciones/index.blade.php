@@ -491,6 +491,7 @@
                     <th>Estudiante</th>
                     <th>Director</th>
                     <th>Asesor 1</th>
+                    <th>Carrera</th> {{-- Nueva columna --}}
                     <th>Periodo</th>
                     <th>Estado</th>
                     <th>Fecha aprobación (Consejo directivo)</th>
@@ -509,6 +510,9 @@
                     </td>
                     <td>
                         {{ $tit->asesor1Persona->nombres ?? '' }} {{ $tit->asesor1Persona->apellidos ?? '' }}
+                    </td>
+                    <td>
+                        {{ $tit->estudiantePersona && $tit->estudiantePersona->carrera ? $tit->estudiantePersona->carrera->siglas_carrera : '-' }}
                     </td>
                     <td>{{ $tit->periodo->periodo_academico ?? '' }}</td>
                     <td>{{ $tit->estado->nombre_estado ?? '' }}</td>
