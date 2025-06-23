@@ -390,7 +390,7 @@
             <h3 class="section-title" style="margin-top: 0;">Importar personas desde un archivo CSV</h3>
             <div class="alert alert-info">
                 <strong>Formato requerido:</strong> El archivo debe contener las columnas: 
-                cedula, nombres, celular, email, carrera, cargo
+                cedula, nombres, apellidos, celular, email, carrera, cargo
             </div>
             <form action="{{ route('personas.import') }}" method="POST" enctype="multipart/form-data">
                 @csrf

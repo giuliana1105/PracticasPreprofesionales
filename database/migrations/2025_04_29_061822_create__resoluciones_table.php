@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('resoluciones', function (Blueprint $table) {
             $table->id('id_Reso');
-            $table->string('numero_res');
+            $table->string('numero_res')->unique();
             $table->date('fecha_res');
             $table->foreignId('tipo_res')->constrained('tipo_resoluciones', 'id_tipo_res');
             $table->string('archivo_pdf');
