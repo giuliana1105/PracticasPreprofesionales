@@ -13,6 +13,7 @@ use App\Http\Controllers\TitulacionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ResTemaController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\PasswordChangeController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -67,6 +68,9 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('res_temas', ResTemaController::class)->only(['index', 'store', 'destroy']);
     Route::delete('/resoluciones/{id}', [ResolucionController::class, 'destroy'])->name('resoluciones.destroy');
+
+    Route::get('password/change', [PasswordChangeController::class, 'showChangeForm'])->name('password.change');
+    Route::post('password/change', [PasswordChangeController::class, 'change']);
 });
 
 // Rutas de autenticación

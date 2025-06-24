@@ -40,6 +40,7 @@ class PersonaSeeder extends Seeder
                 'name' => $personaData['nombres'] . ' ' . $personaData['apellidos'],
                 'email' => $personaData['email'],
                 'password' => Hash::make($personaData['cedula']), // contraseña = cédula
+                'must_change_password' => true, // <-- agrega esta línea
             ]);
             $this->command->info('Usuario creado: ' . $personaData['email']);
         }
