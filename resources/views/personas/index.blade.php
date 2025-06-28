@@ -372,6 +372,19 @@
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
+                            @php
+                                $user = auth()->user();
+                                $personaAuth = $user ? ($user->persona ?? \App\Models\Persona::where('email', $user->email)->with('cargo')->first()) : null;
+                                $esAdmin = $personaAuth && strtolower(trim($personaAuth->cargo->nombre_cargo ?? '')) === 'administrador';
+                            @endphp
+                            @if($esAdmin)
+                                <form action="{{ route('personas.reset-password', $persona->id) }}" method="POST" style="display:inline;">
+                                    @csrf
+                                    <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('¿Está seguro de resetear la contraseña de {{ $persona->nombres }}?')">
+                                        <i class="fas fa-key"></i> Resetear contraseña
+                                    </button>
+                                </form>
+                            @endif
                         </td>
                     </tr>
                 @empty

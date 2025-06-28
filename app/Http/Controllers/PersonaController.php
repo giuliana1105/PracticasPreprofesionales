@@ -446,4 +446,27 @@ class PersonaController extends Controller
             return back()->with('error', 'Error en la importación: ' . $e->getMessage());
         }
     }
+
+    public function resetPassword($id)
+    {
+        $user = auth()->user();
+        $personaAuth = $user ? ($user->persona ?? \App\Models\Persona::where('email', $user->email)->with('cargo')->first()) : null;
+        $esAdmin = $personaAuth && strtolower(trim($personaAuth->cargo->nombre_cargo ?? '')) === 'administrador';
+
+        if (!$esAdmin) {
+            abort(403, 'No autorizado');
+        }
+
+        $persona = Persona::findOrFail($id);
+        $usuario = User::where('email', $persona->email)->first();
+
+        if ($usuario) {
+            $usuario->password = Hash::make($persona->cedula);
+            $usuario->must_change_password = true;
+            $usuario->save();
+            return redirect()->route('personas.index')->with('success', 'Contraseña reseteada correctamente. El usuario deberá cambiarla al ingresar.');
+        } else {
+            return redirect()->route('personas.index')->with('error', 'No existe usuario asociado a esta persona.');
+        }
+    }
 }

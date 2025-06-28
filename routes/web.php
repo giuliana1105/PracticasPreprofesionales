@@ -51,6 +51,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('personas', PersonaController::class);
     Route::get('/personas/import', [PersonaController::class, 'showImportForm'])->name('personas.import.form');
     Route::post('/personas/import', [PersonaController::class, 'import'])->name('personas.import');
+    Route::post('personas/{id}/reset-password', [PersonaController::class, 'resetPassword'])->name('personas.reset-password');
 
     Route::resource('periodos', PeriodoController::class);
     Route::resource('estado-titulaciones', EstadoTitulacionController::class);
