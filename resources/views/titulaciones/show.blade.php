@@ -215,8 +215,8 @@
                         <thead>
                             <tr style="background:#f8f9fa;">
                                 <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:110px;">Fecha</th>
-                                <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:180px;">Docente</th>
-                                <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:110px;">Campo</th>
+                                <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:120px;">Docente</th>
+                                <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:120px;">Campo</th>
                                 <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:120px;">Valor anterior</th>
                                 <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:120px;">Valor nuevo</th>
                             </tr>
@@ -228,8 +228,20 @@
                                     <td style="padding:8px; border-bottom:1px solid #f1f1f1;">
                                         {{ $historial->docente->nombres ?? '' }} {{ $historial->docente->apellidos ?? '' }}
                                     </td>
-                                    <td style="padding:8px; border-bottom:1px solid #f1f1f1;">{{ ucfirst($historial->campo) }}</td>
-                                    <td style="padding:8px; border-bottom:1px solid #f1f1f1; white-space:pre-line;">{{ $historial->valor_anterior }}</td>
+                                    <td style="padding:8px; border-bottom:1px solid #f1f1f1;">
+                                        @switch($historial->campo)
+                                            @case('avance') Avance (%) @break
+                                            @case('observaciones') Observaciones @break
+                                            @case('actividades_cronograma') Actividades según el cronograma @break
+                                            @case('cumplio_cronograma') Cumplió el cronograma @break
+                                            @case('resultados') Resultados @break
+                                            @case('horas_asesoria') Horas de asesoría @break
+                                            @default {{ ucfirst($historial->campo) }}
+                                        @endswitch
+                                    </td>
+                                    <td style="padding:8px; border-bottom:1px solid #f1f1f1; white-space:pre-line;">
+                                        {{ trim($historial->valor_anterior) !== '' ? $historial->valor_anterior : 'Sin valor' }}
+                                    </td>
                                     <td style="padding:8px; border-bottom:1px solid #f1f1f1; white-space:pre-line;">{{ $historial->valor_nuevo }}</td>
                                 </tr>
                             @endforeach

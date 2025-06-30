@@ -25,6 +25,10 @@ class Titulacion extends Model
         'avance',
         'observaciones',
         'acta_grado',
+        'actividades_cronograma',
+        'cumplio_cronograma',
+        'resultados',
+        'horas_asesoria',
     ];
 
     public function periodo()

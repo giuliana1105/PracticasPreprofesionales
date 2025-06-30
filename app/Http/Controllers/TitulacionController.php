@@ -289,6 +289,10 @@ class TitulacionController extends Controller
             $request->validate([
                 'avance' => 'required|integer|min:0|max:100',
                 'observaciones' => 'nullable|string',
+                'actividades_cronograma' => 'nullable|string',
+                'cumplio_cronograma' => 'nullable|in:Muy Aceptable,Aceptable,Poco Aceptable',
+                'resultados' => 'nullable|in:Muy Aceptable,Aceptable,Poco Aceptable',
+                'horas_asesoria' => 'nullable|integer|min:0',
             ]);
             $titulacion = Titulacion::findOrFail($id);
 
@@ -307,12 +311,41 @@ class TitulacionController extends Controller
                     'valor_nuevo' => $request->observaciones,
                 ];
             }
+            if ($titulacion->actividades_cronograma != $request->actividades_cronograma) {
+                $cambios[] = [
+                    'campo' => 'actividades_cronograma',
+                    'valor_anterior' => $titulacion->actividades_cronograma,
+                    'valor_nuevo' => $request->actividades_cronograma,
+                ];
+            }
+            if ($titulacion->cumplio_cronograma != $request->cumplio_cronograma) {
+                $cambios[] = [
+                    'campo' => 'cumplio_cronograma',
+                    'valor_anterior' => $titulacion->cumplio_cronograma,
+                    'valor_nuevo' => $request->cumplio_cronograma,
+                ];
+            }
+            if ($titulacion->resultados != $request->resultados) {
+                $cambios[] = [
+                    'campo' => 'resultados',
+                    'valor_anterior' => $titulacion->resultados,
+                    'valor_nuevo' => $request->resultados,
+                ];
+            }
+            if ($titulacion->horas_asesoria != $request->horas_asesoria) {
+                $cambios[] = [
+                    'campo' => 'horas_asesoria',
+                    'valor_anterior' => $titulacion->horas_asesoria,
+                    'valor_nuevo' => $request->horas_asesoria,
+                ];
+            }
+
             foreach ($cambios as $cambio) {
                 AvanceHistorial::create([
                     'titulacion_id' => $titulacion->id_titulacion,
                     'docente_id' => $persona->id,
                     'campo' => $cambio['campo'],
-                    'valor_anterior' => $cambio['valor_anterior'],
+                    'valor_anterior' => $cambio['valor_anterior'] ?? '',
                     'valor_nuevo' => $cambio['valor_nuevo'],
                 ]);
             }
@@ -320,6 +353,10 @@ class TitulacionController extends Controller
             $titulacion->update([
                 'avance' => $request->avance,
                 'observaciones' => $request->observaciones,
+                'actividades_cronograma' => $request->actividades_cronograma,
+                'cumplio_cronograma' => $request->cumplio_cronograma,
+                'resultados' => $request->resultados,
+                'horas_asesoria' => $request->horas_asesoria,
             ]);
             return redirect()->route('titulaciones.index')->with('success', 'Titulación actualizada correctamente.');
         }
@@ -346,7 +383,11 @@ class TitulacionController extends Controller
             'periodo_id',
             'estado_id',
             'avance',
-            'observaciones'
+            'observaciones',
+            'actividades_cronograma',   // <-- agrega estos campos
+            'cumplio_cronograma',
+            'resultados',
+            'horas_asesoria',
         ]);
 
         // --- CORRECCIÓN: comparación robusta para estado graduado ---

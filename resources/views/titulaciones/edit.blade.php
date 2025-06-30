@@ -12,7 +12,7 @@
     $cargo = strtolower(trim($persona->cargo ?? ''));
 @endphp
 
-@if(in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano']))
+@if(in_array($cargo, ['estudiante', 'coordinador', 'decano']))
     <div class="alert alert-danger">No autorizado.</div>
     @php exit; @endphp
 @endif
@@ -394,6 +394,48 @@
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
+
+            @if($esDocente)
+                <div class="form-group">
+                    <label for="actividades_cronograma" class="form-label">Actividades según el cronograma</label>
+                    <textarea id="actividades_cronograma" name="actividades_cronograma" class="form-control @error('actividades_cronograma') is-invalid @enderror">{{ old('actividades_cronograma', $titulacion->actividades_cronograma ?? '') }}</textarea>
+                    @error('actividades_cronograma')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
+                    <label for="cumplio_cronograma" class="form-label">Cumplió el cronograma</label>
+                    <select id="cumplio_cronograma" name="cumplio_cronograma" class="form-control @error('cumplio_cronograma') is-invalid @enderror">
+                        <option value="">Seleccione</option>
+                        <option value="Muy Aceptable" {{ old('cumplio_cronograma', $titulacion->cumplio_cronograma ?? '') == 'Muy Aceptable' ? 'selected' : '' }}>Muy Aceptable</option>
+                        <option value="Aceptable" {{ old('cumplio_cronograma', $titulacion->cumplio_cronograma ?? '') == 'Aceptable' ? 'selected' : '' }}>Aceptable</option>
+                        <option value="Poco Aceptable" {{ old('cumplio_cronograma', $titulacion->cumplio_cronograma ?? '') == 'Poco Aceptable' ? 'selected' : '' }}>Poco Aceptable</option>
+                    </select>
+                    @error('cumplio_cronograma')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
+                    <label for="resultados" class="form-label">Resultados</label>
+                    <select id="resultados" name="resultados" class="form-control @error('resultados') is-invalid @enderror">
+                        <option value="">Seleccione</option>
+                        <option value="Muy Aceptable" {{ old('resultados', $titulacion->resultados ?? '') == 'Muy Aceptable' ? 'selected' : '' }}>Muy Aceptable</option>
+                        <option value="Aceptable" {{ old('resultados', $titulacion->resultados ?? '') == 'Aceptable' ? 'selected' : '' }}>Aceptable</option>
+                        <option value="Poco Aceptable" {{ old('resultados', $titulacion->resultados ?? '') == 'Poco Aceptable' ? 'selected' : '' }}>Poco Aceptable</option>
+                    </select>
+                    @error('resultados')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-group">
+                    <label for="horas_asesoria" class="form-label">Horas de asesoría</label>
+                    <input type="number" id="horas_asesoria" name="horas_asesoria" class="form-control @error('horas_asesoria') is-invalid @enderror"
+                           value="{{ old('horas_asesoria', $titulacion->horas_asesoria ?? '') }}" min="0">
+                    @error('horas_asesoria')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            @endif
 
             {{-- Acta de grado --}}
             <div class="form-group">
