@@ -370,7 +370,7 @@
                             $oldCarreras = old('carrera_id', ['']);
                         @endphp
                         @foreach($oldCarreras as $i => $oldCarrera)
-                        <div class="carrera-select-row mb-2">
+                        <div class="carrera-select-row mb-2 d-flex align-items-center">
                             <select name="carrera_id[]" class="form-control carrera-select" required>
                                 <option value="">Seleccione una carrera</option>
                                 @foreach($carreras as $carrera)
@@ -379,8 +379,11 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <button type="button" class="btn btn-success btn-sm add-carrera-btn" style="margin-left:8px;display:none;">
+                            <button type="button" class="btn btn-success btn-sm add-carrera-btn ms-2" style="margin-left:8px;display:none;">
                                 <i class="fas fa-plus"></i>
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm remove-carrera-btn ms-2" style="margin-left:8px;display:none;">
+                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                         @endforeach
@@ -452,16 +455,23 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleCarrerasMultiple() {
         const cargo = document.getElementById('cargo').value;
         const carrerasContainer = document.getElementById('carreras-container');
-        const addBtns = carrerasContainer.querySelectorAll('.add-carrera-btn');
-        if (cargo === 'secretario' || cargo === 'coordinador') {
-            addBtns.forEach(btn => btn.style.display = '');
-            carrerasContainer.querySelectorAll('.carrera-select').forEach(sel => sel.required = true);
-        } else {
-            // Si hay más de una, deja solo la primera
+        const rows = carrerasContainer.querySelectorAll('.carrera-select-row');
+        rows.forEach((row, idx) => {
+            const addBtn = row.querySelector('.add-carrera-btn');
+            const removeBtn = row.querySelector('.remove-carrera-btn');
+            if (cargo === 'secretario' || cargo === 'coordinador') {
+                addBtn.style.display = '';
+                removeBtn.style.display = rows.length > 1 ? '' : 'none';
+            } else {
+                addBtn.style.display = 'none';
+                removeBtn.style.display = 'none';
+            }
+        });
+        // Si no es múltiple, deja solo la primera fila
+        if (cargo !== 'secretario' && cargo !== 'coordinador') {
             while (carrerasContainer.children.length > 1) {
                 carrerasContainer.removeChild(carrerasContainer.lastChild);
             }
-            addBtns.forEach(btn => btn.style.display = 'none');
         }
     }
 
@@ -477,6 +487,14 @@ document.addEventListener('DOMContentLoaded', function() {
             newRow.querySelector('select').value = '';
             container.appendChild(newRow);
             toggleCarrerasMultiple();
+        }
+        if (e.target.closest('.remove-carrera-btn')) {
+            const row = e.target.closest('.carrera-select-row');
+            const container = document.getElementById('carreras-container');
+            if (container.children.length > 1) {
+                row.remove();
+                toggleCarrerasMultiple();
+            }
         }
     });
 });
