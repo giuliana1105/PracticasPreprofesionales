@@ -1,4 +1,3 @@
-
 {{-- filepath: resources/views/titulaciones/pdf.blade.php --}}
 <!DOCTYPE html>
 <html>
@@ -94,13 +93,19 @@
             <span class="ibarra-text">IBARRA - ECUADOR</span>
         </div>
     </div>
-    <div class="page-title">{{ $titulo }}</div>
+    <div class="page-title">
+        {{ $titulo }}
+        @if(request('carrera_filtro'))
+            - Carrera {{ strtoupper(request('carrera_filtro')) }}
+        @endif
+    </div>
     <div class="table-container">
         <table>
             <thead>
                 <tr>
                     <th>Tema</th>
                     <th>Estudiante</th>
+                    <th>Carrera</th>
                     <th>Director</th>
                     <th>Asesor 1</th>
                     <th>Periodo</th>
@@ -113,6 +118,15 @@
                 <tr>
                     <td>{{ $tit->tema }}</td>
                     <td>{{ $tit->estudiantePersona->nombres ?? '' }}</td>
+                    <td>
+                        @if($tit->estudiantePersona && $tit->estudiantePersona->carreras && $tit->estudiantePersona->carreras->count())
+                            {{ $tit->estudiantePersona->carreras->pluck('siglas_carrera')->implode(' / ') }}
+                        @elseif($tit->estudiantePersona && $tit->estudiantePersona->carrera)
+                            {{ $tit->estudiantePersona->carrera->siglas_carrera }}
+                        @else
+                            N/A
+                        @endif
+                    </td>
                     <td>{{ $tit->directorPersona->nombres ?? '' }}</td>
                     <td>{{ $tit->asesor1Persona->nombres ?? '' }}</td>
                     <td>{{ $tit->periodo->periodo_academico ?? '' }}</td>

@@ -142,6 +142,20 @@
             <td>{{ $titulacion->cedula_estudiante }}</td>
         </tr>
         <tr>
+            <th>Carrera</th>
+            <td>
+                @if($titulacion->estudiantePersona && $titulacion->estudiantePersona->carreras && $titulacion->estudiantePersona->carreras->count())
+                    @foreach($titulacion->estudiantePersona->carreras as $carrera)
+                        <div>{{ $carrera->siglas_carrera }}</div>
+                    @endforeach
+                @elseif($titulacion->estudiantePersona && $titulacion->estudiantePersona->carrera)
+                    {{ $titulacion->estudiantePersona->carrera->siglas_carrera }}
+                @else
+                    N/A
+                @endif
+            </td>
+        </tr>
+        <tr>
             <th>Director</th>
             <td>{{ $titulacion->directorPersona->nombres ?? '' }} {{ $titulacion->directorPersona->apellidos ?? '' }}</td>
         </tr>

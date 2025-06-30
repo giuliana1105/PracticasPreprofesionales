@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\AvanceHistorial;
+use App\Models\Carrera; // Asegúrate de importar el modelo
 
 class TitulacionController extends Controller
 {
@@ -69,14 +70,25 @@ class TitulacionController extends Controller
                     }
                 });
             }
+            if ($request->filled('carrera_filtro')) {
+                $carrerasFiltro = array_map('strtolower', (array) $request->input('carrera_filtro'));
+                $query->whereHas('estudiantePersona.carreras', function($q) use ($carrerasFiltro) {
+                    $q->whereRaw('LOWER(siglas_carrera) IN (' . implode(',', array_fill(0, count($carrerasFiltro), '?')) . ')', $carrerasFiltro);
+                });
+                // Para compatibilidad con personas que solo tienen una carrera (relación antigua)
+                $query->orWhereHas('estudiantePersona.carrera', function($q) use ($carrerasFiltro) {
+                    $q->whereRaw('LOWER(siglas_carrera) IN (' . implode(',', array_fill(0, count($carrerasFiltro), '?')) . ')', $carrerasFiltro);
+                });
+            }
 
             $titulaciones = $query->get();
 
             $estados = EstadoTitulacion::orderBy('nombre_estado')->get();
             $periodos = Periodo::orderBy('periodo_academico')->get();
             $docentes = collect();
+            $carreras = Carrera::orderBy('siglas_carrera')->get();
 
-            return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados'));
+            return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados', 'carreras'));
         } else {
             $query = Titulacion::with([
                 'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
@@ -124,14 +136,25 @@ class TitulacionController extends Controller
                     }
                 });
             }
+            if ($request->filled('carrera_filtro')) {
+                $carrerasFiltro = array_map('strtolower', (array) $request->input('carrera_filtro'));
+                $query->whereHas('estudiantePersona.carreras', function($q) use ($carrerasFiltro) {
+                    $q->whereRaw('LOWER(siglas_carrera) IN (' . implode(',', array_fill(0, count($carrerasFiltro), '?')) . ')', $carrerasFiltro);
+                });
+                // Para compatibilidad con personas que solo tienen una carrera (relación antigua)
+                $query->orWhereHas('estudiantePersona.carrera', function($q) use ($carrerasFiltro) {
+                    $q->whereRaw('LOWER(siglas_carrera) IN (' . implode(',', array_fill(0, count($carrerasFiltro), '?')) . ')', $carrerasFiltro);
+                });
+            }
 
             $titulaciones = $query->get();
 
             $estados = EstadoTitulacion::orderBy('nombre_estado')->get();
             $docentes = Persona::whereRaw("LOWER(cargo) = 'docente'")->orderBy('nombres')->get();
             $periodos = Periodo::orderBy('periodo_academico')->get();
+            $carreras = Carrera::orderBy('siglas_carrera')->get();
 
-            return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados'));
+            return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados', 'carreras'));
         }
     }
 
