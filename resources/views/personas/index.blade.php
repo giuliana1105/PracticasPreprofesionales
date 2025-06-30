@@ -150,6 +150,18 @@
         line-height: 1.5;
     }
 
+    .btn-info {
+        color: #fff;
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+    }
+
+    .btn-info:hover {
+        background-color: #138496;
+        border-color: #117a8b;
+        color: #fff;
+    }
+
     .table-container {
         background-color: #fff;
         border-radius: 5px;
@@ -377,28 +389,32 @@
                             {{ $cargos[$persona->cargo] ?? ucfirst($persona->cargo) }}
                         </td>
                         <td class="text-center">
-                            <a href="{{ route('personas.edit', $persona->id) }}" class="btn btn-sm btn-warning" title="Editar">
-                                <i class="fas fa-edit text-white"></i>
-                            </a>
-                            <form action="{{ route('personas.destroy', $persona->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro?')" title="Eliminar">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                            @php
-                                $user = auth()->user();
-                                $esAdmin = $user && in_array(strtolower($user->cargo), ['secretario', 'secretario_general']);
-                            @endphp
-                            @if($esAdmin)
-                                <form action="{{ route('personas.reset-password', $persona->id) }}" method="POST" style="display:inline;">
+                            <div class="d-inline-flex align-items-center">
+                                <a href="{{ route('personas.edit', $persona->id) }}" class="btn btn-sm btn-warning me-2" title="Editar">
+                                    <i class="fas fa-edit text-white"></i>
+                                </a>
+                                <form action="{{ route('personas.destroy', $persona->id) }}" method="POST" class="d-inline me-2">
                                     @csrf
-                                    <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('¿Está seguro de resetear la contraseña de {{ $persona->nombres }}?')">
-                                        <i class="fas fa-key"></i> Resetear contraseña
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro?')" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
-                            @endif
+                                @php
+                                    $user = auth()->user();
+                                    $esAdmin = $user && in_array(strtolower($user->cargo), ['secretario', 'secretario_general']);
+                                @endphp
+                                @if($esAdmin)
+                                    <form action="{{ route('personas.reset-password', $persona->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-info btn-sm"
+                                            style="background-color: #17a2b8; border-color: #17a2b8; color: #fff;"
+                                            onclick="return confirm('¿Está seguro de resetear la contraseña de {{ $persona->nombres }}?')">
+                                            <i class="fas fa-key"></i> Resetear contraseña
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @empty
