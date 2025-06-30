@@ -23,6 +23,11 @@ class Persona extends Model
         return $this->belongsTo(Carrera::class, 'carrera_id', 'id_carrera');
     }
 
+    public function carreras()
+    {
+        return $this->belongsToMany(Carrera::class, 'carrera_persona', 'persona_id', 'carrera_id');
+    }
+
     protected $primaryKey = 'id';
     public $incrementing = true;
     protected $keyType = 'int';

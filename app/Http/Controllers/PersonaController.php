@@ -49,7 +49,7 @@ class PersonaController extends Controller
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-        $query = Persona::with(['carrera']);
+        $query = Persona::with(['carreras']);
 
         // Búsqueda
         if ($request->filled('buscar')) {
@@ -102,7 +102,8 @@ class PersonaController extends Controller
             'apellidos' => 'required|string|max:100',
             'celular' => 'required|string|max:15',
             'email' => 'required|email|max:100|unique:personas,email',
-            'carrera_id' => 'required|exists:carreras,id_carrera',
+            'carrera_id' => 'required|array|min:1',
+            'carrera_id.*' => 'exists:carreras,id_carrera',
             'cargo' => 'required|in:' . implode(',', $this->CARGOS_VALIDOS),
         ], [
             'cedula.required' => 'La cédula es obligatoria',
@@ -126,7 +127,24 @@ class PersonaController extends Controller
         }
 
         try {
-            $persona = Persona::create($request->all());
+            $cargoSeleccionado = strtolower(trim($request->cargo));
+            $carreras = $request->carrera_id;
+
+            // Si es coordinador o secretario/a, guarda la primera carrera en carrera_id y todas en la relación
+            if (in_array($cargoSeleccionado, ['coordinador', 'coordinadora', 'secretario', 'secretaria'])) {
+                $persona = Persona::create(array_merge(
+                    $request->except('carrera_id'),
+                    ['carrera_id' => is_array($carreras) ? $carreras[0] : $carreras]
+                ));
+                $persona->carreras()->sync($carreras);
+            } else {
+                // Para otros cargos, solo una carrera
+                $persona = Persona::create(array_merge(
+                    $request->except('carrera_id'),
+                    ['carrera_id' => is_array($carreras) ? $carreras[0] : $carreras]
+                ));
+                $persona->carreras()->sync([is_array($carreras) ? $carreras[0] : $carreras]);
+            }
 
             // Crea el usuario automáticamente si no existe y el email no es nulo/ vacío
             if (!empty($persona->email) && !User::where('email', $persona->email)->exists()) {
@@ -179,7 +197,8 @@ class PersonaController extends Controller
             'apellidos' => 'required|string|max:100',
             'celular' => 'required|string|max:15',
             'email' => 'required|email|max:100|unique:personas,email,'.$id,
-            'carrera_id' => 'required|exists:carreras,id_carrera',
+            'carrera_id' => 'required|array|min:1',
+            'carrera_id.*' => 'exists:carreras,id_carrera',
             'cargo' => 'required|in:' . implode(',', $this->CARGOS_VALIDOS),
         ], [
             'cedula.required' => 'La cédula es obligatoria',
@@ -203,11 +222,25 @@ class PersonaController extends Controller
         }
 
         try {
-            $oldEmail = $persona->email;
-            $persona->update($request->all());
+            $cargoSeleccionado = strtolower(trim($request->cargo));
+            $carreras = $request->carrera_id;
+
+            if (in_array($cargoSeleccionado, ['coordinador', 'coordinadora', 'secretario', 'secretaria'])) {
+                $persona->update(array_merge(
+                    $request->except('carrera_id'),
+                    ['carrera_id' => is_array($carreras) ? $carreras[0] : $carreras]
+                ));
+                $persona->carreras()->sync($carreras);
+            } else {
+                $persona->update(array_merge(
+                    $request->except('carrera_id'),
+                    ['carrera_id' => is_array($carreras) ? $carreras[0] : $carreras]
+                ));
+                $persona->carreras()->sync([is_array($carreras) ? $carreras[0] : $carreras]);
+            }
 
             // Si el email cambió y no existe usuario con ese email, crea el usuario
-            if ($persona->email !== $oldEmail && !empty($persona->email) && !User::where('email', $persona->email)->exists()) {
+            if ($persona->wasChanged('email') && !empty($persona->email) && !User::where('email', $persona->email)->exists()) {
                 User::create([
                     'name' => $persona->nombres . ' ' . $persona->apellidos,
                     'email' => $persona->email,
@@ -372,10 +405,32 @@ class PersonaController extends Controller
                 }
 
                 // Buscar carrera por SIGLAS (nuevo)
-                $carrera = \App\Models\Carrera::whereRaw('LOWER(siglas_carrera) = ?', [strtolower(trim($normalizedRow['sigla_carrera']))])->first();
-                if (! $carrera) {
-                    $errores[$fila] = 'Carrera no encontrada por sigla: ' . $normalizedRow['sigla_carrera'];
-                    continue;
+                $siglasCarrera = trim($normalizedRow['sigla_carrera']);
+                $cargo = strtolower(trim($normalizedRow['cargo']));
+
+                // Cargos que pueden tener varias carreras
+                $cargosMultiples = ['secretario', 'secretaria', 'coordinador', 'coordinadora'];
+
+                // Si es secretaria/o o coordinador/a, permite varias carreras separadas por "/"
+                if (in_array($cargo, $cargosMultiples)) {
+                    $siglas = array_map('trim', preg_split('/\s*\/\s*/', $siglasCarrera));
+                    $carreras = \App\Models\Carrera::whereIn(DB::raw('LOWER(siglas_carrera)'), array_map('strtolower', $siglas))->get();
+                    if ($carreras->count() !== count($siglas)) {
+                        $errores[$fila] = 'Una o más carreras no encontradas: ' . $siglasCarrera;
+                        continue;
+                    }
+                } else {
+                    // Solo una carrera permitida
+                    $siglas = [trim($siglasCarrera)];
+                    if (strpos($siglasCarrera, '/') !== false) {
+                        $errores[$fila] = 'Solo puede ingresar una carrera para el cargo seleccionado.';
+                        continue;
+                    }
+                    $carreras = \App\Models\Carrera::whereRaw('LOWER(siglas_carrera) = ?', [strtolower($siglasCarrera)])->get();
+                    if ($carreras->count() === 0) {
+                        $errores[$fila] = 'Carrera no encontrada por sigla: ' . $siglasCarrera;
+                        continue;
+                    }
                 }
 
                 // Cargos permitidos
@@ -435,9 +490,11 @@ class PersonaController extends Controller
                     'apellidos'  => trim($normalizedRow['apellidos']),
                     'celular'    => $celular,
                     'email'      => $email,
-                    'carrera_id' => $carrera->id_carrera,
-                    'cargo'      => $cargoNormalizado, // Guarda el cargo normalizado
+                    'carrera_id' => $carreras->first()->id_carrera,
+                    'cargo'      => $cargoNormalizado,
                 ]);
+
+                $persona->carreras()->sync($carreras->pluck('id_carrera')->toArray());
 
                 // Crear usuario automáticamente si no existe
                 if (!User::where('email', $email)->exists()) {

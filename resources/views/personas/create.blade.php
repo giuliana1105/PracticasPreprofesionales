@@ -346,21 +346,6 @@
                     @enderror
                 </div>
                 <div class="form-group">
-                    <label for="carrera_id" class="form-label">Carrera:</label>
-                    <select name="carrera_id" class="form-control @error('carrera_id') is-invalid @enderror" required>
-                        <option value="">Seleccione una carrera</option>
-                        @foreach($carreras as $carrera)
-                            <option value="{{ $carrera->id_carrera }}" 
-                                {{ old('carrera_id') == $carrera->id_carrera ? 'selected' : '' }}>
-                                {{ $carrera->siglas_carrera }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('carrera_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-                <div class="form-group">
                     <label for="cargo">Cargo:</label>
                     <select id="cargo" name="cargo" class="form-control @error('cargo') is-invalid @enderror" required>
                         <option value="">Seleccione un cargo</option>
@@ -371,13 +356,40 @@
                         <option value="subdecano" {{ old('cargo', $persona->cargo ?? '') == 'subdecano' ? 'selected' : '' }}>Subdecano/a</option>
                         <option value="docente" {{ old('cargo', $persona->cargo ?? '') == 'docente' ? 'selected' : '' }}>Docente</option>
                         <option value="estudiante" {{ old('cargo', $persona->cargo ?? '') == 'estudiante' ? 'selected' : '' }}>Estudiante</option>
-                          <option value="coordinador" {{ old('cargo', $persona->cargo ?? '') == 'coordinador' ? 'selected' : '' }}>Coordinador/a</option>
-
+                        <option value="coordinador" {{ old('cargo', $persona->cargo ?? '') == 'coordinador' ? 'selected' : '' }}>Coordinador/a</option>
                     </select>
                     @error('cargo')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
+
+                <div class="form-group" id="carreras-group">
+                    <label for="carrera_id" class="form-label">Carrera(s):</label>
+                    <div id="carreras-container">
+                        @php
+                            $oldCarreras = old('carrera_id', ['']);
+                        @endphp
+                        @foreach($oldCarreras as $i => $oldCarrera)
+                        <div class="carrera-select-row mb-2">
+                            <select name="carrera_id[]" class="form-control carrera-select" required>
+                                <option value="">Seleccione una carrera</option>
+                                @foreach($carreras as $carrera)
+                                    <option value="{{ $carrera->id_carrera }}" {{ $oldCarrera == $carrera->id_carrera ? 'selected' : '' }}>
+                                        {{ $carrera->siglas_carrera }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <button type="button" class="btn btn-success btn-sm add-carrera-btn" style="margin-left:8px;display:none;">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        @endforeach
+                    </div>
+                    @error('carrera_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
                 <div class="form-group">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Guardar
@@ -434,6 +446,40 @@
             manualPane.classList.remove('active');
         });
     });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function toggleCarrerasMultiple() {
+        const cargo = document.getElementById('cargo').value;
+        const carrerasContainer = document.getElementById('carreras-container');
+        const addBtns = carrerasContainer.querySelectorAll('.add-carrera-btn');
+        if (cargo === 'secretario' || cargo === 'coordinador') {
+            addBtns.forEach(btn => btn.style.display = '');
+            carrerasContainer.querySelectorAll('.carrera-select').forEach(sel => sel.required = true);
+        } else {
+            // Si hay más de una, deja solo la primera
+            while (carrerasContainer.children.length > 1) {
+                carrerasContainer.removeChild(carrerasContainer.lastChild);
+            }
+            addBtns.forEach(btn => btn.style.display = 'none');
+        }
+    }
+
+    document.getElementById('cargo').addEventListener('change', toggleCarrerasMultiple);
+    toggleCarrerasMultiple();
+
+    // Botón para agregar más carreras
+    document.getElementById('carreras-container').addEventListener('click', function(e) {
+        if (e.target.closest('.add-carrera-btn')) {
+            const row = e.target.closest('.carrera-select-row');
+            const container = document.getElementById('carreras-container');
+            const newRow = row.cloneNode(true);
+            newRow.querySelector('select').value = '';
+            container.appendChild(newRow);
+            toggleCarrerasMultiple();
+        }
+    });
+});
 </script>
 @endpush
 @endsection
