@@ -4,11 +4,15 @@
 
 @php
     $user = auth()->user();
-    $persona = $user ? \App\Models\Persona::where('email', $user->email)->with('cargo')->first() : null;
-    $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
-    $esDocente = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente';
+    $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
+    $esEstudiante = $persona && strtolower(trim($persona->cargo ?? '')) === 'estudiante';
+    $esDocente = $persona && strtolower(trim($persona->cargo ?? '')) === 'docente';
+    $esCoordinador = $persona && strtolower(trim($persona->cargo ?? '')) === 'coordinador';
+    $esDecano = $persona && strtolower(trim($persona->cargo ?? '')) === 'decano';
+    $cargo = strtolower(trim($persona->cargo ?? ''));
 @endphp
-@if($esEstudiante)
+
+@if(in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano']))
     <div class="alert alert-danger">No autorizado.</div>
     @php exit; @endphp
 @endif
@@ -249,21 +253,16 @@
             @csrf
             @method('PUT')
 
-          
-
             {{-- Tema --}}
-<div class="form-group">
-    <label class="form-label">Tema</label>
-
-    @if ($esDocente)
-        <input type="text" class="form-control" value="{{ $titulacion->tema }}" readonly>
-        {{-- Campo oculto para que se envíe el valor original en el form, si necesitas --}}
-        <input type="hidden" name="tema" value="{{ $titulacion->tema }}">
-    @else
-        <input type="text" id="tema" name="tema" class="form-control" value="{{ $titulacion->tema }}" required>
-    @endif
-</div>
-
+            <div class="form-group">
+                <label class="form-label">Tema</label>
+                @if ($esDocente)
+                    <input type="text" class="form-control" value="{{ $titulacion->tema }}" readonly>
+                    <input type="hidden" name="tema" value="{{ $titulacion->tema }}">
+                @else
+                    <input type="text" id="tema" name="tema" class="form-control" value="{{ $titulacion->tema }}" required>
+                @endif
+            </div>
 
             {{-- Estudiante --}}
             <div class="form-group">
@@ -274,7 +273,7 @@
                     <select id="persona_estudiante_id" name="persona_estudiante_id" class="form-control" required>
                         <option value="">Seleccione un estudiante</option>
                         @foreach($personas as $persona)
-                            @if($persona->cargo && $persona->cargo->nombre_cargo == 'Estudiante')
+                            @if(strtolower(trim($persona->cargo)) === 'estudiante')
                                 <option value="{{ $persona->id }}"
                                     data-cedula="{{ $persona->cedula }}"
                                     {{ (old('persona_estudiante_id', $personaEstudiante->id ?? '') == $persona->id) ? 'selected' : '' }}>
@@ -299,7 +298,7 @@
                     <select id="persona_director_id" name="persona_director_id" class="form-control" required>
                         <option value="">Seleccione un director</option>
                         @foreach($personas as $persona)
-                            @if($persona->cargo && $persona->cargo->nombre_cargo == 'Docente')
+                            @if(strtolower(trim($persona->cargo)) === 'docente')
                                 <option value="{{ $persona->id }}"
                                     data-cedula="{{ $persona->cedula }}"
                                     {{ (old('persona_director_id', $personaDirector->id ?? '') == $persona->id) ? 'selected' : '' }}>
@@ -324,7 +323,7 @@
                     <select id="persona_asesor_id" name="persona_asesor_id" class="form-control" required>
                         <option value="">Seleccione un asesor</option>
                         @foreach($personas as $persona)
-                            @if($persona->cargo && $persona->cargo->nombre_cargo == 'Docente')
+                            @if(strtolower(trim($persona->cargo)) === 'docente')
                                 <option value="{{ $persona->id }}"
                                     data-cedula="{{ $persona->cedula }}"
                                     {{ (old('persona_asesor_id', $personaAsesor->id ?? '') == $persona->id) ? 'selected' : '' }}>

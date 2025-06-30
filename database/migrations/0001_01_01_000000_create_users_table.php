@@ -16,7 +16,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
-            $table->string('role')->default('user'); // admin, user, etc.
+            // Elimina el campo 'role' y agrega 'cargo' y 'must_change_password'
+            $table->string('cargo', 30)->default('secretario_general');
+            $table->boolean('must_change_password')->default(false);
             $table->timestamps();
         });
 

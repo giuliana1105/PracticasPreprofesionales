@@ -24,13 +24,22 @@
                     <x-slot name="trigger">
                         @php
                             $persona = Auth::user()->persona ?? null;
-                            $cargo = $persona && $persona->cargo ? $persona->cargo->nombre_cargo : '';
+                            $cargo = $persona ? $persona->cargo : (Auth::user()->cargo ?? '');
                             $nombreCompleto = $persona ? $persona->nombres . ' ' . $persona->apellidos : Auth::user()->name;
+                            $cargos = [
+                                'secretario_general' => 'Secretario General',
+                                'secretario' => 'Secretario/a',
+                                'abogado' => 'Abogado/a',
+                                'decano' => 'Decano',
+                                'subdecano' => 'Subdecano/a',
+                                'docente' => 'Docente',
+                                'estudiante' => 'Estudiante',
+                            ];
                         @endphp
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
                             <div>
                                 @if($cargo)
-                                    {{ $cargo }} - {{ $nombreCompleto }}
+                                    {{ $cargos[$cargo] ?? ucfirst($cargo) }} - {{ $nombreCompleto }}
                                 @else
                                     {{ $nombreCompleto }}
                                 @endif
@@ -83,12 +92,21 @@
             <div class="px-4">
                 @php
                     $persona = Auth::user()->persona ?? null;
-                    $cargo = $persona && $persona->cargo ? $persona->cargo->nombre_cargo : '';
+                    $cargo = $persona ? $persona->cargo : (Auth::user()->cargo ?? '');
                     $nombreCompleto = $persona ? $persona->nombres . ' ' . $persona->apellidos : Auth::user()->name;
+                    $cargos = [
+                        'secretario_general' => 'Secretario General',
+                        'secretario' => 'Secretario/a',
+                        'abogado' => 'Abogado/a',
+                        'decano' => 'Decano',
+                        'subdecano' => 'Subdecano/a',
+                        'docente' => 'Docente',
+                        'estudiante' => 'Estudiante',
+                    ];
                 @endphp
                 <div class="font-medium text-base text-gray-800">
                     @if($cargo)
-                        {{ $cargo }} - {{ $nombreCompleto }}
+                        {{ $cargos[$cargo] ?? ucfirst($cargo) }} - {{ $nombreCompleto }}
                     @else
                         {{ $nombreCompleto }}
                     @endif

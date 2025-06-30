@@ -400,14 +400,13 @@
 
 @php
     $user = auth()->user();
-    $persona = $user ? \App\Models\Persona::where('email', $user->email)->with('cargo')->first() : null;
-    $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
+    $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
+    $esEstudiante = $persona && strtolower(trim($persona->cargo ?? '')) === 'estudiante';
 @endphp
 @if($esEstudiante)
     <div class="alert alert-danger">No autorizado.</div>
     @php exit; @endphp
 @endif
-
 
 <div class="container">
     <div class="header-container">
@@ -437,7 +436,6 @@
         {{-- Tabs de Todos y Recientes --}}
         <div style="display: flex; gap: 8px;">
             <a href="{{ route('resoluciones.index', ['filtro' => 'todos']) }}"
-
                class="px-4 py-2 {{ request('filtro', 'todos') == 'todos' ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-600' }} text-sm font-semibold rounded shadow transition"
                style="text-decoration:none;">
                 Todos
@@ -479,7 +477,6 @@
     @endif
 
     <div class="table-container">
-
         <table class="table table-hover">
             <thead>
                 <tr>
@@ -539,20 +536,18 @@
             </tbody>
         </table>
 
-
-{{-- Formulario separado solo para enviar las resoluciones seleccionadas --}}
-<div style="display: flex; justify-content: center; width: 100%; margin-top: 1.5rem;">
-    <form id="form-seleccionar" action="{{ route('resoluciones.seleccionar') }}" method="POST">
-        @csrf
-        <button type="submit"
-            style="display:inline-flex;align-items:center;padding:8px 16px;background:#22c55e;color:#fff;font-size:0.95rem;font-weight:600;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,0.08);border:none;transition:background 0.2s;gap:8px;"
-            onmouseover="this.style.background='#16a34a';"
-            onmouseout="this.style.background='#22c55e';">
-            <i class="fas fa-save" style="margin-right:8px;"></i> Guardar Resoluciones Seleccionadas
-        </button>
-    </form>
-</div>
-
+        {{-- Formulario separado solo para enviar las resoluciones seleccionadas --}}
+        <div style="display: flex; justify-content: center; width: 100%; margin-top: 1.5rem;">
+            <form id="form-seleccionar" action="{{ route('resoluciones.seleccionar') }}" method="POST">
+                @csrf
+                <button type="submit"
+                    style="display:inline-flex;align-items:center;padding:8px 16px;background:#22c55e;color:#fff;font-size:0.95rem;font-weight:600;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,0.08);border:none;transition:background 0.2s;gap:8px;"
+                    onmouseover="this.style.background='#16a34a';"
+                    onmouseout="this.style.background='#22c55e';">
+                    <i class="fas fa-save" style="margin-right:8px;"></i> Guardar Resoluciones Seleccionadas
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 

@@ -269,6 +269,44 @@
         cursor: pointer;
     }
 
+    .btn-red {
+        background-color: #d32f2f;
+        color: #fff;
+        border: none;
+        font-weight: 600;
+        padding: 8px 22px;
+        border-radius: 8px;
+        transition: background 0.2s;
+        display: inline-flex;
+        align-items: center;
+        font-size: 1rem;
+    }
+    .btn-red:hover {
+        background-color: #b71c1c;
+        color: #fff;
+    }
+    .btn-gray {
+        background-color: #6c757d;
+        color: #fff;
+        border: none;
+        font-weight: 600;
+        padding: 8px 22px;
+        border-radius: 8px;
+        transition: background 0.2s;
+        display: inline-flex;
+        align-items: center;
+        font-size: 1rem;
+        margin-left: 8px;
+    }
+    .btn-gray:hover {
+        background-color: #495057;
+        color: #fff;
+    }
+    .btn-red i, .btn-gray i {
+        margin-right: 8px;
+        font-size: 1.1em;
+    }
+
     @media (max-width: 768px) {
         .header-logo {
             height: 30px;
@@ -315,17 +353,6 @@
 
     <h1 class="page-title">Gestión de Estados de Titulación</h1>
 
-    <div class="flex mb-4">
-        <a href="{{ route('estado-titulaciones.create') }}"
-           class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded shadow hover:bg-red-700 transition">
-            <i class="fas fa-plus mr-2"></i> Nuevo Estado
-        </a>
-        <a href="{{ route('home') }}"
-           class="inline-flex items-center px-4 py-2 bg-gray-500 text-white text-sm font-semibold rounded shadow hover:bg-gray-800 transition ml-2">
-            <i class="fas fa-home mr-2"></i> Home
-        </a>
-    </div>
-
     @if(session('error'))
         <div class="custom-error">
             {{ session('error') }}
@@ -345,13 +372,23 @@
 
     @php
         $user = auth()->user();
-        $persona = $user ? \App\Models\Persona::where('email', $user->email)->with('cargo')->first() : null;
-        $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
+        $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
+        $esEstudiante = $persona && strtolower(trim($persona->cargo ?? '')) === 'estudiante';
     @endphp
     @if($esEstudiante)
         <div class="custom-error">No autorizado.</div>
         @php exit; @endphp
     @endif
+
+    {{-- Botones de acción --}}
+    <div class="d-flex mb-4">
+        <a href="{{ route('estado-titulaciones.create') }}" class="btn-red">
+            <i class="fas fa-plus"></i> Crear Estado
+        </a>
+        <a href="{{ route('home') }}" class="btn-gray">
+            <i class="fas fa-home"></i> Home
+        </a>
+    </div>
 
     <div class="table-container">
         <table class="table table-hover">

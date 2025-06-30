@@ -281,19 +281,20 @@
             </div>
 
             <div class="form-group">
-                <label for="cargo_id" class="form-label">Cargo:</label>
-                <select id="cargo_id" name="cargo_id" 
-                        class="form-control @error('cargo_id') is-invalid @enderror" 
-                        required>
+                <label for="cargo" class="form-label">Cargo:</label>
+                <select id="cargo" name="cargo" class="form-control @error('cargo') is-invalid @enderror" required>
                     <option value="">Seleccione un cargo</option>
-                    @foreach($cargos as $cargo)
-                        <option value="{{ $cargo->id_cargo }}" 
-                            {{ old('cargo_id', $persona->cargo_id) == $cargo->id_cargo ? 'selected' : '' }}>
-                            {{ $cargo->nombre_cargo }}
-                        </option>
-                    @endforeach
+                    <option value="secretario_general" {{ old('cargo', $persona->cargo ?? '') == 'secretario_general' ? 'selected' : '' }}>Secretario General</option>
+                    <option value="secretario" {{ old('cargo', $persona->cargo ?? '') == 'secretario' ? 'selected' : '' }}>Secretario/a</option>
+                    <option value="abogado" {{ old('cargo', $persona->cargo ?? '') == 'abogado' ? 'selected' : '' }}>Abogado/a</option>
+                    <option value="decano" {{ old('cargo', $persona->cargo ?? '') == 'decano' ? 'selected' : '' }}>Decano</option>
+                    <option value="subdecano" {{ old('cargo', $persona->cargo ?? '') == 'subdecano' ? 'selected' : '' }}>Subdecano/a</option>
+                    <option value="docente" {{ old('cargo', $persona->cargo ?? '') == 'docente' ? 'selected' : '' }}>Docente</option>
+                    <option value="estudiante" {{ old('cargo', $persona->cargo ?? '') == 'estudiante' ? 'selected' : '' }}>Estudiante</option>
+                     <option value="coordinador" {{ old('cargo', $persona->cargo ?? '') == 'coordinador' ? 'selected' : '' }}>Coordinador</option>
+
                 </select>
-                @error('cargo_id')
+                @error('cargo')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>

@@ -4,13 +4,26 @@
 
 @php
     $user = auth()->user();
-    $persona = $user ? \App\Models\Persona::where('email', $user->email)->with('cargo')->first() : null;
-    $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
-    $esDocente = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente';
-    $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+    $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
+    $cargo = strtolower(trim($persona->cargo ?? ''));
+    $esEstudiante = $persona && $cargo === 'estudiante';
+    $esDocente = $persona && $cargo === 'docente';
     $esDecano = $persona && $cargo === 'decano';
     $esCoordinador = $persona && $cargo === 'coordinador';
 @endphp
+
+
+@php
+    $esEstudiante = $persona && strtolower(trim($persona->cargo ?? '')) === 'estudiante';
+    $esDocente = $persona && strtolower(trim($persona->cargo ?? '')) === 'docente';
+    $esCoordinador = $persona && strtolower(trim($persona->cargo ?? '')) === 'coordinador';
+    $esDecano = $persona && strtolower(trim($persona->cargo ?? '')) === 'decano';
+@endphp
+
+@if($esEstudiante || $esCoordinador)
+    <div class="alert alert-danger">No autorizado.</div>
+    @php exit; @endphp
+@endif
 
 <style>
     body {
@@ -491,7 +504,7 @@
                     <th>Estudiante</th>
                     <th>Director</th>
                     <th>Asesor 1</th>
-                    <th>Carrera</th> {{-- Nueva columna --}}
+                    <th>Carrera</th>
                     <th>Periodo</th>
                     <th>Estado</th>
                     <th>Fecha aprobación (Consejo directivo)</th>

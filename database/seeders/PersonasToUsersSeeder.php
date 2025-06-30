@@ -23,6 +23,7 @@ class PersonasToUsersSeeder extends Seeder
                     'name' => $persona->nombres . ' ' . $persona->apellidos,
                     'email' => $persona->email,
                     'password' => Hash::make($persona->cedula), // La contraseña será la cédula
+                    'cargo' => 'secretario_general' ,// <-- Aquí
                     'must_change_password' => true, // <-- agrega esta línea
                 ]);
                 $count++;

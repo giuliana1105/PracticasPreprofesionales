@@ -12,19 +12,19 @@ return new class extends Migration
             $table->id();
             $table->string('cedula')->unique();  // Cédula única
             $table->string('nombres');
-           // $table->string('apellidos');
+            $table->string('apellidos');
             $table->string('celular')->nullable();
             $table->string('email')->unique()->nullable();
             
             // Claves foráneas (asumiendo que 'carreras' y 'cargos' ya existen)
             $table->unsignedBigInteger('carrera_id'); // Relación con carreras
-            $table->unsignedBigInteger('cargo_id');   // Relación con cargos
+            $table->string('cargo', 30); // Relación con cargos como string
             
             $table->timestamps(); // created_at y updated_at
 
             // Definir las relaciones a nivel de base de datos
             $table->foreign('carrera_id')->references('id_carrera')->on('carreras');
-            $table->foreign('cargo_id')->references('id_cargo')->on('cargos');
+            // Elimina la relación con cargos
         });
     }
 

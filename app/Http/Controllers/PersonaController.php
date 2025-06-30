@@ -4,24 +4,32 @@ namespace App\Http\Controllers;
 
 use App\Models\Persona;
 use App\Models\Carrera;
-use App\Models\Cargo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
 use Illuminate\Support\Facades\Validator;
 
 class PersonaController extends Controller
 {
+    // Cargos permitidos
+    private $CARGOS_VALIDOS = [
+        'secretario_general',
+        'secretario',
+        'abogado',
+        'decano',
+        'subdecano',
+        'docente',
+        'estudiante',
+        'coordinador',
+    ];
+
     public function __construct()
     {
-         
         $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($user->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -31,13 +39,12 @@ class PersonaController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($user->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-        $query = Persona::with(['carrera', 'cargo']);
+        $query = Persona::with(['carrera']);
 
         // Búsqueda
         if ($request->filled('buscar')) {
@@ -65,15 +72,13 @@ class PersonaController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($user->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-    
         $carreras = Carrera::all();
-        $cargos = Cargo::all();
+        $cargos = $this->CARGOS_VALIDOS;
         return view('personas.create', compact('carreras', 'cargos'));
     }
 
@@ -81,8 +86,7 @@ class PersonaController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($user->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -94,7 +98,7 @@ class PersonaController extends Controller
             'celular' => 'required|string|max:15',
             'email' => 'required|email|max:100|unique:personas,email',
             'carrera_id' => 'required|exists:carreras,id_carrera',
-            'cargo_id' => 'required|exists:cargos,id_cargo',
+            'cargo' => 'required|in:' . implode(',', $this->CARGOS_VALIDOS),
         ], [
             'cedula.required' => 'La cédula es obligatoria',
             'cedula.unique' => 'Esta cédula ya está registrada',
@@ -106,8 +110,8 @@ class PersonaController extends Controller
             'email.unique' => 'Este email electrónico ya está registrado',
             'carrera_id.required' => 'La carrera es obligatoria',
             'carrera_id.exists' => 'La carrera seleccionada no es válida',
-            'cargo_id.required' => 'El cargo es obligatorio',
-            'cargo_id.exists' => 'El cargo seleccionado no es válido'
+            'cargo.required' => 'El cargo es obligatorio',
+            'cargo.in' => 'El cargo seleccionado no es válido'
         ]);
 
         if ($validator->fails()) {
@@ -118,8 +122,6 @@ class PersonaController extends Controller
 
         try {
             $persona = Persona::create($request->all());
-            $persona->load('cargo');
-            $cargoNombre = $persona->cargo ? strtolower(trim($persona->cargo->nombre_cargo)) : null;
 
             // Crea el usuario automáticamente si no existe y el email no es nulo/ vacío
             if (!empty($persona->email) && !User::where('email', $persona->email)->exists()) {
@@ -127,7 +129,8 @@ class PersonaController extends Controller
                     'name' => $persona->nombres . ' ' . $persona->apellidos,
                     'email' => $persona->email,
                     'password' => Hash::make($persona->cedula), // SIEMPRE hasheada
-                    'role' => $cargoNombre,
+                    'cargo' => strtolower($persona->cargo),
+                    'must_change_password' => true,
                 ]);
             }
 
@@ -141,17 +144,16 @@ class PersonaController extends Controller
 
     // Mostrar formulario de edición
     public function edit($id)
-    { $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+    {
+        $user = Auth::user();
+        $cargo = strtolower(trim($user->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-    
         $persona = Persona::findOrFail($id);
         $carreras = Carrera::all();
-        $cargos = Cargo::all();
+        $cargos = $this->CARGOS_VALIDOS;
         return view('personas.edit', compact('persona', 'carreras', 'cargos'));
     }
 
@@ -159,8 +161,7 @@ class PersonaController extends Controller
     public function update(Request $request, $id)
     {
         $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($user->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -174,7 +175,7 @@ class PersonaController extends Controller
             'celular' => 'required|string|max:15',
             'email' => 'required|email|max:100|unique:personas,email,'.$id,
             'carrera_id' => 'required|exists:carreras,id_carrera',
-            'cargo_id' => 'required|exists:cargos,id_cargo',
+            'cargo' => 'required|in:' . implode(',', $this->CARGOS_VALIDOS),
         ], [
             'cedula.required' => 'La cédula es obligatoria',
             'cedula.unique' => 'Esta cédula ya está registrada',
@@ -186,8 +187,8 @@ class PersonaController extends Controller
             'email.unique' => 'Este email electrónico ya está registrado',
             'carrera_id.required' => 'La carrera es obligatoria',
             'carrera_id.exists' => 'La carrera seleccionada no es válida',
-            'cargo_id.required' => 'El cargo es obligatorio',
-            'cargo_id.exists' => 'El cargo seleccionado no es válido'
+            'cargo.required' => 'El cargo es obligatorio',
+            'cargo.in' => 'El cargo seleccionado no es válido'
         ]);
 
         if ($validator->fails()) {
@@ -200,16 +201,14 @@ class PersonaController extends Controller
             $oldEmail = $persona->email;
             $persona->update($request->all());
 
-            // Obtener el nombre del cargo para el rol
-            $cargoNombre = $persona->cargo ? strtolower(trim($persona->cargo->nombre_cargo)) : null;
-
             // Si el email cambió y no existe usuario con ese email, crea el usuario
             if ($persona->email !== $oldEmail && !empty($persona->email) && !User::where('email', $persona->email)->exists()) {
                 User::create([
                     'name' => $persona->nombres . ' ' . $persona->apellidos,
                     'email' => $persona->email,
                     'password' => Hash::make($persona->cedula),
-                    'role' => $cargoNombre,
+                    'cargo' => strtolower($persona->cargo),
+                    'must_change_password' => true,
                 ]);
             }
 
@@ -224,14 +223,12 @@ class PersonaController extends Controller
     // Eliminar persona
     public function destroy($id)
     {
-       $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $user = Auth::user();
+        $cargo = strtolower(trim($user->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-    
         try {
             $persona = Persona::findOrFail($id);
 
@@ -261,11 +258,11 @@ class PersonaController extends Controller
         }
     }
 
+    // Importar personas desde CSV
     public function import(Request $request)
     {
         $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($user->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -365,7 +362,7 @@ class PersonaController extends Controller
                     continue;
                 }
                 if (empty($normalizedRow['cargo'])) {
-                    $errores[$fila] = 'Cargo vacía';
+                    $errores[$fila] = 'Cargo vacío';
                     continue;
                 }
 
@@ -376,10 +373,11 @@ class PersonaController extends Controller
                     continue;
                 }
 
-                // Buscar cargo por nombre (igual que antes)
-                $cargo = \App\Models\Cargo::whereRaw('LOWER(nombre_cargo) = ?', [strtolower(trim($normalizedRow['cargo']))])->first();
-                if (! $cargo) {
-                    $errores[$fila] = 'Cargo no encontrado: ' . $normalizedRow['cargo'];
+                // Cargos permitidos
+                $CARGOS_VALIDOS = $this->CARGOS_VALIDOS;
+                $cargo = strtolower(trim($normalizedRow['cargo']));
+                if (!in_array($cargo, $CARGOS_VALIDOS)) {
+                    $errores[$fila] = 'Cargo no válido: ' . $normalizedRow['cargo'];
                     continue;
                 }
 
@@ -410,7 +408,7 @@ class PersonaController extends Controller
                     'celular'    => $celular,
                     'email'      => $email,
                     'carrera_id' => $carrera->id_carrera,
-                    'cargo_id'   => $cargo->id_cargo,
+                    'cargo'      => $cargo,
                 ]);
 
                 // Crear usuario automáticamente si no existe
@@ -418,8 +416,9 @@ class PersonaController extends Controller
                     User::create([
                         'name' => $persona->nombres . ' ' . $persona->apellidos,
                         'email' => $email,
-                        'password' => Hash::make($cedula), // SIEMPRE hasheada
-                        'role' => strtolower(trim($cargo->nombre_cargo)),
+                        'password' => Hash::make($cedula),
+                        'cargo' => $cargo,
+                        'must_change_password' => true,
                     ]);
                 }
 
@@ -447,11 +446,12 @@ class PersonaController extends Controller
         }
     }
 
+    // Resetear contraseña
     public function resetPassword($id)
     {
         $user = auth()->user();
-        $personaAuth = $user ? ($user->persona ?? \App\Models\Persona::where('email', $user->email)->with('cargo')->first()) : null;
-        $esAdmin = $personaAuth && strtolower(trim($personaAuth->cargo->nombre_cargo ?? '')) === 'administrador';
+        $cargo = strtolower(trim($user->cargo ?? ''));
+        $esAdmin = in_array($cargo, ['secretario', 'secretario_general']);
 
         if (!$esAdmin) {
             abort(403, 'No autorizado');

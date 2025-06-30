@@ -109,6 +109,16 @@
     hr { margin: 10px 0; }
 </style>
 
+@php
+    $user = auth()->user();
+    $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
+    $esEstudiante = $persona && strtolower(trim($persona->cargo ?? '')) === 'estudiante';
+@endphp
+@if($esEstudiante && $titulacion->cedula_estudiante !== ($persona->cedula ?? null))
+    <div class="alert alert-danger">No autorizado para ver esta titulación.</div>
+    @php exit; @endphp
+@endif
+
 <div class="container">
     <div class="header-container">
         <div class="header-text-container">

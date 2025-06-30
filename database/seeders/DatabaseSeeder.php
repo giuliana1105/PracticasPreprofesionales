@@ -14,9 +14,9 @@ class DatabaseSeeder extends Seeder
         // Primero seeders de tablas relacionadas
         $this->call([
             CarreraSeeder::class,
-            CargoSeeder::class,
             PersonaSeeder::class,
-            PersonasToUsersSeeder::class, // <-- Agrega esta línea
+            PersonasToUsersSeeder::class,
+            // Elimina o comenta cualquier referencia a CargoSeeder
         ]);
 
         // Si quieres mantener este usuario de prueba, puedes dejarlo:

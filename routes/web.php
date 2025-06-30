@@ -46,7 +46,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/resoluciones/storeTemas', [ResolucionController::class, 'storeTemas'])->name('resoluciones.storeTemas');
 
     Route::resource('carreras', CarreraController::class);
-    Route::resource('cargos', CargoController::class);
 
     Route::resource('personas', PersonaController::class);
     Route::get('/personas/import', [PersonaController::class, 'showImportForm'])->name('personas.import.form');

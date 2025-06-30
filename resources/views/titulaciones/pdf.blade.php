@@ -1,3 +1,4 @@
+
 {{-- filepath: resources/views/titulaciones/pdf.blade.php --}}
 <!DOCTYPE html>
 <html>
@@ -28,7 +29,7 @@
         .header-text-container {
             display: flex;
             flex-direction: column;
-            align-items: flex-start; /* O 'center' si quieres centrado */
+            align-items: flex-start;
         }
         .utn-text {
             font-size: 1em;
@@ -141,8 +142,8 @@
 </html>
 @php
     $user = auth()->user();
-    $persona = $user ? \App\Models\Persona::where('email', $user->email)->with('cargo')->first() : null;
-    $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
+    $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
+    $esEstudiante = $persona && strtolower(trim($persona->cargo ?? '')) === 'estudiante';
 @endphp
 @if($esEstudiante)
     <div class="alert alert-danger">No autorizado para generar PDF de todas las titulaciones.</div>

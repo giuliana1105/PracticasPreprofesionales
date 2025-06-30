@@ -21,7 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
+        'cargo', // <-- agrega esto
         'must_change_password', // <-- agrega esto
     ];
 

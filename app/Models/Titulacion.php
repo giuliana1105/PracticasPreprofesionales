@@ -14,11 +14,11 @@ class Titulacion extends Model
 
     protected $fillable = [
         'tema',
-        'estudiante', // <-- agrega esto
+        'estudiante',
         'cedula_estudiante',
-        'director',   // <-- agrega esto si existe en tu tabla
+        'director',
         'cedula_director',
-        'asesor1',    // <-- agrega esto si existe en tu tabla
+        'asesor1',
         'cedula_asesor1',
         'periodo_id',
         'estado_id',

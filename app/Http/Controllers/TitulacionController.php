@@ -18,29 +18,24 @@ class TitulacionController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        if ($user instanceof \App\Models\User) {
-            $persona = $user->persona;
-        } else {
-            $persona = $user;
-        }
+        $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
+        // Usar solo el campo string 'cargo'
+        $cargo = strtolower(trim($persona->cargo ?? ''));
 
-        $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
-        $esDocente = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente';
+        $esEstudiante = $cargo === 'estudiante';
+        $esDocente = $cargo === 'docente';
 
         if ($esEstudiante) {
-            // Solo puede ver sus propias titulaciones, sin filtros adicionales
             $titulaciones = Titulacion::with([
                 'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
             ])->where('cedula_estudiante', $persona->cedula)->get();
 
-            // Para la vista, pasa los arrays vacíos para filtros (no se mostrarán)
             $estados = collect();
             $docentes = collect();
             $periodos = collect();
 
             return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados'));
         } elseif ($esDocente) {
-            // DOCENTE: sólo ve titulaciones donde es director o asesor1
             $query = Titulacion::with([
                 'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
             ])->where(function($q) use ($persona) {
@@ -48,7 +43,6 @@ class TitulacionController extends Controller
                   ->orWhere('cedula_asesor1', $persona->cedula);
             });
 
-            // Filtros permitidos para docente
             if ($request->filled('busqueda')) {
                 $busqueda = strtolower($request->input('busqueda'));
                 $query->whereHas('estudiantePersona', function($q2) use ($busqueda) {
@@ -78,18 +72,16 @@ class TitulacionController extends Controller
 
             $titulaciones = $query->get();
 
-            $estados = \App\Models\EstadoTitulacion::orderBy('nombre_estado')->get();
-            $periodos = \App\Models\Periodo::orderBy('periodo_academico')->get(); // <-- Asegúrate de cargar los periodos aquí
-            $docentes = collect(); // No necesita filtro de docentes
+            $estados = EstadoTitulacion::orderBy('nombre_estado')->get();
+            $periodos = Periodo::orderBy('periodo_academico')->get();
+            $docentes = collect();
 
             return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados'));
         } else {
-            // Usuario no estudiante: puede ver y filtrar todas las titulaciones
             $query = Titulacion::with([
                 'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
             ]);
 
-            // Filtros solo para usuarios no estudiantes
             if ($request->filled('busqueda')) {
                 $busqueda = strtolower($request->input('busqueda'));
                 $query->where(function($q) use ($busqueda) {
@@ -119,7 +111,6 @@ class TitulacionController extends Controller
             if ($request->filled('estado_filtro')) {
                 $query->where('estado_id', $request->estado_filtro);
             }
-            // Elimina el filtro por created_at y deja solo el filtro por fecha de resolucion
             if ($request->filled('fecha_inicio') || $request->filled('fecha_fin')) {
                 $query->whereHas('resTemas.resolucion', function ($q) use ($request) {
                     $q->whereHas('tipoResolucion', function ($q2) {
@@ -136,11 +127,9 @@ class TitulacionController extends Controller
 
             $titulaciones = $query->get();
 
-            $estados = \App\Models\EstadoTitulacion::orderBy('nombre_estado')->get();
-            $docentes = \App\Models\Persona::whereHas('cargo', function($q) {
-                $q->where('nombre_cargo', 'Docente');
-            })->orderBy('nombres')->get();
-            $periodos = \App\Models\Periodo::orderBy('periodo_academico')->get();
+            $estados = EstadoTitulacion::orderBy('nombre_estado')->get();
+            $docentes = Persona::whereRaw("LOWER(cargo) = 'docente'")->orderBy('nombres')->get();
+            $periodos = Periodo::orderBy('periodo_academico')->get();
 
             return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados'));
         }
@@ -149,13 +138,13 @@ class TitulacionController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
-        
-        $personas = Persona::with('cargo')->get(); 
+
+        $personas = Persona::all();
         $periodos = Periodo::all();
         $estados = EstadoTitulacion::all();
         $resolucionesSeleccionadas = \App\Models\Resolucion::whereIn(
@@ -163,9 +152,7 @@ class TitulacionController extends Controller
             \App\Models\ResolucionSeleccionada::pluck('resolucion_id')
         )->get();
 
-        $docentes = \App\Models\Persona::whereHas('cargo', function($q) {
-            $q->where('nombre_cargo', 'Docente');
-        })->orderBy('nombres')->get();
+        $docentes = Persona::whereRaw("LOWER(cargo) = 'docente'")->orderBy('nombres')->get();
 
         return view('titulaciones.create', compact('periodos', 'estados', 'resolucionesSeleccionadas','personas', 'docentes'));
     }
@@ -173,12 +160,12 @@ class TitulacionController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
-        
+
         $request->validate([
             'tema' => 'required|string',
             'cedula_estudiante' => 'required|exists:personas,cedula',
@@ -193,7 +180,6 @@ class TitulacionController extends Controller
 
         $resolucionesSeleccionadas = \App\Models\ResolucionSeleccionada::pluck('resolucion_id');
 
-        // VALIDACIÓN: No permitir crear si no hay resoluciones seleccionadas
         if ($resolucionesSeleccionadas->isEmpty()) {
             return redirect()->back()
                 ->withInput()
@@ -211,27 +197,24 @@ class TitulacionController extends Controller
             'observaciones'
         ]);
 
-        // Busca los nombres por cédula
-        $estudiante = \App\Models\Persona::where('cedula', $data['cedula_estudiante'])->first();
-        $director = \App\Models\Persona::where('cedula', $data['cedula_director'])->first();
-        $asesor1 = \App\Models\Persona::where('cedula', $data['cedula_asesor1'])->first();
+        $estudiante = Persona::where('cedula', $data['cedula_estudiante'])->first();
+        $director = Persona::where('cedula', $data['cedula_director'])->first();
+        $asesor1 = Persona::where('cedula', $data['cedula_asesor1'])->first();
 
         $data['estudiante'] = $estudiante ? ($estudiante->nombres . ' ' . $estudiante->apellidos) : null;
         $data['director'] = $director ? ($director->nombres . ' ' . $director->apellidos) : null;
         $data['asesor1'] = $asesor1 ? ($asesor1->nombres . ' ' . $asesor1->apellidos) : null;
 
-        // Si subió acta y el estado es Graduado, guárdala
         if (
             $request->hasFile('acta_grado') &&
             $request->file('acta_grado')->isValid() &&
-            \App\Models\EstadoTitulacion::find($request->estado_id)?->nombre_estado === 'Graduado'
+            EstadoTitulacion::find($request->estado_id)?->nombre_estado === 'Graduado'
         ) {
             $data['acta_grado'] = $request->file('acta_grado')->store('actas_grado', 'public');
         }
 
         $titulacion = Titulacion::create($data);
 
-        $resolucionesSeleccionadas = \App\Models\ResolucionSeleccionada::pluck('resolucion_id');
         foreach ($resolucionesSeleccionadas as $resolucion_id) {
             ResTema::create([
                 'titulacion_id' => $titulacion->id_titulacion,
@@ -243,62 +226,39 @@ class TitulacionController extends Controller
         return redirect()->route('titulaciones.index')->with('success', 'Titulación creada exitosamente.');
     }
 
-    // public function edit($id)
-    // {
-    //     $titulacion = Titulacion::findOrFail($id);
-    //     $periodos = \App\Models\Periodo::all();
-    //     $estados = \App\Models\EstadoTitulacion::all();
-    //     $personas = \App\Models\Persona::with('cargo')->get();
+    public function edit($id)
+    {
+        $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
+        $cargo = strtolower(trim($persona->cargo ?? ''));
+        if (in_array($cargo, ['estudiante', 'coordinador', 'decano'])) {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
+        $titulacion = Titulacion::findOrFail($id);
+        $periodos = Periodo::all();
+        $estados = EstadoTitulacion::all();
+        $personas = Persona::all();
 
-    //     // Buscar los IDs de las personas según la cédula almacenada
-    //     $personaEstudiante = $personas->firstWhere('cedula', $titulacion->cedula_estudiante);
-    //     $personaDirector = $personas->firstWhere('cedula', $titulacion->cedula_director);
-    //     $personaAsesor = $personas->firstWhere('cedula', $titulacion->cedula_asesor1);
+        $personaEstudiante = $personas->firstWhere('cedula', $titulacion->cedula_estudiante);
+        $personaDirector = $personas->firstWhere('cedula', $titulacion->cedula_director);
+        $personaAsesor = $personas->firstWhere('cedula', $titulacion->cedula_asesor1);
 
-    //     return view('titulaciones.edit', compact(
-    //         'titulacion', 'periodos', 'estados', 'personas',
-    //         'personaEstudiante', 'personaDirector', 'personaAsesor'
-    //     ));
-    // }
+        $esDocente = $cargo === 'docente';
 
- 
-public function edit($id)
-{
-    $user = Auth::user();
-    $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-    $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
-    if (in_array($cargo, ['estudiante', 'coordinador', 'decano'])) {
-        abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        return view('titulaciones.edit', compact(
+            'titulacion', 'periodos', 'estados', 'personas',
+            'personaEstudiante', 'personaDirector', 'personaAsesor', 'esDocente'
+        ));
     }
-    $titulacion = Titulacion::findOrFail($id);
-    $periodos = \App\Models\Periodo::all();
-    $estados = \App\Models\EstadoTitulacion::all();
-    $personas = \App\Models\Persona::with('cargo')->get();
-
-    // Buscar los IDs de las personas según la cédula almacenada
-    $personaEstudiante = $personas->firstWhere('cedula', $titulacion->cedula_estudiante);
-    $personaDirector = $personas->firstWhere('cedula', $titulacion->cedula_director);
-    $personaAsesor = $personas->firstWhere('cedula', $titulacion->cedula_asesor1);
-
-    $esDocente = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente';
-
-    return view('titulaciones.edit', compact(
-        'titulacion', 'periodos', 'estados', 'personas',
-        'personaEstudiante', 'personaDirector', 'personaAsesor', 'esDocente'
-    ));
-}
 
     public function update(Request $request, $id)
     {
         $user = Auth::user();
-        if ($user instanceof \App\Models\User) {
-            $persona = $user->persona;
-        } else {
-            $persona = $user;
-        }
-        $esDocente = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente';
+        $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
+        $cargo = strtolower(trim($persona->cargo ?? ''));
+        $esDocente = $cargo === 'docente';
 
-        if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        if ($cargo === 'estudiante') {
             abort(403, 'No autorizado');
         }
 
@@ -309,7 +269,6 @@ public function edit($id)
             ]);
             $titulacion = Titulacion::findOrFail($id);
 
-            // --- Registro de historial de cambios ---
             $cambios = [];
             if ($titulacion->avance != $request->avance) {
                 $cambios[] = [
@@ -326,7 +285,7 @@ public function edit($id)
                 ];
             }
             foreach ($cambios as $cambio) {
-                \App\Models\AvanceHistorial::create([
+                AvanceHistorial::create([
                     'titulacion_id' => $titulacion->id_titulacion,
                     'docente_id' => $persona->id,
                     'campo' => $cambio['campo'],
@@ -334,7 +293,6 @@ public function edit($id)
                     'valor_nuevo' => $cambio['valor_nuevo'],
                 ]);
             }
-            // --- Fin registro de historial ---
 
             $titulacion->update([
                 'avance' => $request->avance,
@@ -368,20 +326,22 @@ public function edit($id)
             'observaciones'
         ]);
 
-        // Solo guardar acta de grado si el estado es Graduado y se subió archivo
-        $estadoGraduado = \App\Models\EstadoTitulacion::find($request->estado_id)?->nombre_estado === 'Graduado';
+        // --- CORRECCIÓN: comparación robusta para estado graduado ---
+        $estadoGraduado = false;
+        $estadoObj = EstadoTitulacion::find($request->estado_id);
+        if ($estadoObj) {
+            $estadoGraduado = strtolower(trim($estadoObj->nombre_estado)) === 'graduado';
+        }
 
         if ($estadoGraduado && $request->hasFile('acta_grado') && $request->file('acta_grado')->isValid()) {
-            // Borra el archivo anterior si existe
             if ($titulacion->acta_grado) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($titulacion->acta_grado);
+                Storage::disk('public')->delete($titulacion->acta_grado);
             }
             $data['acta_grado'] = $request->file('acta_grado')->store('actas_grado', 'public');
         }
 
-        // Si el estado ya no es Graduado, elimina el acta de grado
         if (!$estadoGraduado && $titulacion->acta_grado) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($titulacion->acta_grado);
+            Storage::disk('public')->delete($titulacion->acta_grado);
             $data['acta_grado'] = null;
         }
 
@@ -391,20 +351,17 @@ public function edit($id)
     }
 
     public function importCsv(Request $request)
-    {   $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && (strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante' || strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente')) {
-        abort(403, 'No autorizado');
-    }
-    $request->validate([
+    {
+        $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
+        $cargo = strtolower(trim($persona->cargo ?? ''));
+        if (in_array($cargo, ['estudiante', 'docente'])) {
+            abort(403, 'No autorizado');
+        }
+        $request->validate([
             'csv_file' => 'required|file|mimes:csv,txt'
         ]);
 
-        // Verifica si hay resoluciones seleccionadas
         $resolucionesSeleccionadas = \App\Models\ResolucionSeleccionada::pluck('resolucion_id');
         if ($resolucionesSeleccionadas->isEmpty()) {
             return redirect()->back()
@@ -414,19 +371,16 @@ public function edit($id)
         $file = $request->file('csv_file');
         $handle = fopen($file, 'r');
 
-        // Detecta delimitador automáticamente
         $firstLine = fgets($handle);
         $delimiter = (substr_count($firstLine, ';') > substr_count($firstLine, ',')) ? ';' : ',';
         rewind($handle);
 
         $header = fgetcsv($handle, 0, $delimiter);
 
-        // Elimina BOM del primer encabezado si existe
         if (isset($header[0])) {
             $header[0] = preg_replace('/^\x{FEFF}/u', '', $header[0]);
         }
 
-        // Mapeo robusto
         $map = [
             'tema' => 'tema',
             'cedulaestudiante' => 'cedula_estudiante',
@@ -451,7 +405,6 @@ public function edit($id)
             'observaciones' => 'observaciones',
         ];
 
-        // Normaliza encabezados y mapea a campos de base de datos
         $normalize = function($string) {
             $string = mb_strtolower($string, 'UTF-8');
             $string = preg_replace('/[áàäâ]/u', 'a', $string);
@@ -460,7 +413,7 @@ public function edit($id)
             $string = preg_replace('/[óòöô]/u', 'o', $string);
             $string = preg_replace('/[úùüû]/u', 'u', $string);
             $string = preg_replace('/[ñ]/u', 'n', $string);
-            $string = preg_replace('/\s+/', '', $string); // quita todos los espacios
+            $string = preg_replace('/\s+/', '', $string);
             return $string;
         };
 
@@ -474,7 +427,7 @@ public function edit($id)
         $saltados = 0;
         $errores = [];
 
-        $filaActual = 1; // Para numerar filas (considerando encabezado)
+        $filaActual = 1;
         while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
             $filaActual++;
             $erroresFila = [];
@@ -487,48 +440,45 @@ public function edit($id)
 
             $data = array_combine($normalizedHeader, $row);
 
-            // Limpia cédulas de espacios y tabulaciones
             $data['cedula_estudiante'] = trim(preg_replace('/\s+/', '', $data['cedula_estudiante']));
             $data['cedula_director'] = trim(preg_replace('/\s+/', '', $data['cedula_director']));
             $data['cedula_asesor1'] = trim(preg_replace('/\s+/', '', $data['cedula_asesor1']));
 
-            // Busca periodo y estado por nombre (insensible a mayúsculas/minúsculas)
             $nombrePeriodo = preg_replace('/\s+/', ' ', trim($data['periodo'] ?? ''));
             $nombreEstado = preg_replace('/\s+/', ' ', trim($data['estado'] ?? ''));
 
-            $periodo = \App\Models\Periodo::whereRaw('LOWER(TRIM(periodo_academico)) = ?', [strtolower($nombrePeriodo)])->first();
+            $periodo = Periodo::whereRaw('LOWER(TRIM(periodo_academico)) = ?', [strtolower($nombrePeriodo)])->first();
             if (!$periodo) {
                 $erroresFila[] = "Período '{$nombrePeriodo}' no registrado";
             }
 
-            $estado = \App\Models\EstadoTitulacion::whereRaw('LOWER(TRIM(nombre_estado)) = ?', [strtolower($nombreEstado)])->first();
+            $estado = EstadoTitulacion::whereRaw('LOWER(TRIM(nombre_estado)) = ?', [strtolower($nombreEstado)])->first();
             if (!$estado) {
                 $erroresFila[] = "Estado '{$nombreEstado}' no registrado";
             }
 
-            $estudiante = \App\Models\Persona::where('cedula', $data['cedula_estudiante'])->first();
+            $estudiante = Persona::where('cedula', $data['cedula_estudiante'])->first();
             if (!$estudiante) {
                 $erroresFila[] = "Estudiante con cédula '{$data['cedula_estudiante']}' no registrado";
             }
 
-            $director = \App\Models\Persona::where('cedula', $data['cedula_director'])->first();
+            $director = Persona::where('cedula', $data['cedula_director'])->first();
             if (!$director) {
                 $erroresFila[] = "Director con cédula '{$data['cedula_director']}' no registrado";
             }
 
-            $asesor1 = \App\Models\Persona::where('cedula', $data['cedula_asesor1'])->first();
+            $asesor1 = Persona::where('cedula', $data['cedula_asesor1'])->first();
             if (!$asesor1) {
                 $erroresFila[] = "Asesor 1 con cédula '{$data['cedula_asesor1']}' no registrado";
             }
 
-            // Si hay errores, agrega el mensaje detallado
             if (count($erroresFila) > 0) {
                 $saltados++;
                 $errores[] = "Fila {$filaActual}: " . implode(' | ', $erroresFila);
                 continue;
             }
 
-            $titulacion = \App\Models\Titulacion::create([
+            $titulacion = Titulacion::create([
                 'tema' => $data['tema'],
                 'estudiante' => $estudiante->nombres . ' ' . $estudiante->apellidos,
                 'cedula_estudiante' => $data['cedula_estudiante'],
@@ -543,7 +493,7 @@ public function edit($id)
             ]);
 
             foreach ($resolucionesSeleccionadas as $resolucion_id) {
-                \App\Models\ResTema::create([
+                ResTema::create([
                     'titulacion_id' => $titulacion->id_titulacion,
                     'resolucion_id' => $resolucion_id,
                     'tema' => $data['tema'],
@@ -557,23 +507,13 @@ public function edit($id)
     }
 
     public function destroy($id)
-    {   $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+    {
+        $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
-        
-
-
-
-        // $user = Auth::user();
-        // $persona = $user->persona ?? \App\Models\Persona::where('email', $user->email)->with('cargo')->first();
-        // $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
-        // // Ahora también restringe a coordinador y decano
-        // if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano'])) {
-        //     abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
-        // }
 
         $titulacion = Titulacion::findOrFail($id);
         $titulacion->delete();
@@ -583,15 +523,16 @@ public function edit($id)
     public function show($id)
     {
         $user = Auth::user();
-        $persona = $user->persona ?? null;
+        $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
+        $cargo = strtolower(trim($persona->cargo ?? ''));
+
         $titulacion = Titulacion::with([
             'estudiantePersona', 'directorPersona', 'asesor1Persona',
             'periodo', 'estado', 'resTemas.resolucion.tipoResolucion',
             'avanceHistorial.docente'
         ])->findOrFail($id);
 
-        // Si es estudiante, solo puede ver su propia titulación
-        if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
+        if ($cargo === 'estudiante') {
             if ($titulacion->cedula_estudiante !== $persona->cedula) {
                 abort(403, 'No autorizado');
             }
@@ -603,21 +544,17 @@ public function edit($id)
     public function pdf(Request $request)
     {
         $user = Auth::user();
-    if ($user instanceof \App\Models\User) {
-        $persona = $user->persona;
-    } else {
-        $persona = $user;
-    }
-    if ($persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante') {
-        abort(403, 'No autorizado');
-    }
-    
-        // Repite la lógica de filtros del index
+        $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
+        $cargo = strtolower(trim($persona->cargo ?? ''));
+        if ($cargo === 'estudiante') {
+            abort(403, 'No autorizado');
+        }
+
         $query = Titulacion::with([
             'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
         ]);
 
-        $esDocente = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'docente';
+        $esDocente = $cargo === 'docente';
 
         if ($esDocente) {
             $query->where(function($q) use ($persona) {
@@ -651,8 +588,6 @@ public function edit($id)
                     }
                 });
             }
-        } else {
-            // ...existing code para otros roles...
         }
 
         $titulo = 'Reporte de Titulaciones';

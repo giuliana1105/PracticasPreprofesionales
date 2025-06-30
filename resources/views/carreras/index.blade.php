@@ -217,9 +217,6 @@
         </a>
     </div>
 
-
-
-
     @if(session('error'))
         <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 16px 24px; border-radius: 8px; margin-bottom: 20px; position: relative;">
             {{ session('error') }}
@@ -241,8 +238,8 @@
 
     @php
         $user = auth()->user();
-        $persona = $user ? \App\Models\Persona::where('email', $user->email)->with('cargo')->first() : null;
-        $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
+        $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
+        $esEstudiante = $persona && strtolower(trim($persona->cargo ?? '')) === 'estudiante';
     @endphp
     @if($esEstudiante)
         <div class="alert alert-danger">No autorizado.</div>

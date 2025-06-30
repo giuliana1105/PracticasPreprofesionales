@@ -118,8 +118,8 @@
 
 @php
     $user = auth()->user();
-    $persona = $user ? ($user->persona ?? \App\Models\Persona::where('email', $user->email)->with('cargo')->first()) : null;
-    $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+    $persona = $user ? ($user->persona ?? \App\Models\Persona::where('email', $user->email)->first()) : null;
+    $cargo = strtolower(trim($persona->cargo ?? ($user->cargo ?? '')));
     $sinPermisoPersonas = in_array($cargo, ['coordinador', 'decano']);
 @endphp
 
@@ -142,16 +142,10 @@
                 <div class="module-title">Titulaciones</div>
             </a>
         @else
-            <a href="{{ route('cargos.index') }}" class="module-card">
-                <i class="fas fa-briefcase module-icon"></i>
-                <div class="module-title">Cargos</div>
+            <a href="{{ route('personas.index') }}" class="module-card" id="btnPersonas">
+                <i class="fas fa-users module-icon"></i>
+                <div class="module-title">Personas</div>
             </a>
-            @if(!$sinPermisoPersonas)
-                <a href="{{ route('personas.index') }}" class="module-card">
-                    <i class="fas fa-user module-icon"></i>
-                    <div class="module-title">Personas</div>
-                </a>
-            @endif
             <a href="{{ route('carreras.index') }}" class="module-card">
                 <i class="fas fa-graduation-cap module-icon"></i>
                 <div class="module-title">Carreras</div>

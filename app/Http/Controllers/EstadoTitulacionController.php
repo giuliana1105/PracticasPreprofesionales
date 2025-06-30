@@ -5,19 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\EstadoTitulacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
+
 class EstadoTitulacionController extends Controller
 {
     public function __construct()
     {
-       
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        // Cambia para usar el campo string 'cargo'
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -25,7 +26,7 @@ class EstadoTitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -41,7 +42,7 @@ class EstadoTitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -53,14 +54,14 @@ class EstadoTitulacionController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    { $user = Auth::user();
+    {
+        $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-    
         $request->validate([
             'nombre_estado' => 'required|string|max:255|unique:estado_titulaciones,nombre_estado'
         ]);
@@ -78,12 +79,11 @@ class EstadoTitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-    
         return view('estado_titulaciones.show', compact('estadoTitulacion'));
     }
 
@@ -92,9 +92,9 @@ class EstadoTitulacionController extends Controller
      */
     public function edit($id)
     {
-       $user = Auth::user();
+        $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -110,7 +110,7 @@ class EstadoTitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -135,7 +135,7 @@ class EstadoTitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }

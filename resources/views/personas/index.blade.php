@@ -360,7 +360,22 @@
                         <td>{{ $persona->celular }}</td>
                         <td>{{ $persona->email }}</td>
                         <td>{{ $persona->carrera->siglas_carrera ?? 'N/A' }}</td>
-                        <td>{{ $persona->cargo->nombre_cargo ?? 'N/A' }}</td>
+                        <td>
+                            @php
+                                $cargos = [
+                                    'secretario_general' => 'Secretario General',
+                                    'secretario' => 'Secretario/a',
+                                    'abogado' => 'Abogado/a',
+                                    'decano' => 'Decano/a',
+                                    'subdecano' => 'Subdecano/a',
+                                    'docente' => 'Docente',
+                                    'estudiante' => 'Estudiante',
+                                     'coordinador' => 'Coordinador/a',
+
+                                ];
+                            @endphp
+                            {{ $cargos[$persona->cargo] ?? ucfirst($persona->cargo) }}
+                        </td>
                         <td class="text-center">
                             <a href="{{ route('personas.edit', $persona->id) }}" class="btn btn-sm btn-warning" title="Editar">
                                 <i class="fas fa-edit text-white"></i>
@@ -374,8 +389,7 @@
                             </form>
                             @php
                                 $user = auth()->user();
-                                $personaAuth = $user ? ($user->persona ?? \App\Models\Persona::where('email', $user->email)->with('cargo')->first()) : null;
-                                $esAdmin = $personaAuth && strtolower(trim($personaAuth->cargo->nombre_cargo ?? '')) === 'administrador';
+                                $esAdmin = $user && in_array(strtolower($user->cargo), ['secretario', 'secretario_general']);
                             @endphp
                             @if($esAdmin)
                                 <form action="{{ route('personas.reset-password', $persona->id) }}" method="POST" style="display:inline;">
@@ -410,8 +424,7 @@
 
 @php
     $user = auth()->user();
-    $persona = $user ? \App\Models\Persona::where('email', $user->email)->with('cargo')->first() : null;
-    $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
+    $esEstudiante = $user && strtolower($user->cargo) === 'estudiante';
 @endphp
 @if($esEstudiante)
     <div class="alert alert-danger">No autorizado.</div>

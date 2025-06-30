@@ -26,7 +26,7 @@ class PersonaSeeder extends Seeder
             'celular' => '0999999999',
             'email' => 'csoft@utn.edu.ec',
             'carrera_id' => 1, // Debe existir en la tabla 'carreras'
-            'cargo_id' => 1,   // Debe existir en la tabla 'cargos'
+            'cargo' => 'secretario_general',   // Debe existir en la tabla 'cargos'
             'created_at' => now(),
             'updated_at' => now(),
         ];
@@ -40,6 +40,7 @@ class PersonaSeeder extends Seeder
                 'name' => $personaData['nombres'] . ' ' . $personaData['apellidos'],
                 'email' => $personaData['email'],
                 'password' => Hash::make($personaData['cedula']), // contraseña = cédula
+                'cargo' => 'secretario_general', 
                 'must_change_password' => true, // <-- agrega esta línea
             ]);
             $this->command->info('Usuario creado: ' . $personaData['email']);

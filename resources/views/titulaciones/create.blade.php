@@ -4,13 +4,18 @@
 
 @php
     $user = auth()->user();
-    $persona = $user ? \App\Models\Persona::where('email', $user->email)->with('cargo')->first() : null;
-    $esEstudiante = $persona && strtolower(trim($persona->cargo->nombre_cargo ?? '')) === 'estudiante';
+    $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
+    $esEstudiante = $persona && strtolower(trim($persona->cargo ?? '')) === 'estudiante';
+    $esDocente = $persona && strtolower(trim($persona->cargo ?? '')) === 'docente';
+    $esCoordinador = $persona && strtolower(trim($persona->cargo ?? '')) === 'coordinador';
+    $esDecano = $persona && strtolower(trim($persona->cargo ?? '')) === 'decano';
 @endphp
-@if($esEstudiante)
+
+@if(in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano']))
     <div class="alert alert-danger">No autorizado.</div>
     @php exit; @endphp
 @endif
+
 <style>
     body {
         background-color: #e9ecef;
@@ -372,10 +377,12 @@
                     <label for="estudiante_nombre">Estudiante</label>
                     <select id="estudiante_nombre" class="form-control">
                         <option value="">Seleccione...</option>
-                        @foreach($personas->where('cargo.nombre_cargo', 'Estudiante') as $persona)
-                            <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_estudiante') == $persona->cedula ? 'selected' : '' }}>
-                                {{ $persona->nombres }} {{ $persona->apellidos }}
-                            </option>
+                        @foreach($personas as $persona)
+                            @if(strtolower(trim($persona->cargo)) === 'estudiante')
+                                <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_estudiante') == $persona->cedula ? 'selected' : '' }}>
+                                    {{ $persona->nombres }} {{ $persona->apellidos }}
+                                </option>
+                            @endif
                         @endforeach
                     </select>
                     <div class="cedula-mostrada mt-2">Cédula: <span id="cedula_estudiante_mostrada"></span></div>
@@ -386,10 +393,12 @@
                     <label for="director_nombre">Director</label>
                     <select id="director_nombre" class="form-control">
                         <option value="">Seleccione...</option>
-                        @foreach($personas->where('cargo.nombre_cargo', 'Docente') as $persona)
-                            <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_director') == $persona->cedula ? 'selected' : '' }}>
-                                {{ $persona->nombres }} {{ $persona->apellidos }}
-                            </option>
+                        @foreach($personas as $persona)
+                            @if(strtolower(trim($persona->cargo)) === 'docente')
+                                <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_director') == $persona->cedula ? 'selected' : '' }}>
+                                    {{ $persona->nombres }} {{ $persona->apellidos }}
+                                </option>
+                            @endif
                         @endforeach
                     </select>
                     <div class="cedula-mostrada mt-2">Cédula: <span id="cedula_director_mostrada"></span></div>
@@ -400,10 +409,12 @@
                     <label for="asesor1_nombre">Asesor 1</label>
                     <select id="asesor1_nombre" class="form-control">
                         <option value="">Seleccione...</option>
-                        @foreach($personas->where('cargo.nombre_cargo', 'Docente') as $persona)
-                            <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_asesor1') == $persona->cedula ? 'selected' : '' }}>
-                                {{ $persona->nombres }} {{ $persona->apellidos }}
-                            </option>
+                        @foreach($personas as $persona)
+                            @if(strtolower(trim($persona->cargo)) === 'docente')
+                                <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_asesor1') == $persona->cedula ? 'selected' : '' }}>
+                                    {{ $persona->nombres }} {{ $persona->apellidos }}
+                                </option>
+                            @endif
                         @endforeach
                     </select>
                     <div class="cedula-mostrada mt-2">Cédula: <span id="cedula_asesor1_mostrada"></span></div>

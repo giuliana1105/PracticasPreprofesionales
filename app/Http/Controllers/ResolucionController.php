@@ -7,27 +7,28 @@ use App\Models\Tema;
 use App\Models\ResTema;
 use App\Models\TipoResolucion;
 use App\Models\ResolucionSeleccionada;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+
 class ResolucionController extends Controller
 {
     public function __construct()
     {
-   
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        // Cambia para usar el campo string 'cargo'
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
     }
+
     public function index(Request $request)
     {
-         $user = Auth::user();
+        $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -65,17 +66,15 @@ class ResolucionController extends Controller
         return view('resoluciones.index', compact('resoluciones'));
     }
 
-
     public function createTemas(Request $request)
     {
-         $user = Auth::user();
+        $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-    
         $resolucionesIds = $request->input('resoluciones', []);
         $resolucionesSeleccionadas = Resolucion::whereIn('id_Reso', $resolucionesIds)->get();
         $temas = Tema::all();
@@ -83,17 +82,15 @@ class ResolucionController extends Controller
         return view('temas.create', compact('resolucionesSeleccionadas', 'temas'));
     }
 
-    // En ResolucionController.php
     public function procesarSeleccion(Request $request)
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-    
         $request->validate([
             'resoluciones' => 'required|array|min:1',
         ]);
@@ -108,32 +105,26 @@ class ResolucionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-    
         // Obtener los tipos de resolución para mostrarlos en el formulario
         $tipos = TipoResolucion::all();
 
         // Mostrar la vista para crear la resolución
-        
         return view('resoluciones.create', compact('tipos'));
     }
 
     public function storeTemas(Request $request)
     {
-         $user = Auth::user();
+        $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
-
-    
-        // Depurar los datos enviados desde el formulario
-        dd($request->all());
 
         // Validar los datos
         $request->validate([
@@ -167,14 +158,14 @@ class ResolucionController extends Controller
     }
 
     public function store(Request $request)
-    {  $user = Auth::user();
+    {
+        $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-    
         // Validar los datos del formulario
         $request->validate([
             'numero_res' => 'required|string|max:50',
@@ -200,9 +191,10 @@ class ResolucionController extends Controller
     }
 
     public function seleccionarResoluciones(Request $request)
-    {  $user = Auth::user();
+    {
+        $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -228,14 +220,14 @@ class ResolucionController extends Controller
     }
 
     public function cambiarResoluciones()
-    {  $user = Auth::user();
+    {
+        $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-    
         // Eliminar todas las resoluciones seleccionadas
         \App\Models\ResolucionSeleccionada::truncate();
 
@@ -243,71 +235,58 @@ class ResolucionController extends Controller
         return redirect()->route('resoluciones.index')->with('success', 'Resoluciones limpiadas. Seleccione nuevas resoluciones.');
     }
 
-    // public function destroy($id)
-    // {
-    //     $resolucion = Resolucion::findOrFail($id);
-
-    //     // Si tienes archivos asociados, puedes eliminarlos del storage si lo deseas:
-    //     // Storage::delete('public/resoluciones/' . $resolucion->archivo_pdf);
-
-    //     $resolucion->delete();
-
-    //     return redirect()->route('resoluciones.index')->with('success', 'Resolución eliminada exitosamente.');
-    // }
     public function destroy($id)
-{ $user = Auth::user();
+    {
+        $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-    
-    $resolucion = Resolucion::findOrFail($id);
+        $resolucion = Resolucion::findOrFail($id);
 
-    // Validar si la resolución está referenciada en otras tablas
-    // Puedes verificar relaciones como temas, titulaciones y resoluciones seleccionadas
-    $estaReferenciada = 
-        $resolucion->temas()->exists() || 
-        $resolucion->titulaciones()->exists() ||
-        $resolucion->resolucionesSeleccionadas()->exists();
+        // Validar si la resolución está referenciada en otras tablas
+        $estaReferenciada = 
+            $resolucion->temas()->exists() || 
+            $resolucion->titulaciones()->exists() ||
+            $resolucion->resolucionesSeleccionadas()->exists();
 
-    if ($estaReferenciada) {
-        return redirect()->route('resoluciones.index')
-            ->with('error', 'No se puede eliminar la resolución porque está referenciada en otra tabla.');
+        if ($estaReferenciada) {
+            return redirect()->route('resoluciones.index')
+                ->with('error', 'No se puede eliminar la resolución porque está referenciada en otra tabla.');
+        }
+
+        // Si tienes archivos asociados, puedes eliminarlos del storage si lo deseas:
+        // Storage::delete('public/' . $resolucion->archivo_pdf);
+
+        $resolucion->delete();
+
+        return redirect()->route('resoluciones.index')->with('success', 'Resolución eliminada exitosamente.');
     }
 
-    // Si tienes archivos asociados, puedes eliminarlos del storage si lo deseas:
-    // Storage::delete('public/' . $resolucion->archivo_pdf);
-
-    $resolucion->delete();
-
-    return redirect()->route('resoluciones.index')->with('success', 'Resolución eliminada exitosamente.');
-}
-
     public function show($id)
-    {  $user = Auth::user();
+    {
+        $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-    
         // Puedes dejarlo vacío o redirigir a index
         return redirect()->route('resoluciones.index');
     }
 
     public function edit($id)
     {
-          $user = Auth::user();
+        $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-    
         $resolucion = \App\Models\Resolucion::findOrFail($id);
         $tipos = \App\Models\TipoResolucion::all();
 
@@ -321,14 +300,13 @@ class ResolucionController extends Controller
 
     public function update(Request $request, $id)
     {
-          $user = Auth::user();
+        $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-    
         $resolucion = \App\Models\Resolucion::findOrFail($id);
 
         $request->validate([
