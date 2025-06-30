@@ -14,16 +14,21 @@ use Illuminate\Support\Facades\Validator;
 
 class PersonaController extends Controller
 {
-    // Cargos permitidos
+    // Cargos permitidos (agrega las variantes femenino/masculino)
     private $CARGOS_VALIDOS = [
         'secretario_general',
         'secretario',
+        'secretaria',
         'abogado',
+        'abogada',
         'decano',
+        'decana',
         'subdecano',
+        'subdecana',
         'docente',
         'estudiante',
         'coordinador',
+        'coordinadora',
     ];
 
     public function __construct()
@@ -376,7 +381,30 @@ class PersonaController extends Controller
                 // Cargos permitidos
                 $CARGOS_VALIDOS = $this->CARGOS_VALIDOS;
                 $cargo = strtolower(trim($normalizedRow['cargo']));
-                if (!in_array($cargo, $CARGOS_VALIDOS)) {
+
+                // Normalización para variantes masculino/femenino
+                $mapCargos = [
+                    'decano'        => ['decano', 'decana'],
+                    'subdecano'     => ['subdecano', 'subdecana'],
+                    'secretario'    => ['secretario', 'secretaria'],
+                    'abogado'       => ['abogado', 'abogada'],
+                    'coordinador'   => ['coordinador', 'coordinadora'],
+                    'docente'       => ['docente'],
+                    'estudiante'    => ['estudiante'],
+                    'secretario_general' => ['secretario_general'],
+                ];
+
+                // Busca el cargo normalizado
+                $cargoNormalizado = null;
+                foreach ($mapCargos as $base => $variantes) {
+                    if (in_array($cargo, $variantes)) {
+                        $cargoNormalizado = $base;
+                        break;
+                    }
+                }
+
+                // Si no se encuentra, es inválido
+                if (!$cargoNormalizado) {
                     $errores[$fila] = 'Cargo no válido: ' . $normalizedRow['cargo'];
                     continue;
                 }
@@ -408,7 +436,7 @@ class PersonaController extends Controller
                     'celular'    => $celular,
                     'email'      => $email,
                     'carrera_id' => $carrera->id_carrera,
-                    'cargo'      => $cargo,
+                    'cargo'      => $cargoNormalizado, // Guarda el cargo normalizado
                 ]);
 
                 // Crear usuario automáticamente si no existe
@@ -417,7 +445,7 @@ class PersonaController extends Controller
                         'name' => $persona->nombres . ' ' . $persona->apellidos,
                         'email' => $email,
                         'password' => Hash::make($cedula),
-                        'cargo' => $cargo,
+                        'cargo' => $cargoNormalizado,
                         'must_change_password' => true,
                     ]);
                 }
