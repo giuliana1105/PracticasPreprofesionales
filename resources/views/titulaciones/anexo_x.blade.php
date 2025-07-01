@@ -24,13 +24,22 @@
     <table>
         <thead>
             <tr>
-                <th>No.</th>
-                <th>Actividad</th>
-                <th>Cumplió cronograma<br>(MA/A/PA)</th>
-                <th>Resultados<br>(MA/A/PA)</th>
-                <th>Horas de asesoría</th>
-                <th>Observaciones</th>
-                <th>Fecha</th>
+                <th rowspan="2" style="background:#eee; vertical-align: middle;">No.</th>
+                <th rowspan="2" style="background:#eee; vertical-align: middle;">Actividad</th>
+                <th colspan="3" style="background:#eee;">CUMPLIÓ CRONOGRAMA</th>
+                <th colspan="3" style="background:#eee;">RESULTADOS</th>
+                <th rowspan="2" style="background:#eee; vertical-align: middle;">HORAS<br>asesoría</th>
+                <th rowspan="2" style="background:#eee; vertical-align: middle;">OBSERVACIONES</th>
+                <th rowspan="2" style="background:#eee; vertical-align: middle;">FECHA</th>
+                <th rowspan="2" style="background:#eee; vertical-align: middle;">FIRMA</th>
+            </tr>
+            <tr>
+                <th>MA</th>
+                <th>A</th>
+                <th>PA</th>
+                <th>MA</th>
+                <th>A</th>
+                <th>PA</th>
             </tr>
         </thead>
         <tbody>
@@ -56,19 +65,16 @@
             <tr>
                 <td>{{ '1.' . $fila }}</td>
                 <td>{{ $actividad }}</td>
-                <td>
-                    <span>@if($cumplio == 'Muy Aceptable') X @endif</span> MA
-                    <span>@if($cumplio == 'Aceptable') X @endif</span> A
-                    <span>@if($cumplio == 'Poco Aceptable') X @endif</span> PA
-                </td>
-                <td>
-                    <span>@if($resultados == 'Muy Aceptable') X @endif</span> MA
-                    <span>@if($resultados == 'Aceptable') X @endif</span> A
-                    <span>@if($resultados == 'Poco Aceptable') X @endif</span> PA
-                </td>
+                <td>@if($cumplio == 'Muy Aceptable') X @endif</td>
+                <td>@if($cumplio == 'Aceptable') X @endif</td>
+                <td>@if($cumplio == 'Poco Aceptable') X @endif</td>
+                <td>@if($resultados == 'Muy Aceptable') X @endif</td>
+                <td>@if($resultados == 'Aceptable') X @endif</td>
+                <td>@if($resultados == 'Poco Aceptable') X @endif</td>
                 <td>{{ $horas }}</td>
                 <td>{{ $observaciones }}</td>
                 <td>{{ \Carbon\Carbon::parse($fecha)->format('d/m/Y H:i') }}</td>
+                <td></td> {{-- Columna de firma vacía --}}
             </tr>
             @php $fila++; @endphp
         @endforeach
