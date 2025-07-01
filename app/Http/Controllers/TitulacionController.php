@@ -660,6 +660,52 @@ class TitulacionController extends Controller
         $pdf = PDF::loadView('titulaciones.pdf', compact('titulaciones', 'titulo'));
         return $pdf->stream('titulaciones_filtradas.pdf');
     }
+
+    public function generarAnexoX($id)
+    {
+        $titulacion = Titulacion::with([
+            'directorPersona',
+            'asesor1Persona',
+            'estudiantePersona.carreras',
+            'avanceHistorial.docente'
+        ])->findOrFail($id);
+
+        // Obtener la carrera (puede tener varias, toma la primera o todas separadas por /)
+        $carrera = '';
+        if ($titulacion->estudiantePersona && $titulacion->estudiantePersona->carreras && $titulacion->estudiantePersona->carreras->count()) {
+            $carrera = $titulacion->estudiantePersona->carreras->pluck('siglas_carrera')->implode(' / ');
+        } elseif ($titulacion->estudiantePersona && $titulacion->estudiantePersona->carrera) {
+            $carrera = $titulacion->estudiantePersona->carrera->siglas_carrera;
+        }
+
+        // Prepara los datos para el PDF
+        $data = [
+            'tema' => $titulacion->tema,
+            'director' => $titulacion->directorPersona ? ($titulacion->directorPersona->nombres . ' ' . $titulacion->directorPersona->apellidos) : '',
+            'asesor_tic' => $titulacion->asesor1Persona ? ($titulacion->asesor1Persona->nombres . ' ' . $titulacion->asesor1Persona->apellidos) : '',
+            'facultad' => 'FACULTAD DE INGENIERÍA', // Valor por defecto
+            'carrera' => $carrera,
+            'autor' => $titulacion->estudiantePersona ? ($titulacion->estudiantePersona->nombres . ' ' . $titulacion->estudiantePersona->apellidos) : '',
+            // Solo actividades de los campos requeridos, ordenadas por fecha
+            'actividades' => $titulacion->avanceHistorial
+                ->whereIn('campo', [
+                    'actividades_cronograma',
+                    'cumplio_cronograma',
+                    'resultados',
+                    'horas_asesoria',
+                    'observaciones'
+                ])
+                ->sortBy('created_at')
+                ->groupBy(function($item, $key) {
+                    // Agrupa por edición (cada edición es un set de los 5 campos en la misma fecha)
+                    return $item->created_at->format('Y-m-d H:i:s');
+                }),
+            'historial' => $titulacion->avanceHistorial->sortBy('created_at'),
+        ];
+
+        $pdf = PDF::loadView('titulaciones.anexo_x', $data);
+        return $pdf->download('Anexo_X.pdf');
+    }
 }
 
 

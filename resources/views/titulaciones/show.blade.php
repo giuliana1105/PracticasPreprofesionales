@@ -264,5 +264,14 @@
             </a>
         </div>
     @endif
+    <!-- Ejemplo en Blade o HTML -->
+    <a href="#" id="btn-anexo-x" class="btn btn-primary">Anexo X</a>
+
+    <script>
+        document.getElementById('btn-anexo-x').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.open('/titulaciones/{{ $titulacion->id_titulacion }}/anexo-x', '_blank');
+        });
+    </script>
 </div>
 @endsection

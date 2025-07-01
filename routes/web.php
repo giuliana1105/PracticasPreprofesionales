@@ -71,6 +71,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('password/change', [PasswordChangeController::class, 'showChangeForm'])->name('password.change');
     Route::post('password/change', [PasswordChangeController::class, 'change']);
+    Route::get('/titulaciones/{id}/anexo-x', [TitulacionController::class, 'generarAnexoX'])->name('titulaciones.anexo-x');
 });
 
 // Rutas de autenticación

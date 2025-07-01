@@ -286,7 +286,11 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Cédula Estudiante</label>
-                <input type="text" id="cedula_estudiante" name="cedula_estudiante" class="form-control" readonly>
+                @if($esDocente)
+                    <input type="text" class="form-control" value="{{ $personaEstudiante->cedula ?? '' }}" readonly>
+                @else
+                    <input type="text" id="cedula_estudiante" name="cedula_estudiante" class="form-control" readonly>
+                @endif
             </div>
 
             {{-- Director --}}
@@ -311,7 +315,11 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Cédula Director</label>
-                <input type="text" id="cedula_director" name="cedula_director" class="form-control" readonly>
+                @if($esDocente)
+                    <input type="text" class="form-control" value="{{ $personaDirector->cedula ?? '' }}" readonly>
+                @else
+                    <input type="text" id="cedula_director" name="cedula_director" class="form-control" readonly>
+                @endif
             </div>
 
             {{-- Asesor 1 --}}
@@ -336,7 +344,11 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Cédula Asesor 1</label>
-                <input type="text" id="cedula_asesor1" name="cedula_asesor1" class="form-control" readonly>
+                @if($esDocente)
+                    <input type="text" class="form-control" value="{{ $personaAsesor->cedula ?? '' }}" readonly>
+                @else
+                    <input type="text" id="cedula_asesor1" name="cedula_asesor1" class="form-control" readonly>
+                @endif
             </div>
 
             {{-- Periodo --}}
