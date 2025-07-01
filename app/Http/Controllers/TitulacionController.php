@@ -177,7 +177,17 @@ class TitulacionController extends Controller
 
         $docentes = Persona::whereRaw("LOWER(cargo) = 'docente'")->orderBy('nombres')->get();
 
-        return view('titulaciones.create', compact('periodos', 'estados', 'resolucionesSeleccionadas','personas', 'docentes'));
+        // Obtener todos los cargos distintos de la tabla personas
+        $cargosEstablecidos = Persona::select('cargo')
+            ->distinct()
+            ->whereNotNull('cargo')
+            ->orderBy('cargo')
+            ->pluck('cargo')
+            ->toArray();
+
+        return view('titulaciones.create', compact(
+            'periodos', 'estados', 'resolucionesSeleccionadas', 'personas', 'docentes', 'cargosEstablecidos'
+        ));
     }
 
     public function store(Request $request)

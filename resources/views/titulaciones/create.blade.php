@@ -2,13 +2,16 @@
 
 @section('content')
 
+
 @php
     $user = auth()->user();
     $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
-    $esEstudiante = $persona && strtolower(trim($persona->cargo ?? '')) === 'estudiante';
-    $esDocente = $persona && strtolower(trim($persona->cargo ?? '')) === 'docente';
-    $esCoordinador = $persona && strtolower(trim($persona->cargo ?? '')) === 'coordinador';
-    $esDecano = $persona && strtolower(trim($persona->cargo ?? '')) === 'decano';
+    $cargo = $persona ? strtolower(trim($persona->cargo ?? '')) : '';
+    $esEstudiante = $cargo === 'estudiante';
+    $esDocente = $cargo === 'docente';
+    $esCoordinador = $cargo === 'coordinador';
+    $esDecano = $cargo === 'decano';
+@endphp
 @endphp
 
 @if(in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano']))
