@@ -262,23 +262,29 @@
             <a href="{{ asset('storage/' . $titulacion->acta_grado) }}" target="_blank" class="btn btn-outline-primary btn-sm" style="border: 1px solid #d32f2f;">
                 <i class="fas fa-file-pdf"></i> Ver acta de grado
             </a>
-            <a href="#" id="btn-anexo-x" class="btn btn-outline-primary btn-sm" style="border: 1px solid #d32f2f;">
-                <i class="fas fa-file-pdf"></i> Anexo X
-            </a>
+            @if(!$esEstudiante)
+                <a href="#" id="btn-anexo-x" class="btn btn-outline-primary btn-sm" style="border: 1px solid #d32f2f;">
+                    <i class="fas fa-file-pdf"></i> Anexo X
+                </a>
+            @endif
         </div>
     @else
-        <div class="mt-2">
-            <a href="#" id="btn-anexo-x" class="btn btn-outline-primary btn-sm" style="border: 1px solid #d32f2f;">
-                <i class="fas fa-file-pdf"></i> Anexo X
-            </a>
-        </div>
+        @if(!$esEstudiante)
+            <div class="mt-2">
+                <a href="#" id="btn-anexo-x" class="btn btn-outline-primary btn-sm" style="border: 1px solid #d32f2f;">
+                    <i class="fas fa-file-pdf"></i> Anexo X
+                </a>
+            </div>
+        @endif
     @endif
 
+    @if(!$esEstudiante)
     <script>
         document.getElementById('btn-anexo-x').addEventListener('click', function(e) {
             e.preventDefault();
             window.open('/titulaciones/{{ $titulacion->id_titulacion }}/anexo-x', '_blank');
         });
     </script>
+    @endif
 </div>
 @endsection

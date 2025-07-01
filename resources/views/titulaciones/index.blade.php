@@ -12,19 +12,6 @@
     $esCoordinador = $persona && $cargo === 'coordinador';
 @endphp
 
-
-@php
-    $esEstudiante = $persona && strtolower(trim($persona->cargo ?? '')) === 'estudiante';
-    $esDocente = $persona && strtolower(trim($persona->cargo ?? '')) === 'docente';
-    $esCoordinador = $persona && strtolower(trim($persona->cargo ?? '')) === 'coordinador';
-    $esDecano = $persona && strtolower(trim($persona->cargo ?? '')) === 'decano';
-@endphp
-
-@if($esEstudiante || $esCoordinador)
-    <div class="alert alert-danger">No autorizado.</div>
-    @php exit; @endphp
-@endif
-
 <style>
     body {
         background-color: #e9ecef;
@@ -558,33 +545,28 @@
                             <a href="{{ route('titulaciones.show', $tit->id_titulacion) }}" class="btn btn-outline-primary btn-sm mx-1 mb-1" style="border: 1px solid #d32f2f;">
                                 <i class="fas fa-file-pdf"></i> Ver detalles
                             </a>
-                            @if(!$esEstudiante && !$esDocente && !$esDecano && !$esCoordinador)
-                                <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" class="btn btn-sm btn-warning mx-1 mb-1" title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form action="{{ route('titulaciones.destroy', $tit->id_titulacion) }}" method="POST" class="d-inline mx-1 mb-1">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Está seguro de eliminar esta titulación?')" title="Eliminar">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
-                            @elseif($esDocente)
-                                <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" class="btn btn-sm btn-warning mx-1 mb-1" title="Editar avance y observaciones">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                            @endif
-                            @if($tit->estado && strtolower($tit->estado->nombre_estado) === 'graduado')
-                                @if($tit->acta_grado)
+                            @if($esEstudiante)
+                                @if($tit->estado && strtolower($tit->estado->nombre_estado) === 'graduado' && $tit->acta_grado)
                                     <a href="{{ asset('storage/' . $tit->acta_grado) }}" target="_blank" class="btn btn-outline-primary btn-sm mx-1 mb-1" style="border: 1px solid #d32f2f;">
                                         <i class="fas fa-file-pdf"></i> Ver acta de grado
                                     </a>
-                                @else
-                                    @if(!$esEstudiante && !$esDocente && !$esDecano && !$esCoordinador)
-                                        <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}#acta_grado" class="btn btn-info btn-sm mx-1 mb-1">
-                                            Subir acta de grado
-                                        </a>
-                                    @endif
+                                @endif
+                            @else
+                                @if(!$esEstudiante && !$esDocente && !$esDecano && !$esCoordinador)
+                                    <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" class="btn btn-sm btn-warning mx-1 mb-1" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ route('titulaciones.destroy', $tit->id_titulacion) }}" method="POST" class="d-inline mx-1 mb-1">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Está seguro de eliminar esta titulación?')" title="Eliminar">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                @elseif($esDocente)
+                                    <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" class="btn btn-sm btn-warning mx-1 mb-1" title="Editar avance y observaciones">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
                                 @endif
                             @endif
                         </div>
