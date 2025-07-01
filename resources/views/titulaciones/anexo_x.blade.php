@@ -64,23 +64,32 @@
             </tr>
         </thead>
         <tbody>
-        @php $fila = 1; @endphp
+        @php
+            $grupo = 1;
+            $sub = 1;
+        @endphp
         @foreach($actividades as $actividad)
-        <tr>
-            <td>{{ $fila }}</td>
-            <td>{{ $actividad['actividad'] }}</td>
-            <td>@if($actividad['cumplio'] == 'Muy Aceptable') X @endif</td>
-            <td>@if($actividad['cumplio'] == 'Aceptable') X @endif</td>
-            <td>@if($actividad['cumplio'] == 'Poco Aceptable') X @endif</td>
-            <td>@if($actividad['resultados'] == 'Muy Aceptable') X @endif</td>
-            <td>@if($actividad['resultados'] == 'Aceptable') X @endif</td>
-            <td>@if($actividad['resultados'] == 'Poco Aceptable') X @endif</td>
-            <td>{{ $actividad['horas'] }}</td>
-            <td>{{ $actividad['observaciones'] }}</td>
-            <td>{{ \Carbon\Carbon::parse($actividad['fecha'])->format('d/m/Y') }}</td>
-            <td style="width: 180px;"></td>
-        </tr>
-        @php $fila++; @endphp
+            <tr>
+                <td>{{ $grupo . '.' . $sub }}</td>
+                <td>{{ $actividad['actividad'] }}</td>
+                <td>@if($actividad['cumplio'] == 'Muy Aceptable') X @endif</td>
+                <td>@if($actividad['cumplio'] == 'Aceptable') X @endif</td>
+                <td>@if($actividad['cumplio'] == 'Poco Aceptable') X @endif</td>
+                <td>@if($actividad['resultados'] == 'Muy Aceptable') X @endif</td>
+                <td>@if($actividad['resultados'] == 'Aceptable') X @endif</td>
+                <td>@if($actividad['resultados'] == 'Poco Aceptable') X @endif</td>
+                <td>{{ $actividad['horas'] }}</td>
+                <td>{{ $actividad['observaciones'] }}</td>
+                <td>{{ \Carbon\Carbon::parse($actividad['fecha'])->format('d/m/Y') }}</td>
+                <td style="width: 180px;"></td>
+            </tr>
+            @php
+                $sub++;
+                if($sub > 3) {
+                    $grupo++;
+                    $sub = 1;
+                }
+            @endphp
         @endforeach
         </tbody>
     </table>
