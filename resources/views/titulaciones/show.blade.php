@@ -262,10 +262,17 @@
             <a href="{{ asset('storage/' . $titulacion->acta_grado) }}" target="_blank" class="btn btn-outline-primary btn-sm" style="border: 1px solid #d32f2f;">
                 <i class="fas fa-file-pdf"></i> Ver acta de grado
             </a>
+            <a href="#" id="btn-anexo-x" class="btn btn-outline-primary btn-sm" style="border: 1px solid #d32f2f;">
+                <i class="fas fa-file-pdf"></i> Anexo X
+            </a>
+        </div>
+    @else
+        <div class="mt-2">
+            <a href="#" id="btn-anexo-x" class="btn btn-outline-primary btn-sm" style="border: 1px solid #d32f2f;">
+                <i class="fas fa-file-pdf"></i> Anexo X
+            </a>
         </div>
     @endif
-    <!-- Ejemplo en Blade o HTML -->
-    <a href="#" id="btn-anexo-x" class="btn btn-primary">Anexo X</a>
 
     <script>
         document.getElementById('btn-anexo-x').addEventListener('click', function(e) {
