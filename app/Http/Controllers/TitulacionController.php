@@ -775,7 +775,7 @@ class TitulacionController extends Controller
         ];
 
         $pdf = PDF::loadView('titulaciones.anexo_x', $data)->setPaper('a4', 'landscape');
-        return $pdf->download('Anexo_X.pdf');
+        return $pdf->stream('Anexo_X.pdf');
     }
 }
 

@@ -11,7 +11,7 @@
     $esDocente = $cargo === 'docente';
     $esCoordinador = $cargo === 'coordinador';
     $esDecano = $cargo === 'decano';
-@endphp
+
 @endphp
 
 @if(in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano']))
