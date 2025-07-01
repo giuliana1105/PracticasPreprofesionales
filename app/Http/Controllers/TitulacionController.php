@@ -678,32 +678,93 @@ class TitulacionController extends Controller
             $carrera = $titulacion->estudiantePersona->carrera->siglas_carrera;
         }
 
-        // Prepara los datos para el PDF
+        // Valores actuales de la titulación
+        $valoresActuales = [
+            'actividades_cronograma' => $titulacion->actividades_cronograma,
+            'cumplio_cronograma' => $titulacion->cumplio_cronograma,
+            'resultados' => $titulacion->resultados,
+            'horas_asesoria' => $titulacion->horas_asesoria,
+            'observaciones' => $titulacion->observaciones,
+        ];
+
+        // Agrupa los cambios por fecha
+        $historial = $titulacion->avanceHistorial
+            ->whereIn('campo', [
+                'actividades_cronograma',
+                'cumplio_cronograma',
+                'resultados',
+                'horas_asesoria',
+                'observaciones'
+            ])
+            ->sortBy('created_at')
+            ->groupBy(function($item, $key) {
+                return $item->created_at->format('Y-m-d H:i:s');
+            });
+
+        // Construye el arreglo de actividades para la tabla
+        $actividades = [];
+        foreach ($historial as $fecha => $cambios) {
+            // Inicializa con los valores actuales
+            $actividad = $valoresActuales['actividades_cronograma'];
+            $cumplio = $valoresActuales['cumplio_cronograma'];
+            $resultados = $valoresActuales['resultados'];
+            $horas = $valoresActuales['horas_asesoria'];
+            $observaciones = $valoresActuales['observaciones'];
+
+            // Si hay cambios, sobrescribe solo los campos editados
+            foreach ($cambios as $cambio) {
+                switch ($cambio->campo) {
+                    case 'actividades_cronograma':
+                        if (!empty($cambio->valor_nuevo)) $actividad = $cambio->valor_nuevo;
+                        break;
+                    case 'cumplio_cronograma':
+                        if (!empty($cambio->valor_nuevo)) $cumplio = $cambio->valor_nuevo;
+                        break;
+                    case 'resultados':
+                        if (!empty($cambio->valor_nuevo)) $resultados = $cambio->valor_nuevo;
+                        break;
+                    case 'horas_asesoria':
+                        if (!empty($cambio->valor_nuevo)) $horas = $cambio->valor_nuevo;
+                        break;
+                    case 'observaciones':
+                        if (!empty($cambio->valor_nuevo)) $observaciones = $cambio->valor_nuevo;
+                        break;
+                }
+            }
+
+            $actividades[$fecha] = [
+                'actividad' => $actividad,
+                'cumplio' => $cumplio,
+                'resultados' => $resultados,
+                'horas' => $horas,
+                'observaciones' => $observaciones,
+                'fecha' => $fecha,
+            ];
+        }
+
+        // Si no hay historial, muestra los valores actuales
+        if (empty($actividades)) {
+            $actividades[] = [
+                'actividad' => $valoresActuales['actividades_cronograma'],
+                'cumplio' => $valoresActuales['cumplio_cronograma'],
+                'resultados' => $valoresActuales['resultados'],
+                'horas' => $valoresActuales['horas_asesoria'],
+                'observaciones' => $valoresActuales['observaciones'],
+                'fecha' => now()->format('Y-m-d'),
+            ];
+        }
+
         $data = [
             'tema' => $titulacion->tema,
             'director' => $titulacion->directorPersona ? ($titulacion->directorPersona->nombres . ' ' . $titulacion->directorPersona->apellidos) : '',
             'asesor_tic' => $titulacion->asesor1Persona ? ($titulacion->asesor1Persona->nombres . ' ' . $titulacion->asesor1Persona->apellidos) : '',
-            'facultad' => 'FACULTAD DE INGENIERÍA', // Valor por defecto
+            'facultad' => 'FACULTAD DE INGENIERÍA',
             'carrera' => $carrera,
             'autor' => $titulacion->estudiantePersona ? ($titulacion->estudiantePersona->nombres . ' ' . $titulacion->estudiantePersona->apellidos) : '',
-            // Solo actividades de los campos requeridos, ordenadas por fecha
-            'actividades' => $titulacion->avanceHistorial
-                ->whereIn('campo', [
-                    'actividades_cronograma',
-                    'cumplio_cronograma',
-                    'resultados',
-                    'horas_asesoria',
-                    'observaciones'
-                ])
-                ->sortBy('created_at')
-                ->groupBy(function($item, $key) {
-                    // Agrupa por edición (cada edición es un set de los 5 campos en la misma fecha)
-                    return $item->created_at->format('Y-m-d H:i:s');
-                }),
-            'historial' => $titulacion->avanceHistorial->sortBy('created_at'),
+            'actividades' => $actividades,
         ];
 
-        $pdf = PDF::loadView('titulaciones.anexo_x', $data);
+        $pdf = PDF::loadView('titulaciones.anexo_x', $data)->setPaper('a4', 'landscape');
         return $pdf->download('Anexo_X.pdf');
     }
 }

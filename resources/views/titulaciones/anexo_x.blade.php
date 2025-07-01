@@ -10,10 +10,31 @@
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #333; padding: 4px 6px; text-align: center; }
         th { background: #eee; }
+        .pagenum:before { content: counter(page); }
+        .pagecount:before { content: counter(pages); }
     </style>
 </head>
 <body>
-    <h2 style="text-align:center;">ANEXO X</h2>
+    <table width="100%" style="margin-bottom: 10px; border: none;">
+        <tr>
+            <td width="15%" align="left" style="border: none;">
+                <img src="{{ public_path('img/logo_ecuador.jpg') }}" alt="Escudo Ecuador" style="height:70px;">
+            </td>
+            <td width="70%" align="center" style="font-size:13px; border: none;">
+                <strong>UNIVERSIDAD TÉCNICA DEL NORTE</strong><br>
+                Acreditada Resolución Nro. 173-SE-33-CACES-2020<br>
+                <strong>FACULTAD DE INGENIERÍA EN CIENCIAS APLICADAS</strong><br>
+                SUBDECANATO
+            </td>
+            <td width="15%" align="right" style="border: none;">
+                <img src="{{ public_path('img/logo_utn.jpg') }}" alt="Logo UTN" style="height:70px;">
+            </td>
+        </tr>
+    </table>
+    <p style="color:#003366; font-size:12px; margin-bottom:20px; text-align:left;">
+        <span style="font-weight:bold; color:#003366;">ANEXO X.</span>
+        <span style="color:#003366;">Evaluación de la Fase de Desarrollo del Informe Final del TIC. (tutorías de titulación)</span>
+    </p>
     <p><strong>Tema:</strong> {{ $tema }}</p>
     <p><strong>Director:</strong> {{ $director }}</p>
     <p><strong>Asesor TIC:</strong> {{ $asesor_tic }}</p>
@@ -31,7 +52,7 @@
                 <th rowspan="2" style="background:#eee; vertical-align: middle;">HORAS<br>asesoría</th>
                 <th rowspan="2" style="background:#eee; vertical-align: middle;">OBSERVACIONES</th>
                 <th rowspan="2" style="background:#eee; vertical-align: middle;">FECHA</th>
-                <th rowspan="2" style="background:#eee; vertical-align: middle;">FIRMA</th>
+                <th rowspan="2" style="background:#eee; vertical-align: middle; width: 180px;">FIRMA</th>
             </tr>
             <tr>
                 <th>MA</th>
@@ -44,41 +65,36 @@
         </thead>
         <tbody>
         @php $fila = 1; @endphp
-        @foreach($actividades as $fecha => $cambios)
-            @php
-                // Inicializa valores por defecto
-                $actividad = '';
-                $cumplio = '';
-                $resultados = '';
-                $horas = '';
-                $observaciones = '';
-                foreach($cambios as $cambio) {
-                    switch($cambio->campo) {
-                        case 'actividades_cronograma': $actividad = $cambio->valor_nuevo; break;
-                        case 'cumplio_cronograma': $cumplio = $cambio->valor_nuevo; break;
-                        case 'resultados': $resultados = $cambio->valor_nuevo; break;
-                        case 'horas_asesoria': $horas = $cambio->valor_nuevo; break;
-                        case 'observaciones': $observaciones = $cambio->valor_nuevo; break;
-                    }
-                }
-            @endphp
-            <tr>
-                <td>{{ '1.' . $fila }}</td>
-                <td>{{ $actividad }}</td>
-                <td>@if($cumplio == 'Muy Aceptable') X @endif</td>
-                <td>@if($cumplio == 'Aceptable') X @endif</td>
-                <td>@if($cumplio == 'Poco Aceptable') X @endif</td>
-                <td>@if($resultados == 'Muy Aceptable') X @endif</td>
-                <td>@if($resultados == 'Aceptable') X @endif</td>
-                <td>@if($resultados == 'Poco Aceptable') X @endif</td>
-                <td>{{ $horas }}</td>
-                <td>{{ $observaciones }}</td>
-                <td>{{ \Carbon\Carbon::parse($fecha)->format('d/m/Y H:i') }}</td>
-                <td></td> {{-- Columna de firma vacía --}}
-            </tr>
-            @php $fila++; @endphp
+        @foreach($actividades as $actividad)
+        <tr>
+            <td>{{ $fila }}</td>
+            <td>{{ $actividad['actividad'] }}</td>
+            <td>@if($actividad['cumplio'] == 'Muy Aceptable') X @endif</td>
+            <td>@if($actividad['cumplio'] == 'Aceptable') X @endif</td>
+            <td>@if($actividad['cumplio'] == 'Poco Aceptable') X @endif</td>
+            <td>@if($actividad['resultados'] == 'Muy Aceptable') X @endif</td>
+            <td>@if($actividad['resultados'] == 'Aceptable') X @endif</td>
+            <td>@if($actividad['resultados'] == 'Poco Aceptable') X @endif</td>
+            <td>{{ $actividad['horas'] }}</td>
+            <td>{{ $actividad['observaciones'] }}</td>
+            <td>{{ \Carbon\Carbon::parse($actividad['fecha'])->format('d/m/Y') }}</td>
+            <td style="width: 180px;"></td>
+        </tr>
+        @php $fila++; @endphp
         @endforeach
         </tbody>
+    </table>
+
+    <br><br>
+    <table width="100%" style="border: none; page-break-inside: avoid;">
+        <tr>
+            <td style="border: none; text-align: left;">
+                Firma del estudiante: <span style="display:inline-block; width:250px; border-bottom:1px dotted #000;">&nbsp;</span>
+            </td>
+            <td style="border: none; text-align: left;">
+                Firma del Coordinador de la carrera: <span style="display:inline-block; width:250px; border-bottom:1px dotted #000;">&nbsp;</span>
+            </td>
+        </tr>
     </table>
 </body>
 </html>
