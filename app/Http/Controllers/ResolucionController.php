@@ -33,7 +33,7 @@ class ResolucionController extends Controller
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-        $query = Resolucion::with('tipoResolucion');
+        $query = Resolucion::with(['tipoResolucion', 'carrera']);
 
         // Filtro de búsqueda
         if ($request->filled('buscar')) {
@@ -112,9 +112,10 @@ class ResolucionController extends Controller
 
         // Obtener los tipos de resolución para mostrarlos en el formulario
         $tipos = TipoResolucion::all();
+        $carreras = \App\Models\Carrera::all();
 
         // Mostrar la vista para crear la resolución
-        return view('resoluciones.create', compact('tipos'));
+        return view('resoluciones.create', compact('tipos', 'carreras'));
     }
 
     public function storeTemas(Request $request)
@@ -171,7 +172,8 @@ class ResolucionController extends Controller
             'numero_res' => 'required|string|max:50',
             'fecha_res' => 'required|date_format:Y-m-d',
             'tipo_res' => 'required|exists:tipo_resoluciones,id_tipo_res',
-            'archivo_pdf' => 'required|file|mimes:pdf|max:2048'
+            'archivo_pdf' => 'required|file|mimes:pdf|max:2048',
+            'carrera_id' => 'required|exists:carreras,id_carrera',
         ]);
 
         // Almacenar el archivo PDF
@@ -182,7 +184,8 @@ class ResolucionController extends Controller
             'numero_res' => $request->numero_res,
             'fecha_res' => $request->fecha_res,
             'tipo_res' => $request->tipo_res,
-            'archivo_pdf' => $archivoPath // Guardar la ruta relativa, ej: resoluciones/archivo.pdf
+            'archivo_pdf' => $archivoPath, // Guardar la ruta relativa, ej: resoluciones/archivo.pdf
+            'carrera_id' => $request->carrera_id,
         ]);
 
         // Redirigir a la lista de resoluciones with a success message
@@ -289,13 +292,14 @@ class ResolucionController extends Controller
 
         $resolucion = \App\Models\Resolucion::findOrFail($id);
         $tipos = \App\Models\TipoResolucion::all();
+        $carreras = \App\Models\Carrera::all();
 
         // Agrega la URL del archivo igual que en index
         $resolucion->archivo_url = $resolucion->archivo_pdf
             ? asset('storage/' . $resolucion->archivo_pdf)
             : null;
 
-        return view('resoluciones.edit', compact('resolucion', 'tipos'));
+        return view('resoluciones.edit', compact('resolucion', 'tipos', 'carreras'));
     }
 
     public function update(Request $request, $id)
@@ -313,14 +317,15 @@ class ResolucionController extends Controller
             'numero_res' => 'required|string|max:255',
             'fecha_res' => 'required|date',
             'tipo_res' => 'required|exists:tipo_resoluciones,id_tipo_res',
-            // Si permites actualizar el PDF:
             'archivo_pdf' => 'nullable|file|mimes:pdf|max:2048',
+            'carrera_id' => 'required|exists:carreras,id_carrera',
         ]);
 
         $data = [
             'numero_res' => $request->numero_res,
             'fecha_res' => $request->fecha_res,
             'tipo_res' => $request->tipo_res,
+            'carrera_id' => $request->carrera_id,
         ];
 
         // Si se sube un nuevo archivo PDF, reemplázalo

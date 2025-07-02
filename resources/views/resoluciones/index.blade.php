@@ -484,6 +484,7 @@
                     <th>Número</th>
                     <th>Fecha aprobación</th>
                     <th>Tipo de Resolución</th>
+                    <th>Carrera</th>
                     <th>Ver PDF</th>
                     <th>Acciones</th>
                 </tr>
@@ -497,6 +498,9 @@
                         <td class="align-middle">{{ $resolucion->numero_res }}</td>
                         <td class="align-middle">{{ $resolucion->fecha_res }}</td>
                         <td class="align-middle">{{ $resolucion->tipoResolucion->nombre_tipo_res ?? '-' }}</td>
+                        <td class="align-middle">
+                            {{ $resolucion->carrera ? $resolucion->carrera->siglas_carrera : '-' }}
+                        </td>
                         <td class="align-middle">
                             @if($resolucion->archivo_url)
                                 <a href="{{ $resolucion->archivo_url }}" target="_blank"

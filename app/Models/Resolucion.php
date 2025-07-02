@@ -16,7 +16,8 @@ class Resolucion extends Model
         'fecha_res',
         'tipo_res',
         'archivo_pdf',
-        'seleccionada' // Agregar esta columna si no está incluida
+        'seleccionada', // si la usas
+        'carrera_id',   // <-- AGREGA ESTA LÍNEA
     ];
 
     // Relación con TipoResolucion
@@ -41,5 +42,10 @@ class Resolucion extends Model
     public function titulaciones()
     {
         return $this->belongsToMany(Titulacion::class, 'res_temas', 'resolucion_id', 'titulacion_id');
+    }
+
+    public function carrera()
+    {
+        return $this->belongsTo(\App\Models\Carrera::class, 'carrera_id', 'id_carrera');
     }
 }

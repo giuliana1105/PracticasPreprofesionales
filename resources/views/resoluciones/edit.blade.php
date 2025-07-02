@@ -271,6 +271,21 @@
                 @enderror
             </div>
 
+            <div class="form-group mb-3">
+                <label for="carrera_id" class="form-label">Carrera</label>
+                <select name="carrera_id" id="carrera_id" class="form-control @error('carrera_id') is-invalid @enderror" required>
+                    <option value="">Seleccione una carrera</option>
+                    @foreach($carreras as $carrera)
+                        <option value="{{ $carrera->id_carrera }}" {{ old('carrera_id', $resolucion->carrera_id) == $carrera->id_carrera ? 'selected' : '' }}>
+                            {{ $carrera->siglas_carrera }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('carrera_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
             <div class="form-group">
                 <label class="form-label">Archivo Actual:</label>
                 <div class="mb-2">
