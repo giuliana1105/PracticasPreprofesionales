@@ -468,18 +468,20 @@
                         value="{{ request('busqueda') }}"
                         placeholder="Nombre del estudiante...">
                 </div>
-                <div class="mb-2 me-3">
-                    <label for="carrera_filtro" class="form-label mb-1 fw-bold">Carrera</label>
-                    <select name="carrera_filtro" id="carrera_filtro" class="form-control">
-                        <option value="">-- Todas --</option>
-                        @foreach($carreras as $carrera)
-                            <option value="{{ $carrera->siglas_carrera }}" 
-                                {{ strtolower(request('carrera_filtro')) == strtolower($carrera->siglas_carrera) ? 'selected' : '' }}>
-                                {{ $carrera->siglas_carrera }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                @if(!$esCoordinador || ($carreras->count() > 1))
+                    {{-- Aquí va el filtro de carreras --}}
+                    <div class="mb-2 me-3">
+                        <label for="carrera_filtro" class="form-label mb-1 fw-bold">Carrera</label>
+                        <select name="carrera_filtro" id="carrera_filtro" class="form-control">
+                            <option value="">-- Todas --</option>
+                            @foreach($carreras as $carrera)
+                                <option value="{{ $carrera->siglas_carrera }}" {{ (is_array(request('carrera_filtro')) ? in_array($carrera->siglas_carrera, request('carrera_filtro')) : request('carrera_filtro') == $carrera->siglas_carrera) ? 'selected' : '' }}>
+                                    {{ $carrera->siglas_carrera }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
             </div>
             <div class="d-flex flex-wrap gap-2 mt-2">
                 <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
