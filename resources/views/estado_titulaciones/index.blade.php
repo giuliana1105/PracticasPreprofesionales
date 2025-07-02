@@ -411,18 +411,14 @@
                                title="Editar">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <form action="{{ route('estado-titulaciones.destroy', ['estado_titulacione' => $estado->id_estado]) }}"
-                                  method="POST"
-                                  class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit"
-                                        class="btn btn-sm btn-danger mx-1"
-                                        onclick="return confirm('¿Está seguro de eliminar este estado?')"
-                                        title="Eliminar">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </form>
+                            <button type="button"
+                                    class="btn btn-sm btn-danger mx-1"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalEliminarEstado"
+                                    data-id="{{ $estado->id_estado }}"
+                                    title="Eliminar">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -436,6 +432,29 @@
     </div>
 </div>
 
+<!-- Modal de confirmación de eliminación -->
+<div class="modal fade" id="modalEliminarEstado" tabindex="-1" aria-labelledby="modalEliminarEstadoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalEliminarEstadoLabel">Confirmar eliminación</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        ¿Está seguro de eliminar este estado?
+      </div>
+      <div class="modal-footer">
+        <form id="formEliminarEstado" method="POST" action="">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 <script>
@@ -445,6 +464,17 @@
             el.style.display = 'none';
         });
     }, 10000);
+
+    // Script para pasar el ID al formulario del modal
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('modalEliminarEstado');
+        modal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var estadoId = button.getAttribute('data-id');
+            var form = document.getElementById('formEliminarEstado');
+            form.action = '/estado-titulaciones/' + estadoId;
+        });
+    });
 </script>
 @endpush
 @endsection

@@ -307,13 +307,13 @@
                                 <a href="{{ route('periodos.edit', $periodo->id_periodo) }}" class="btn btn-sm btn-warning mx-1">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('periodos.destroy', $periodo->id_periodo) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger mx-1" onclick="return confirm('¿Está seguro de eliminar este período?')">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
+                                <button type="button"
+                                    class="btn btn-sm btn-danger mx-1"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalEliminarPeriodo"
+                                    data-id="{{ $periodo->id_periodo }}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -326,6 +326,30 @@
         </table>
     </div>
 </div>
+
+<!-- Modal de confirmación de eliminación -->
+<div class="modal fade" id="modalEliminarPeriodo" tabindex="-1" aria-labelledby="modalEliminarPeriodoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalEliminarPeriodoLabel">Confirmar eliminación</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        ¿Está seguro de eliminar este período?
+      </div>
+      <div class="modal-footer">
+        <form id="formEliminarPeriodo" method="POST" action="">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -337,5 +361,16 @@
             el.style.display = 'none';
         });
     }, 10000);
+
+    // Script para pasar el ID al formulario del modal
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('modalEliminarPeriodo');
+        modal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var periodoId = button.getAttribute('data-id');
+            var form = document.getElementById('formEliminarPeriodo');
+            form.action = '/periodos/' + periodoId;
+        });
+    });
 </script>
 @endpush

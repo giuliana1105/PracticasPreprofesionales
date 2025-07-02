@@ -17,13 +17,7 @@
     @php exit; @endphp
 @endif
 
-@if($esDocente)
-    <script>
-        window.onload = function() {
-            alert('Sólo puede editar el avance y las observaciones de la titulación. Los demás campos no son editables.');
-        }
-    </script>
-@endif
+{{-- Eliminado el alert nativo para docentes --}}
 
 <style>
     body {
@@ -244,7 +238,7 @@
 
     @if($esDocente)
         <div class="alert alert-info">
-            Sólo puede editar el <strong>avance</strong> y las <strong>observaciones</strong> de la titulación. Los demás campos no son editables.
+            Sólo puede editar el <strong>avance</strong>, las <strong>observaciones</strong>,  las <strong>actividades según el cronograma</strong>, <strong>cumplimiento del cronograma</strong>,  <strong>resultados</strong> y  las <strong>horas de asesoría</strong> de la titulación. Los demás campos no son editables.
         </div>
     @endif
 

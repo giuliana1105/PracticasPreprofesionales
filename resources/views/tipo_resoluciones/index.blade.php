@@ -275,18 +275,14 @@
                                title="Editar">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <form action="{{ route('tipo_resoluciones.destroy', $tipo->id_tipo_res) }}"
-                                  method="POST"
-                                  class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit"
-                                        class="btn btn-sm btn-danger mx-1"
-                                        onclick="return confirm('¿Está seguro de eliminar este tipo?')"
-                                        title="Eliminar">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </form>
+                            <button type="button"
+                                    class="btn btn-sm btn-danger mx-1"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalEliminarTipo"
+                                    data-id="{{ $tipo->id_tipo_res }}"
+                                    title="Eliminar">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -298,6 +294,29 @@
     <div class="d-flex justify-content-center mt-4">
         {{ $tipos->withQueryString()->links() }}
     </div>
+</div>
+
+<!-- Modal de confirmación de eliminación -->
+<div class="modal fade" id="modalEliminarTipo" tabindex="-1" aria-labelledby="modalEliminarTipoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalEliminarTipoLabel">Confirmar eliminación</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        ¿Está seguro de eliminar este tipo?
+      </div>
+      <div class="modal-footer">
+        <form id="formEliminarTipo" method="POST" action="">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
 @push('scripts')
@@ -313,6 +332,15 @@
                 }
             });
         }, 10000);
+
+        // Script para pasar el ID al formulario del modal
+        var modal = document.getElementById('modalEliminarTipo');
+        modal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var tipoId = button.getAttribute('data-id');
+            var form = document.getElementById('formEliminarTipo');
+            form.action = '/tipo_resoluciones/' + tipoId;
+        });
     });
 </script>
 @endpush

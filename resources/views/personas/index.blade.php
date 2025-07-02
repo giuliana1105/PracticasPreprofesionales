@@ -275,7 +275,6 @@
                 Todos
             </a>
             <a href="{{ route('personas.index', ['filtro' => 'recientes']) }}"
-
                class="px-4 py-2 {{ request('filtro') == 'recientes' ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-600' }} text-sm font-semibold rounded shadow transition"
                style="text-decoration:none;">
                 Recientes
@@ -300,7 +299,6 @@
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
-            
             @if(session('details') && count(session('details')) > 0)
                 <div class="mt-3">
                     <h5>Detalles de filas omitidas:</h5>
@@ -394,8 +392,7 @@
                                     'subdecano' => 'Subdecano/a',
                                     'docente' => 'Docente',
                                     'estudiante' => 'Estudiante',
-                                     'coordinador' => 'Coordinador/a',
-
+                                    'coordinador' => 'Coordinador/a',
                                 ];
                             @endphp
                             {{ $cargos[$persona->cargo] ?? ucfirst($persona->cargo) }}
@@ -406,13 +403,14 @@
                                     <a href="{{ route('personas.edit', $persona->id) }}" class="btn btn-sm btn-warning" title="Editar">
                                         <i class="fas fa-edit text-white"></i>
                                     </a>
-                                    <form action="{{ route('personas.destroy', $persona->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro?')" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button"
+                                        class="btn btn-sm btn-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalEliminarPersona"
+                                        data-id="{{ $persona->id }}"
+                                        title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                                 @php
                                     $user = auth()->user();
@@ -441,13 +439,40 @@
     </div>
 </div>
 
+<!-- Modal de confirmación de eliminación -->
+<div class="modal fade" id="modalEliminarPersona" tabindex="-1" aria-labelledby="modalEliminarPersonaLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalEliminarPersonaLabel">Confirmar eliminación</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        ¿Está seguro de eliminar esta persona?
+      </div>
+      <div class="modal-footer">
+        <form id="formEliminarPersona" method="POST" action="">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 @push('scripts')
 <script>
-    // Cierra automáticamente las alertas después de 5 segundos
-    $(document).ready(function(){
-        setTimeout(function(){
-            $('.alert').alert('close');
-        }, 10000);
+    // Script para pasar el ID al formulario del modal
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('modalEliminarPersona');
+        modal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var personaId = button.getAttribute('data-id');
+            var form = document.getElementById('formEliminarPersona');
+            form.action = '/personas/' + personaId;
+        });
     });
 </script>
 @endpush

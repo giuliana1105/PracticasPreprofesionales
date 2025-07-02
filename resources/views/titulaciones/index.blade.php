@@ -545,6 +545,17 @@
                             <a href="{{ route('titulaciones.show', $tit->id_titulacion) }}" class="btn btn-outline-primary btn-sm mx-1 mb-1" style="border: 1px solid #d32f2f;">
                                 <i class="fas fa-file-pdf"></i> Ver detalles
                             </a>
+                            @if(
+                                $tit->estado &&
+                                strtolower($tit->estado->nombre_estado) === 'graduado' &&
+                                !$tit->acta_grado
+                            )
+                                <a href="{{ route('titulaciones.subir-acta', $tit->id_titulacion) }}"
+                                   class="btn btn-info btn-sm mx-1 mb-1"
+                                   style="color: #fff;">
+                                    <i class="fas fa-upload"></i> Subir acta de grado
+                                </a>
+                            @endif
                             @if($esEstudiante)
                                 @if($tit->estado && strtolower($tit->estado->nombre_estado) === 'graduado' && $tit->acta_grado)
                                     <a href="{{ asset('storage/' . $tit->acta_grado) }}" target="_blank" class="btn btn-outline-primary btn-sm mx-1 mb-1" style="border: 1px solid #d32f2f;">
@@ -559,9 +570,14 @@
                                     <form action="{{ route('titulaciones.destroy', $tit->id_titulacion) }}" method="POST" class="d-inline mx-1 mb-1">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Está seguro de eliminar esta titulación?')" title="Eliminar">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
+                                        <button type="button"
+    class="btn btn-sm btn-danger mx-1 mb-1"
+    data-bs-toggle="modal"
+    data-bs-target="#modalEliminarTitulacion"
+    data-id="{{ $tit->id_titulacion }}"
+    title="Eliminar">
+    <i class="fas fa-trash-alt"></i>
+</button>
                                     </form>
                                 @elseif($esDocente)
                                     <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" class="btn btn-sm btn-warning mx-1 mb-1" title="Editar avance y observaciones">
@@ -576,6 +592,29 @@
             </tbody>
         </table>
     </div>
+</div>
+
+<!-- Modal de confirmación de eliminación -->
+<div class="modal fade" id="modalEliminarTitulacion" tabindex="-1" aria-labelledby="modalEliminarTitulacionLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalEliminarTitulacionLabel">Confirmar eliminación</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        ¿Está seguro de eliminar esta titulación?
+      </div>
+      <div class="modal-footer">
+        <form id="formEliminarTitulacion" method="POST" action="">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
 @push('scripts')
@@ -594,5 +633,16 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endif
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('modalEliminarTitulacion');
+        modal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var titulacionId = button.getAttribute('data-id');
+            var form = document.getElementById('formEliminarTitulacion');
+            form.action = '/titulaciones/' + titulacionId;
+        });
+    });
+</script>
 @endpush
 @endsection

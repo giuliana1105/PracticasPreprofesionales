@@ -777,6 +777,26 @@ class TitulacionController extends Controller
         $pdf = PDF::loadView('titulaciones.anexo_x', $data)->setPaper('a4', 'landscape');
         return $pdf->stream('Anexo_X.pdf');
     }
+
+    public function formSubirActa($id)
+    {
+        $titulacion = Titulacion::findOrFail($id);
+        // Puedes agregar validaciones de permisos aquí si lo necesitas
+        return view('titulaciones.subir_acta', compact('titulacion'));
+    }
+
+    public function subirActa(Request $request, $id)
+    {
+        $request->validate([
+            'acta_grado' => 'required|file|mimes:pdf|max:20480',
+        ]);
+        $titulacion = Titulacion::findOrFail($id);
+        $path = $request->file('acta_grado')->store('actas_grado', 'public');
+        $titulacion->acta_grado = $path;
+        $titulacion->save();
+
+        return redirect()->route('titulaciones.index')->with('success', 'Acta de grado subida correctamente.');
+    }
 }
 
 

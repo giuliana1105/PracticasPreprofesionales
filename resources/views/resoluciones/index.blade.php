@@ -525,7 +525,9 @@
                             <button type="button"
                                     class="btn btn-danger btn-sm"
                                     style="background:#dc3545;border:none;color:#fff;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;font-size:1.3em;border-radius:8px;"
-                                    onclick="confirmarEliminar('{{ $resolucion->id_Reso }}')"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalEliminarResolucion"
+                                    data-id="{{ $resolucion->id_Reso }}"
                                     title="Eliminar">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -555,14 +557,42 @@
     </div>
 </div>
 
+<!-- Modal de confirmación de eliminación -->
+<div class="modal fade" id="modalEliminarResolucion" tabindex="-1" aria-labelledby="modalEliminarResolucionLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalEliminarResolucionLabel">Confirmar eliminación</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        ¿Está seguro que desea eliminar esta resolución?
+      </div>
+      <div class="modal-footer">
+        <form id="formEliminarResolucion" method="POST" action="">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 <script>
-    function confirmarEliminar(id) {
-        if (confirm('¿Está seguro que desea eliminar esta resolución?')) {
-            document.getElementById('form-eliminar-' + id).submit();
-        }
-    }
+    // Script para pasar el ID al formulario del modal
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('modalEliminarResolucion');
+        modal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var resolucionId = button.getAttribute('data-id');
+            var form = document.getElementById('formEliminarResolucion');
+            form.action = '/resoluciones/' + resolucionId;
+        });
+    });
 </script>
 @endpush
 @endsection

@@ -267,13 +267,14 @@
                                 <a href="{{ route('carreras.edit', $carrera->id_carrera) }}" class="btn btn-sm btn-warning mx-1">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('carreras.destroy', $carrera->id_carrera) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger mx-1" onclick="return confirm('¿Está seguro de eliminar esta carrera?')">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
+                                <!-- Botón Eliminar -->
+                                <button type="button"
+                                        class="btn btn-danger btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalEliminarCarrera"
+                                        data-id="{{ $carrera->id_carrera }}">
+                                    Eliminar
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -287,7 +288,41 @@
     </div>
 </div>
 
+<!-- Modal de confirmación de eliminación -->
+<div class="modal fade" id="modalEliminarCarrera" tabindex="-1" aria-labelledby="modalEliminarCarreraLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalEliminarCarreraLabel">Confirmar eliminación</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        ¿Está seguro de eliminar esta carrera?
+      </div>
+      <div class="modal-footer">
+        <form id="formEliminarCarrera" method="POST" action="">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-danger">Eliminar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var modal = document.getElementById('modalEliminarCarrera');
+    modal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var carreraId = button.getAttribute('data-id');
+        var form = document.getElementById('formEliminarCarrera');
+        form.action = '/carreras/' + carreraId; // Ajusta la ruta si es necesario
+    });
+});
+</script>
 @endpush
 @endsection
