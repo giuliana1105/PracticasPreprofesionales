@@ -1,5 +1,4 @@
 
-{{-- filepath: resources/views/titulaciones/show.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
@@ -120,11 +119,14 @@
     .text-muted { color: #888; }
     hr { margin: 10px 0; }
 </style>
-
 @php
     $user = auth()->user();
     $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
     $esEstudiante = $persona && strtolower(trim($persona->cargo ?? '')) === 'estudiante';
+    $esDocente = $persona && strtolower(trim($persona->cargo ?? '')) === 'docente';
+    $esCoordinador = $persona && strtolower(trim($persona->cargo ?? '')) === 'coordinador';
+    $esDecano = $persona && strtolower(trim($persona->cargo ?? '')) === 'decano';
+    $cargo = strtolower(trim($persona->cargo ?? ''));
 @endphp
 @if($esEstudiante && $titulacion->cedula_estudiante !== ($persona->cedula ?? null))
     <div class="alert alert-danger">No autorizado para ver esta titulación.</div>
@@ -313,6 +315,16 @@
                 </script>
             </td>
         </tr>
+        @if($esDocente)
+            <tr>
+                <th>Acciones</th>
+                <td>
+                    <a href="{{ route('titulaciones.anexoX', $titulacion->id_titulacion) }}" class="btn btn-success btn-sm mx-1 mb-1">
+                        <i class="fas fa-file-alt"></i> Generar Anexo X
+                    </a>
+                </td>
+            </tr>
+        @endif
     </table>
 </div>
 @endsection

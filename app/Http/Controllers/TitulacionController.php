@@ -16,148 +16,160 @@ use App\Models\Carrera; // Asegúrate de importar el modelo
 
 class TitulacionController extends Controller
 {
-    public function index(Request $request)
-    {
-        $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
-        // Usar solo el campo string 'cargo'
-        $cargo = strtolower(trim($persona->cargo ?? ''));
+    
+public function index(Request $request)
+{
+    $user = Auth::user();
+    $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
+    $cargo = strtolower(trim($persona->cargo ?? ''));
 
-        $esEstudiante = $cargo === 'estudiante';
-        $esDocente = $cargo === 'docente';
+    $esEstudiante = $cargo === 'estudiante';
+    $esDocente = $cargo === 'docente';
+    $esCoordinador = $cargo === 'coordinador';
 
-        if ($esEstudiante) {
-            $titulaciones = Titulacion::with([
-                'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
-            ])->where('cedula_estudiante', $persona->cedula)->get();
+    if ($esEstudiante) {
+        $titulaciones = Titulacion::with([
+            'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
+        ])->where('cedula_estudiante', $persona->cedula)->get();
 
-            $estados = collect();
-            $docentes = collect();
-            $periodos = collect();
+        $estados = collect();
+        $docentes = collect();
+        $periodos = collect();
 
-            return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados'));
-        } elseif ($esDocente) {
-            $query = Titulacion::with([
-                'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
-            ])->where(function($q) use ($persona) {
-                $q->where('cedula_director', $persona->cedula)
-                  ->orWhere('cedula_asesor1', $persona->cedula);
+        return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados'));
+    } elseif ($esDocente) {
+        $query = Titulacion::with([
+            'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
+        ])->where(function($q) use ($persona) {
+            $q->where('cedula_director', $persona->cedula)
+              ->orWhere('cedula_asesor1', $persona->cedula);
+        });
+
+        if ($request->filled('busqueda')) {
+            $busqueda = strtolower($request->input('busqueda'));
+            $query->whereHas('estudiantePersona', function($q2) use ($busqueda) {
+                $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%'])
+                   ->orWhereRaw('LOWER(apellidos) LIKE ?', ['%' . $busqueda . '%']);
             });
-
-            if ($request->filled('busqueda')) {
-                $busqueda = strtolower($request->input('busqueda'));
-                $query->whereHas('estudiantePersona', function($q2) use ($busqueda) {
-                    $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%'])
-                       ->orWhereRaw('LOWER(apellidos) LIKE ?', ['%' . $busqueda . '%']);
-                });
-            }
-            if ($request->filled('estado_filtro')) {
-                $query->where('estado_id', $request->estado_filtro);
-            }
-            if ($request->filled('periodo_filtro')) {
-                $query->where('periodo_id', $request->periodo_filtro);
-            }
-            if ($request->filled('fecha_inicio') || $request->filled('fecha_fin')) {
-                $query->whereHas('resTemas.resolucion', function ($q) use ($request) {
-                    $q->whereHas('tipoResolucion', function ($q2) {
-                        $q2->whereRaw('LOWER(nombre_tipo_res) = ?', ['consejo directivo']);
-                    });
-                    if ($request->filled('fecha_inicio')) {
-                        $q->whereDate('fecha_res', '>=', $request->fecha_inicio);
-                    }
-                    if ($request->filled('fecha_fin')) {
-                        $q->whereDate('fecha_res', '<=', $request->fecha_fin);
-                    }
-                });
-            }
-            if ($request->filled('carrera_filtro')) {
-                $carrerasFiltro = array_map('strtolower', (array) $request->input('carrera_filtro'));
-                $query->whereHas('estudiantePersona.carreras', function($q) use ($carrerasFiltro) {
-                    $q->whereRaw('LOWER(siglas_carrera) IN (' . implode(',', array_fill(0, count($carrerasFiltro), '?')) . ')', $carrerasFiltro);
-                });
-                // Para compatibilidad con personas que solo tienen una carrera (relación antigua)
-                $query->orWhereHas('estudiantePersona.carrera', function($q) use ($carrerasFiltro) {
-                    $q->whereRaw('LOWER(siglas_carrera) IN (' . implode(',', array_fill(0, count($carrerasFiltro), '?')) . ')', $carrerasFiltro);
-                });
-            }
-
-            $titulaciones = $query->get();
-
-            $estados = EstadoTitulacion::orderBy('nombre_estado')->get();
-            $periodos = Periodo::orderBy('periodo_academico')->get();
-            $docentes = collect();
-            $carreras = Carrera::orderBy('siglas_carrera')->get();
-
-            return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados', 'carreras'));
-        } else {
-            $query = Titulacion::with([
-                'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
-            ]);
-
-            if ($request->filled('busqueda')) {
-                $busqueda = strtolower($request->input('busqueda'));
-                $query->where(function($q) use ($busqueda) {
-                    $q->whereRaw('LOWER(tema) LIKE ?', ['%' . $busqueda . '%'])
-                        ->orWhereHas('estudiantePersona', function($q2) use ($busqueda) {
-                            $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%'])
-                               ->orWhereRaw('LOWER(apellidos) LIKE ?', ['%' . $busqueda . '%']);
-                        })
-                        ->orWhereHas('directorPersona', function($q2) use ($busqueda) {
-                            $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%']);
-                        })
-                        ->orWhereHas('asesor1Persona', function($q2) use ($busqueda) {
-                            $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%']);
-                        });
-                });
-            }
-
-            if ($request->filled('director_filtro')) {
-                $query->where('cedula_director', $request->director_filtro);
-            }
-            if ($request->filled('asesor1_filtro')) {
-                $query->where('cedula_asesor1', $request->asesor1_filtro);
-            }
-            if ($request->filled('periodo_filtro')) {
-                $query->where('periodo_id', $request->periodo_filtro);
-            }
-            if ($request->filled('estado_filtro')) {
-                $query->where('estado_id', $request->estado_filtro);
-            }
-            if ($request->filled('fecha_inicio') || $request->filled('fecha_fin')) {
-                $query->whereHas('resTemas.resolucion', function ($q) use ($request) {
-                    $q->whereHas('tipoResolucion', function ($q2) {
-                        $q2->whereRaw('LOWER(nombre_tipo_res) = ?', ['consejo directivo']);
-                    });
-                    if ($request->filled('fecha_inicio')) {
-                        $q->whereDate('fecha_res', '>=', $request->fecha_inicio);
-                    }
-                    if ($request->filled('fecha_fin')) {
-                        $q->whereDate('fecha_res', '<=', $request->fecha_fin);
-                    }
-                });
-            }
-            if ($request->filled('carrera_filtro')) {
-                $carrerasFiltro = array_map('strtolower', (array) $request->input('carrera_filtro'));
-                $query->whereHas('estudiantePersona.carreras', function($q) use ($carrerasFiltro) {
-                    $q->whereRaw('LOWER(siglas_carrera) IN (' . implode(',', array_fill(0, count($carrerasFiltro), '?')) . ')', $carrerasFiltro);
-                });
-                // Para compatibilidad con personas que solo tienen una carrera (relación antigua)
-                $query->orWhereHas('estudiantePersona.carrera', function($q) use ($carrerasFiltro) {
-                    $q->whereRaw('LOWER(siglas_carrera) IN (' . implode(',', array_fill(0, count($carrerasFiltro), '?')) . ')', $carrerasFiltro);
-                });
-            }
-
-            $titulaciones = $query->get();
-
-            $estados = EstadoTitulacion::orderBy('nombre_estado')->get();
-            $docentes = Persona::whereRaw("LOWER(cargo) = 'docente'")->orderBy('nombres')->get();
-            $periodos = Periodo::orderBy('periodo_academico')->get();
-            $carreras = Carrera::orderBy('siglas_carrera')->get();
-
-            return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados', 'carreras'));
         }
-    }
+        if ($request->filled('estado_filtro')) {
+            $query->where('estado_id', $request->estado_filtro);
+        }
+        if ($request->filled('periodo_filtro')) {
+            $query->where('periodo_id', $request->periodo_filtro);
+        }
+        if ($request->filled('fecha_inicio') || $request->filled('fecha_fin')) {
+            $query->whereHas('resTemas.resolucion', function ($q) use ($request) {
+                $q->whereHas('tipoResolucion', function ($q2) {
+                    $q2->whereRaw('LOWER(nombre_tipo_res) = ?', ['consejo directivo']);
+                });
+                if ($request->filled('fecha_inicio')) {
+                    $q->whereDate('fecha_res', '>=', $request->fecha_inicio);
+                }
+                if ($request->filled('fecha_fin')) {
+                    $q->whereDate('fecha_res', '<=', $request->fecha_fin);
+                }
+            });
+        }
+        if ($request->filled('carrera_filtro')) {
+            $carrerasFiltro = array_map('strtolower', (array) $request->input('carrera_filtro'));
+            $query->whereHas('estudiantePersona.carreras', function($q) use ($carrerasFiltro) {
+                $q->whereRaw('LOWER(siglas_carrera) IN (' . implode(',', array_fill(0, count($carrerasFiltro), '?')) . ')', $carrerasFiltro);
+            });
+            $query->orWhereHas('estudiantePersona.carrera', function($q) use ($carrerasFiltro) {
+                $q->whereRaw('LOWER(siglas_carrera) IN (' . implode(',', array_fill(0, count($carrerasFiltro), '?')) . ')', $carrerasFiltro);
+            });
+        }
 
+        $titulaciones = $query->get();
+
+        $estados = EstadoTitulacion::orderBy('nombre_estado')->get();
+        $periodos = Periodo::orderBy('periodo_academico')->get();
+        $docentes = collect();
+        $carreras = Carrera::orderBy('siglas_carrera')->get();
+
+        return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados', 'carreras'));
+    } else {
+        $query = Titulacion::with([
+            'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
+        ]);
+
+        // FILTRO PARA COORDINADOR: solo titulaciones de sus carreras asignadas
+        if ($esCoordinador) {
+            $carrerasIds = $persona->carreras->pluck('id_carrera')->toArray();
+            $query->whereHas('estudiantePersona.carrera', function($q) use ($carrerasIds) {
+                $q->whereIn('id_carrera', $carrerasIds);
+            });
+        }
+
+        if ($request->filled('busqueda')) {
+            $busqueda = strtolower($request->input('busqueda'));
+            $query->where(function($q) use ($busqueda) {
+                $q->whereRaw('LOWER(tema) LIKE ?', ['%' . $busqueda . '%'])
+                    ->orWhereHas('estudiantePersona', function($q2) use ($busqueda) {
+                        $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%'])
+                           ->orWhereRaw('LOWER(apellidos) LIKE ?', ['%' . $busqueda . '%']);
+                    })
+                    ->orWhereHas('directorPersona', function($q2) use ($busqueda) {
+                        $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%']);
+                    })
+                    ->orWhereHas('asesor1Persona', function($q2) use ($busqueda) {
+                        $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%']);
+                    });
+            });
+        }
+
+        if ($request->filled('director_filtro')) {
+            $query->where('cedula_director', $request->director_filtro);
+        }
+        if ($request->filled('asesor1_filtro')) {
+            $query->where('cedula_asesor1', $request->asesor1_filtro);
+        }
+        if ($request->filled('periodo_filtro')) {
+            $query->where('periodo_id', $request->periodo_filtro);
+        }
+        if ($request->filled('estado_filtro')) {
+            $query->where('estado_id', $request->estado_filtro);
+        }
+        if ($request->filled('fecha_inicio') || $request->filled('fecha_fin')) {
+            $query->whereHas('resTemas.resolucion', function ($q) use ($request) {
+                $q->whereHas('tipoResolucion', function ($q2) {
+                    $q2->whereRaw('LOWER(nombre_tipo_res) = ?', ['consejo directivo']);
+                });
+                if ($request->filled('fecha_inicio')) {
+                    $q->whereDate('fecha_res', '>=', $request->fecha_inicio);
+                }
+                if ($request->filled('fecha_fin')) {
+                    $q->whereDate('fecha_res', '<=', $request->fecha_fin);
+                }
+            });
+        }
+        if ($request->filled('carrera_filtro')) {
+            $carrerasFiltro = array_map('strtolower', (array) $request->input('carrera_filtro'));
+            $query->whereHas('estudiantePersona.carreras', function($q) use ($carrerasFiltro) {
+                $q->whereRaw('LOWER(siglas_carrera) IN (' . implode(',', array_fill(0, count($carrerasFiltro), '?')) . ')', $carrerasFiltro);
+            });
+            $query->orWhereHas('estudiantePersona.carrera', function($q) use ($carrerasFiltro) {
+                $q->whereRaw('LOWER(siglas_carrera) IN (' . implode(',', array_fill(0, count($carrerasFiltro), '?')) . ')', $carrerasFiltro);
+            });
+        }
+
+        $titulaciones = $query->get();
+
+        $estados = EstadoTitulacion::orderBy('nombre_estado')->get();
+        $docentes = Persona::whereRaw("LOWER(cargo) = 'docente'")->orderBy('nombres')->get();
+        $periodos = Periodo::orderBy('periodo_academico')->get();
+        $carreras = Carrera::orderBy('siglas_carrera')->get();
+        if ($esCoordinador) {
+    // Solo las carreras asignadas al coordinador
+    $carreras = $persona->carreras()->orderBy('siglas_carrera')->get();
+} else {
+    $carreras = Carrera::orderBy('siglas_carrera')->get();
+}
+
+        return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados', 'carreras'));
+    }
+}
     public function create()
     {
         $user = Auth::user();
