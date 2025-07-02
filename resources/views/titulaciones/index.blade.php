@@ -2,13 +2,14 @@
 
 @section('content')
 
+
 @php
     $user = auth()->user();
     $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
     $cargo = strtolower(trim($persona->cargo ?? ''));
     $esEstudiante = $persona && $cargo === 'estudiante';
     $esDocente = $persona && $cargo === 'docente';
-    $esDecano = $persona && $cargo === 'decano';
+    $esDecano = $persona && in_array($cargo, ['decano', 'subdecano', 'subdecana', 'abogado', 'abogada']);
     $esCoordinador = $persona && $cargo === 'coordinador';
 @endphp
 

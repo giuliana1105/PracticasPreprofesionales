@@ -373,7 +373,9 @@
     @php
         $user = auth()->user();
         $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
-        $esEstudiante = $persona && strtolower(trim($persona->cargo ?? '')) === 'estudiante';
+        $cargo = strtolower(trim($persona->cargo ?? ''));
+        $esDecano = in_array($cargo, ['decano', 'subdecano', 'subdecana', 'abogado', 'abogada']);
+        $esEstudiante = $persona && $cargo === 'estudiante';
     @endphp
     @if($esEstudiante)
         <div class="custom-error">No autorizado.</div>

@@ -344,4 +344,13 @@
     });
 </script>
 @endpush
+
+
+@php
+    $cargo = strtolower(trim($persona->cargo ?? ''));
+    $esDecano = in_array($cargo, ['decano', 'subdecano', 'subdecana', 'abogado', 'abogada']);
+@endphp
+@if($esDecano)
+    <a href="...">Solo para decano, subdecano/a, abogado/a</a>
+@endif
 @endsection

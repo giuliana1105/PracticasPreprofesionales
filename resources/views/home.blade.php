@@ -116,13 +116,15 @@
     }
 </style>
 
+
 @php
     $user = auth()->user();
-    $persona = $user ? ($user->persona ?? \App\Models\Persona::where('email', $user->email)->first()) : null;
-    $cargo = strtolower(trim($persona->cargo ?? ($user->cargo ?? '')));
-    $sinPermisoPersonas = in_array($cargo, ['coordinador', 'decano']);
+    $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
+    $cargo = strtolower(trim($persona->cargo ?? ''));
+    $sinPermisoPersonas = !in_array($cargo, [
+        'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'secretario', 'secretario general'
+    ]);
 @endphp
-
 <div class="alineado-home">
     <div class="header-container">
         <div class="header-logo"></div>
@@ -136,7 +138,8 @@
     </div>
     <div id="alertaPermisoHome"></div>
     <div class="module-container">
-        @if(in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano']))
+        @if(in_array($cargo, ['decano', 'subdecano', 'subdecana','coordinador','coordinadora',  'abogado', 'abogada', 'secretario','estudiante','docente', 'secretario general']))
+            {{-- Muestra el botón de Titulaciones con el mismo diseño de tarjeta --}}
             <a href="{{ route('titulaciones.index') }}" class="module-card">
                 <i class="fas fa-certificate module-icon"></i>
                 <div class="module-title">Titulaciones</div>

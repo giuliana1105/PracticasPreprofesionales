@@ -35,7 +35,7 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
     }
@@ -45,7 +45,7 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -78,7 +78,7 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -92,7 +92,7 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -170,7 +170,7 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -185,7 +185,7 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -263,7 +263,7 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -301,7 +301,7 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'docente', 'estudiante'])) {
+        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
