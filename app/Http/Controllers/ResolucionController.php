@@ -29,11 +29,23 @@ class ResolucionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
-            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
-        }
+
+        // Filtro para secretaria
+        $esSecretaria = $cargo === 'secretaria' || $cargo === 'secretario';
 
         $query = Resolucion::with(['tipoResolucion', 'carrera']);
+
+        // FILTRO: Si es secretaria, solo muestra resoluciones de sus carreras asignadas
+        if ($esSecretaria) {
+            // Asegúrate de tener la relación carreras() en tu modelo Persona
+            $carrerasAsignadas = $persona->carreras()->pluck('id_carrera')->toArray();
+            if (!empty($carrerasAsignadas)) {
+                $query->whereIn('carrera_id', $carrerasAsignadas);
+            } else {
+                // Si no tiene carreras asignadas, no muestra ninguna resolución
+                $query->whereRaw('1=0');
+            }
+        }
 
         // Filtro de búsqueda
         if ($request->filled('buscar')) {
