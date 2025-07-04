@@ -117,12 +117,15 @@
 </style>
 
 
+
+
+
 @php
     $user = auth()->user();
     $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
-    $cargo = strtolower(trim($persona->cargo ?? ''));
+    $cargo = strtolower(str_replace(' ', '_', trim($persona->cargo ?? '')));
     $sinPermisoPersonas = !in_array($cargo, [
-        'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'secretario', 'secretario general'
+        'secretario', 'secretaria', 'secretario_general', 'secretario/a', 'secretaria/o', 'secretario general', 'secretaria general'
     ]);
 @endphp
 <div class="alineado-home">
@@ -138,11 +141,41 @@
     </div>
     <div id="alertaPermisoHome"></div>
     <div class="module-container">
-        @if(in_array($cargo, ['decano', 'subdecano', 'subdecana','coordinador','coordinadora',  'abogado', 'abogada','estudiante','docente', 'secretario general']))
-            {{-- Muestra el botón de Titulaciones con el mismo diseño de tarjeta --}}
+        @if(in_array($cargo, ['decano', 'subdecano', 'subdecana','coordinador','coordinadora',  'abogado', 'abogada','estudiante','docente']))
+            {{-- Solo muestra Titulaciones --}}
             <a href="{{ route('titulaciones.index') }}" class="module-card">
                 <i class="fas fa-certificate module-icon"></i>
                 <div class="module-title">Titulaciones</div>
+            </a>
+        @elseif(in_array($cargo, ['secretario', 'secretaria', 'secretario_general', 'secretario/a', 'secretaria/o']))
+            {{-- Muestra todos los módulos administrativos --}}
+            <a href="{{ route('personas.index') }}" class="module-card" id="btnPersonas">
+                <i class="fas fa-users module-icon"></i>
+                <div class="module-title">Personas</div>
+            </a>
+            <a href="{{ route('carreras.index') }}" class="module-card">
+                <i class="fas fa-graduation-cap module-icon"></i>
+                <div class="module-title">Carreras</div>
+            </a>
+            <a href="{{ route('periodos.index') }}" class="module-card">
+                <i class="fas fa-calendar-alt module-icon"></i>
+                <div class="module-title">Periodos</div>
+            </a>
+            <a href="{{ route('estado-titulaciones.index') }}" class="module-card">
+                <i class="fas fa-flag-checkered module-icon"></i>
+                <div class="module-title">Estados de Titulación</div>
+            </a>
+            <a href="{{ route('resoluciones.index') }}" class="module-card">
+                <i class="fas fa-file-alt module-icon"></i>
+                <div class="module-title">Resoluciones</div>
+            </a>
+            <a href="{{ route('titulaciones.index') }}" class="module-card">
+                <i class="fas fa-certificate module-icon"></i>
+                <div class="module-title">Titulaciones</div>
+            </a>
+            <a href="{{ route('tipo_resoluciones.index') }}" class="module-card">
+                <i class="fas fa-tags module-icon"></i>
+                <div class="module-title">Tipos de Resoluciones</div>
             </a>
         @else
             <a href="{{ route('personas.index') }}" class="module-card" id="btnPersonas">
@@ -174,6 +207,11 @@
                 <div class="module-title">Tipos de Resoluciones</div>
             </a>
         @endif
+    </div>
+    <div style="background: #ffeeba; color: #856404; padding: 10px; margin-bottom: 10px;">
+         Usuario: <strong>{{ $user->email ?? 'NO USER' }}</strong><br>
+    Persona: <strong>{{ $persona ? $persona->email : 'NO PERSONA' }}</strong><br>
+        Cargo detectado: <strong>{{ $cargo }}</strong>
     </div>
 </div>
 

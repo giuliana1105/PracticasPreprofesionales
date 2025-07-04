@@ -20,12 +20,13 @@ class TitulacionController extends Controller
 public function index(Request $request)
 {
     $user = Auth::user();
-    $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
+    $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
     $cargo = strtolower(trim($persona->cargo ?? ''));
 
     $esEstudiante = $cargo === 'estudiante';
     $esDocente = $cargo === 'docente';
     $esCoordinador = $cargo === 'coordinador';
+    $esSecretaria = in_array($cargo, ['secretaria', 'secretario']);
 
     if ($esEstudiante) {
         $titulaciones = Titulacion::with([
@@ -87,6 +88,37 @@ public function index(Request $request)
         $periodos = Periodo::orderBy('periodo_academico')->get();
         $docentes = collect();
         $carreras = Carrera::orderBy('siglas_carrera')->get();
+
+        return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados', 'carreras'));
+    } elseif ($esSecretaria) {
+        // FILTRO SOLO TITULACIONES DE LAS CARRERAS ASIGNADAS A LA SECRETARIA
+        $carrerasIds = $persona->carreras()->pluck('id_carrera')->toArray();
+
+        $query = Titulacion::with([
+            'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
+        ])->whereHas('estudiantePersona.carrera', function($q) use ($carrerasIds) {
+            $q->whereIn('id_carrera', $carrerasIds);
+        });
+
+        // Aplica los mismos filtros que para otros roles si los necesitas:
+        if ($request->filled('busqueda')) {
+            $busqueda = strtolower($request->input('busqueda'));
+            $query->where(function($q) use ($busqueda) {
+                $q->whereRaw('LOWER(tema) LIKE ?', ['%' . $busqueda . '%'])
+                    ->orWhereHas('estudiantePersona', function($q2) use ($busqueda) {
+                        $q2->whereRaw('LOWER(nombres) LIKE ?', ['%' . $busqueda . '%'])
+                           ->orWhereRaw('LOWER(apellidos) LIKE ?', ['%' . $busqueda . '%']);
+                    });
+            });
+        }
+        // ...agrega aquí otros filtros si los tienes...
+
+        $titulaciones = $query->get();
+
+        $estados = \App\Models\EstadoTitulacion::orderBy('nombre_estado')->get();
+        $periodos = \App\Models\Periodo::orderBy('periodo_academico')->get();
+        $docentes = \App\Models\Persona::whereRaw("LOWER(cargo) = 'docente'")->orderBy('nombres')->get();
+        $carreras = $persona->carreras()->orderBy('siglas_carrera')->get();
 
         return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados', 'carreras'));
     } else {
