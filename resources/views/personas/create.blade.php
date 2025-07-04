@@ -349,14 +349,11 @@
                     <label for="cargo">Cargo:</label>
                     <select id="cargo" name="cargo" class="form-control @error('cargo') is-invalid @enderror" required>
                         <option value="">Seleccione un cargo</option>
-                        <option value="secretario_general" {{ old('cargo', $persona->cargo ?? '') == 'secretario_general' ? 'selected' : '' }}>Secretario General</option>
-                        <option value="secretario" {{ old('cargo', $persona->cargo ?? '') == 'secretario' ? 'selected' : '' }}>Secretario/a</option>
-                        <option value="abogado" {{ old('cargo', $persona->cargo ?? '') == 'abogado' ? 'selected' : '' }}>Abogado/a</option>
-                        <option value="decano" {{ old('cargo', $persona->cargo ?? '') == 'decano' ? 'selected' : '' }}>Decano</option>
-                        <option value="subdecano" {{ old('cargo', $persona->cargo ?? '') == 'subdecano' ? 'selected' : '' }}>Subdecano/a</option>
-                        <option value="docente" {{ old('cargo', $persona->cargo ?? '') == 'docente' ? 'selected' : '' }}>Docente</option>
-                        <option value="estudiante" {{ old('cargo', $persona->cargo ?? '') == 'estudiante' ? 'selected' : '' }}>Estudiante</option>
-                        <option value="coordinador" {{ old('cargo', $persona->cargo ?? '') == 'coordinador' ? 'selected' : '' }}>Coordinador/a</option>
+                        @foreach($cargos as $cargoItem)
+                            <option value="{{ $cargoItem }}" {{ old('cargo', $persona->cargo ?? '') == $cargoItem ? 'selected' : '' }}>
+                                {{ ucfirst($cargoItem) }}
+                            </option>
+                        @endforeach
                     </select>
                     @error('cargo')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -379,12 +376,15 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <button type="button" class="btn btn-success btn-sm add-carrera-btn ms-2" style="margin-left:8px;display:none;">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button type="button" class="btn btn-danger btn-sm remove-carrera-btn ms-2" style="margin-left:8px;display:none;">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            {{-- Los botones para agregar/eliminar carreras solo si hay más de una carrera --}}
+                            @if(count($carreras) > 1)
+                                <button type="button" class="btn btn-success btn-sm add-carrera-btn ms-2" style="margin-left:8px;display:none;">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <button type="button" class="btn btn-danger btn-sm remove-carrera-btn ms-2" style="margin-left:8px;display:none;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            @endif
                         </div>
                         @endforeach
                     </div>
@@ -459,7 +459,10 @@ document.addEventListener('DOMContentLoaded', function() {
         rows.forEach((row, idx) => {
             const addBtn = row.querySelector('.add-carrera-btn');
             const removeBtn = row.querySelector('.remove-carrera-btn');
-            if (cargo === 'secretario' || cargo === 'coordinador') {
+            if (
+                cargo === 'secretario' || cargo === 'secretaria' ||
+                cargo === 'coordinador' || cargo === 'coordinadora'
+            ) {
                 addBtn.style.display = '';
                 removeBtn.style.display = rows.length > 1 ? '' : 'none';
             } else {
@@ -468,7 +471,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         // Si no es múltiple, deja solo la primera fila
-        if (cargo !== 'secretario' && cargo !== 'coordinador') {
+        if (
+            cargo !== 'secretario' && cargo !== 'secretaria' &&
+            cargo !== 'coordinador' && cargo !== 'coordinadora'
+        ) {
             while (carrerasContainer.children.length > 1) {
                 carrerasContainer.removeChild(carrerasContainer.lastChild);
             }

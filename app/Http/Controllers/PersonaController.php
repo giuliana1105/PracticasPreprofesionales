@@ -101,12 +101,20 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
+
         if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-        $carreras = Carrera::all();
-        $cargos = $this->CARGOS_VALIDOS;
+        // Si es secretaria/o, solo puede crear estudiantes y solo de sus carreras asignadas
+        if (in_array($cargo, ['secretario', 'secretaria'])) {
+            $carreras = $user->persona ? $user->persona->carreras()->get() : collect();
+            $cargos = ['estudiante'];
+        } else {
+            $carreras = Carrera::all();
+            $cargos = $this->CARGOS_VALIDOS;
+        }
+
         return view('personas.create', compact('carreras', 'cargos'));
     }
 
@@ -319,241 +327,228 @@ class PersonaController extends Controller
         }
     }
 
-    // Importar personas desde CSV
-    public function import(Request $request)
-    {
-        $user = Auth::user();
-        $cargo = strtolower(trim($user->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
-            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
-        }
+public function import(Request $request)
+{
+    $user = Auth::user();
+    $cargo = strtolower(trim($user->cargo ?? ''));
+    if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
+        abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+    }
 
-        $request->validate([
-            'archivo_csv' => 'required|file|mimes:csv,txt|max:2048',
-        ]);
+    $request->validate([
+        'archivo_csv' => 'required|file|mimes:csv,txt|max:2048',
+    ]);
 
-        $file = $request->file('archivo_csv');
-        $handle = fopen($file->getPathname(), 'r');
-        $firstLine = fgets($handle);
-        fclose($handle);
-        $delimiter = (strpos($firstLine, ';') !== false) ? ';' : ',';
+    $esSecretarioGeneral = $cargo === 'secretario_general';
 
-        $csv = \League\Csv\Reader::createFromPath($file->getPathname(), 'r');
-        $csv->setHeaderOffset(0);
-        $csv->setDelimiter($delimiter);
+    // Si es secretaria/o, obtiene las carreras permitidas
+    $soloEstudiantes = false;
+    $carrerasPermitidas = [];
+    if (in_array($cargo, ['secretario', 'secretaria'])) {
+        $soloEstudiantes = true;
+        $carrerasPermitidas = $user->persona ? $user->persona->carreras()->pluck('id_carrera')->toArray() : [];
+    }
 
-        // Normalizar encabezados
-        $header = $csv->getHeader();
-        $normalize = function($str) {
-            $str = mb_strtolower($str, 'UTF-8');
-            $str = str_replace(
-                ['á','é','í','ó','ú','ñ','Á','É','Í','Ó','Ú','Ñ'],
-                ['a','e','i','o','u','n','a','e','i','o','u','n'],
-                $str
-            );
-            $str = preg_replace('/[^a-z0-9_]/', '', $str); // quitar espacios y símbolos
-            return $str;
-        };
+    $file = $request->file('archivo_csv');
+    $handle = fopen($file->getPathname(), 'r');
+    $firstLine = fgets($handle);
+    fclose($handle);
+    $delimiter = (strpos($firstLine, ';') !== false) ? ';' : ',';
 
-        // Mapeo de encabezados normalizados a los nombres internos
-        $map = [
-            'cedula'        => ['cedula', 'cédula'],
-            'nombres'       => ['nombres'],
-            'apellidos'     => ['apellidos'],
-            'celular'       => ['celular'],
-            'email'         => ['email', 'correo', 'correo_electronico'],
-            'sigla_carrera' => ['siglacarrera', 'sigla_carrera', 'sigla carrera', 'siglas', 'siglas_carrera', 'siglas carrera'],
-            'cargo'         => ['cargo'],
-        ];
+    $csv = \League\Csv\Reader::createFromPath($file->getPathname(), 'r');
+    $csv->setHeaderOffset(0);
+    $csv->setDelimiter($delimiter);
 
-        // Crear un array de encabezados normalizados => nombre interno
-        $headerMap = [];
-        foreach ($header as $h) {
-            $norm = $normalize($h);
-            foreach ($map as $key => $variants) {
-                foreach ($variants as $variant) {
-                    if ($norm === $normalize($variant)) {
-                        $headerMap[$norm] = $key;
-                    }
+    // Normalizar encabezados
+    $header = $csv->getHeader();
+    $normalize = function($str) {
+        $str = mb_strtolower($str, 'UTF-8');
+        $str = str_replace(
+            ['á','é','í','ó','ú','ñ','Á','É','Í','Ó','Ú','Ñ'],
+            ['a','e','i','o','u','n','a','e','i','o','u','n'],
+            $str
+        );
+        $str = preg_replace('/[^a-z0-9_]/', '', $str); // quitar espacios y símbolos
+        return $str;
+    };
+
+    // Mapeo de encabezados normalizados a los nombres internos
+    $map = [
+        'cedula'        => ['cedula', 'cédula'],
+        'nombres'       => ['nombres'],
+        'apellidos'     => ['apellidos'],
+        'celular'       => ['celular'],
+        'email'         => ['email', 'correo', 'correo_electronico'],
+        'sigla_carrera' => ['siglacarrera', 'sigla_carrera', 'sigla carrera', 'siglas', 'siglas_carrera', 'siglas carrera'],
+        'cargo'         => ['cargo'],
+    ];
+
+    // Crear un array de encabezados normalizados => nombre interno
+    $headerMap = [];
+    foreach ($header as $h) {
+        $norm = $normalize($h);
+        foreach ($map as $key => $variants) {
+            foreach ($variants as $variant) {
+                if ($norm === $normalize($variant)) {
+                    $headerMap[$norm] = $key;
                 }
             }
-        }
-
-        DB::beginTransaction();
-        $importedCount = 0;
-        $duplicados = [];
-        $errores = [];
-
-        try {
-            foreach ($csv->getRecords() as $index => $row) {
-                $fila = $index + 2;
-
-                // Normalizar las claves del row
-                $normalizedRow = [];
-                foreach ($row as $k => $v) {
-                    $norm = $normalize($k);
-                    if (isset($headerMap[$norm])) {
-                        $normalizedRow[$headerMap[$norm]] = $v;
-                    }
-                }
-
-                // Validar campos requeridos mínimos
-                if (empty($normalizedRow['cedula'])) {
-                    $errores[$fila] = 'Cédula vacía';
-                    continue;
-                }
-                if (empty($normalizedRow['nombres'])) {
-                    $errores[$fila] = 'Nombres vacíos';
-                    continue;
-                }
-                if (empty($normalizedRow['apellidos'])) {
-                    $errores[$fila] = 'Apellidos vacíos';
-                    continue;
-                }
-                if (empty($normalizedRow['celular'])) {
-                    $errores[$fila] = 'Celular vacío';
-                    continue;
-                }
-                if (empty($normalizedRow['email'])) {
-                    $errores[$fila] = 'email vacío';
-                    continue;
-                }
-                if (empty($normalizedRow['sigla_carrera'])) {
-                    $errores[$fila] = 'Sigla de carrera vacía';
-                    continue;
-                }
-                if (empty($normalizedRow['cargo'])) {
-                    $errores[$fila] = 'Cargo vacío';
-                    continue;
-                }
-
-                // Buscar carrera por SIGLAS (nuevo)
-                $siglasCarrera = trim($normalizedRow['sigla_carrera']);
-                $cargo = strtolower(trim($normalizedRow['cargo']));
-
-                // Cargos que pueden tener varias carreras
-                $cargosMultiples = ['secretario', 'secretaria', 'coordinador', 'coordinadora'];
-
-                // Si es secretaria/o o coordinador/a, permite varias carreras separadas por "/"
-                if (in_array($cargo, $cargosMultiples)) {
-                    $siglas = array_map('trim', preg_split('/\s*\/\s*/', $siglasCarrera));
-                    $carreras = \App\Models\Carrera::whereIn(DB::raw('LOWER(siglas_carrera)'), array_map('strtolower', $siglas))->get();
-                    if ($carreras->count() !== count($siglas)) {
-                        $errores[$fila] = 'Una o más carreras no encontradas: ' . $siglasCarrera;
-                        continue;
-                    }
-                } else {
-                    // Solo una carrera permitida
-                    $siglas = [trim($siglasCarrera)];
-                    if (strpos($siglasCarrera, '/') !== false) {
-                        $errores[$fila] = 'Solo puede ingresar una carrera para el cargo seleccionado.';
-                        continue;
-                    }
-                    $carreras = \App\Models\Carrera::whereRaw('LOWER(siglas_carrera) = ?', [strtolower($siglasCarrera)])->get();
-                    if ($carreras->count() === 0) {
-                        $errores[$fila] = 'Carrera no encontrada por sigla: ' . $siglasCarrera;
-                        continue;
-                    }
-                }
-
-                // Cargos permitidos
-                $CARGOS_VALIDOS = $this->CARGOS_VALIDOS;
-                $cargo = strtolower(trim($normalizedRow['cargo']));
-
-                // Normalización para variantes masculino/femenino
-                $mapCargos = [
-                    'decano'        => ['decano', 'decana'],
-                    'subdecano'     => ['subdecano', 'subdecana'],
-                    'secretario'    => ['secretario', 'secretaria'],
-                    'abogado'       => ['abogado', 'abogada'],
-                    'coordinador'   => ['coordinador', 'coordinadora'],
-                    'docente'       => ['docente'],
-                    'estudiante'    => ['estudiante'],
-                    'secretario_general' => ['secretario_general'],
-                ];
-
-                // Busca el cargo normalizado
-                $cargoNormalizado = null;
-                foreach ($mapCargos as $base => $variantes) {
-                    if (in_array($cargo, $variantes)) {
-                        $cargoNormalizado = $base;
-                        break;
-                    }
-                }
-
-                // Si no se encuentra, es inválido
-                if (!$cargoNormalizado) {
-                    $errores[$fila] = 'Cargo no válido: ' . $normalizedRow['cargo'];
-                    continue;
-                }
-
-                $email = trim(str_replace(['"', "'", ' '], '', $normalizedRow['email']));
-                $cedula = trim($normalizedRow['cedula']);
-                $celular = trim($normalizedRow['celular']);
-
-                // Si el número tiene 9 dígitos y empieza por 9, agrega el 0 al inicio
-                if (preg_match('/^9\d{8}$/', $celular)) {
-                    $celular = '0' . $celular;
-                }
-
-                // Verificar duplicados por cédula o email
-                if (\App\Models\Persona::where('cedula', $cedula)->exists()) {
-                    $duplicados[$fila] = 'Cédula ya registrada: ' . $cedula;
-                    continue;
-                }
-                if (\App\Models\Persona::where('email', $email)->exists()) {
-                    $duplicados[$fila] = 'email ya registrado: ' . $email;
-                    continue;
-                }
-
-                // Crear persona
-                $persona = \App\Models\Persona::create([
-                    'cedula'     => $cedula,
-                    'nombres'    => trim($normalizedRow['nombres']),
-                    'apellidos'  => trim($normalizedRow['apellidos']),
-                    'celular'    => $celular,
-                    'email'      => $email,
-                    'carrera_id' => $carreras->first()->id_carrera,
-                    'cargo'      => $cargoNormalizado,
-                ]);
-
-                $persona->carreras()->sync($carreras->pluck('id_carrera')->toArray());
-
-                // Crear usuario automáticamente si no existe
-                if (!User::where('email', $email)->exists()) {
-                    User::create([
-                        'name' => $persona->nombres . ' ' . $persona->apellidos,
-                        'email' => $email,
-                        'password' => Hash::make($cedula),
-                        'cargo' => $cargoNormalizado,
-                        'must_change_password' => true,
-                    ]);
-                }
-
-                $importedCount++;
-            }
-
-            DB::commit();
-
-            $mensaje = "Se importaron {$importedCount} registros correctamente.";
-            if (count($duplicados) > 0) {
-                $mensaje .= " " . count($duplicados) . " registros no se importaron porque ya existen (por cédula o email).";
-            }
-            if (count($errores) > 0) {
-                $mensaje .= " " . count($errores) . " filas no se importaron por errores de datos.";
-            }
-
-            return redirect()->route('personas.index')->with([
-                'success'       => $mensaje,
-                'import_errors' => $errores,
-                'duplicados'    => $duplicados,
-            ]);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return back()->with('error', 'Error en la importación: ' . $e->getMessage());
         }
     }
 
+    DB::beginTransaction();
+    $importedCount = 0;
+    $duplicados = [];
+    $errores = [];
+
+    try {
+        foreach ($csv->getRecords() as $index => $row) {
+            $fila = $index + 2;
+
+            // Normalizar las claves del row
+            $normalizedRow = [];
+            foreach ($row as $k => $v) {
+                $norm = $normalize($k);
+                if (isset($headerMap[$norm])) {
+                    $normalizedRow[$headerMap[$norm]] = $v;
+                }
+            }
+
+            // Validar campos requeridos mínimos
+            if (empty($normalizedRow['cedula'])) {
+                $errores[$fila] = 'Cédula vacía';
+                continue;
+            }
+            if (empty($normalizedRow['nombres'])) {
+                $errores[$fila] = 'Nombres vacíos';
+                continue;
+            }
+            if (empty($normalizedRow['apellidos'])) {
+                $errores[$fila] = 'Apellidos vacíos';
+                continue;
+            }
+            if (empty($normalizedRow['celular'])) {
+                $errores[$fila] = 'Celular vacío';
+                continue;
+            }
+            if (empty($normalizedRow['email'])) {
+                $errores[$fila] = 'email vacío';
+                continue;
+            }
+            if (empty($normalizedRow['sigla_carrera'])) {
+                $errores[$fila] = 'Sigla de carrera vacía';
+                continue;
+            }
+            if (empty($normalizedRow['cargo'])) {
+                $errores[$fila] = 'Cargo vacío';
+                continue;
+            }
+
+            $cargoCsv = strtolower(trim($normalizedRow['cargo']));
+            $siglasCarrera = trim($normalizedRow['sigla_carrera']);
+
+            // Si es secretaria/o: solo estudiantes y solo carreras permitidas
+            if ($soloEstudiantes) {
+                if ($cargoCsv !== 'estudiante') {
+                    $errores[$fila] = 'La secretaria/o solo puede subir personas con cargo estudiante.';
+                    continue;
+                }
+            }
+
+            // Si es secretario general y el cargo es coordinador/a o secretario/a, permite varias carreras separadas por /
+            $carrerasIds = [];
+            if (
+                $esSecretarioGeneral &&
+                in_array($cargoCsv, ['coordinador', 'coordinadora', 'secretario', 'secretaria'])
+            ) {
+                $siglas = preg_split('/\s*\/\s*/', $siglasCarrera);
+                foreach ($siglas as $sigla) {
+                    $carrera = \App\Models\Carrera::whereRaw('LOWER(siglas_carrera) = ?', [strtolower($sigla)])->first();
+                    if ($carrera) {
+                        $carrerasIds[] = $carrera->id_carrera;
+                    } else {
+                        $errores[$fila] = "Carrera no encontrada por sigla: $sigla";
+                    }
+                }
+                if (empty($carrerasIds)) {
+                    $errores[$fila] = 'No se encontró ninguna carrera válida para las siglas proporcionadas.';
+                    continue;
+                }
+            } else {
+                // Solo una carrera
+                $carrera = \App\Models\Carrera::whereRaw('LOWER(siglas_carrera) = ?', [strtolower($siglasCarrera)])->first();
+                if (!$carrera) {
+                    $errores[$fila] = 'Carrera no encontrada por sigla: '.$siglasCarrera;
+                    continue;
+                }
+                $carrerasIds[] = $carrera->id_carrera;
+            }
+
+            // Si es secretaria/o: solo sus carreras
+            if ($soloEstudiantes && !in_array($carrerasIds[0], $carrerasPermitidas)) {
+                $errores[$fila] = 'La secretaria/o solo puede subir estudiantes de sus carreras asignadas.';
+                continue;
+            }
+
+            // Duplicados
+            $email = trim(str_replace(['"', "'", ' '], '', $normalizedRow['email']));
+            $cedula = trim($normalizedRow['cedula']);
+            $celular = trim($normalizedRow['celular']);
+            if (preg_match('/^9\d{8}$/', $celular)) {
+                $celular = '0' . $celular;
+            }
+            if (\App\Models\Persona::where('cedula', $cedula)->exists()) {
+                $duplicados[$fila] = 'Cédula ya registrada: ' . $cedula; continue;
+            }
+            if (\App\Models\Persona::where('email', $email)->exists()) {
+                $duplicados[$fila] = 'email ya registrado: ' . $email; continue;
+            }
+
+            // Crear persona
+            $persona = \App\Models\Persona::create([
+                'cedula'     => $cedula,
+                'nombres'    => trim($normalizedRow['nombres']),
+                'apellidos'  => trim($normalizedRow['apellidos']),
+                'celular'    => $celular,
+                'email'      => $email,
+                'carrera_id' => $carrerasIds[0],
+                'cargo'      => $cargoCsv,
+            ]);
+            $persona->carreras()->sync($carrerasIds);
+
+            // Crear usuario
+            if (!User::where('email', $email)->exists()) {
+                User::create([
+                    'name' => $persona->nombres . ' ' . $persona->apellidos,
+                    'email' => $email,
+                    'password' => Hash::make($cedula),
+                    'cargo' => $cargoCsv,
+                    'must_change_password' => true,
+                ]);
+            }
+            $importedCount++;
+        }
+
+        DB::commit();
+
+        $mensaje = "Se importaron {$importedCount} registros correctamente.";
+        if (count($duplicados) > 0) {
+            $mensaje .= " " . count($duplicados) . " registros no se importaron porque ya existen (por cédula o email).";
+        }
+        if (count($errores) > 0) {
+            $mensaje .= " " . count($errores) . " filas no se importaron por errores de datos.";
+        }
+
+        return redirect()->route('personas.index')->with([
+            'success'       => $mensaje,
+            'import_errors' => $errores,
+            'duplicados'    => $duplicados,
+        ]);
+    } catch (\Throwable $e) {
+        DB::rollBack();
+        return back()->with('error', 'Error en la importación: ' . $e->getMessage());
+    }
+}
     // Resetear contraseña
     public function resetPassword($id)
     {
