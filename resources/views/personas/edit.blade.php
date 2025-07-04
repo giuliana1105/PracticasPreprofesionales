@@ -343,7 +343,10 @@ document.addEventListener('DOMContentLoaded', function() {
         rows.forEach((row, idx) => {
             const addBtn = row.querySelector('.add-carrera-btn');
             const removeBtn = row.querySelector('.remove-carrera-btn');
-            if (cargo === 'secretario' || cargo === 'coordinador') {
+            if (
+                cargo === 'secretario' || cargo === 'secretaria' ||
+                cargo === 'coordinador' || cargo === 'coordinadora'
+            ) {
                 addBtn.style.display = '';
                 removeBtn.style.display = rows.length > 1 ? '' : 'none';
             } else {
@@ -351,7 +354,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 removeBtn.style.display = 'none';
             }
         });
-        if (cargo !== 'secretario' && cargo !== 'coordinador') {
+        if (
+            cargo !== 'secretario' && cargo !== 'secretaria' &&
+            cargo !== 'coordinador' && cargo !== 'coordinadora'
+        ) {
             while (carrerasContainer.children.length > 1) {
                 carrerasContainer.removeChild(carrerasContainer.lastChild);
             }

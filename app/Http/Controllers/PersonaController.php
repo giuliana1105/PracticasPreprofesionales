@@ -199,16 +199,18 @@ class PersonaController extends Controller
     // Mostrar formulario de edición
     public function edit($id)
     {
-        $user = Auth::user();
+        $user = auth()->user();
+        $persona = \App\Models\Persona::findOrFail($id);
+
         $cargo = strtolower(trim($user->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
-            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        // Si es secretaria/o, solo muestra sus carreras asignadas
+        if (in_array($cargo, ['secretario', 'secretaria'])) {
+            $carreras = $user->persona ? $user->persona->carreras()->get() : collect();
+        } else {
+            $carreras = \App\Models\Carrera::all();
         }
 
-        $persona = Persona::findOrFail($id);
-        $carreras = Carrera::all();
-        $cargos = $this->CARGOS_VALIDOS;
-        return view('personas.edit', compact('persona', 'carreras', 'cargos'));
+        return view('personas.edit', compact('persona', 'carreras'));
     }
 
     // Actualizar persona existente

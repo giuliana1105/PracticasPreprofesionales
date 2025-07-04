@@ -115,19 +115,20 @@ class ResolucionController extends Controller
 
     public function create()
     {
-        $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
-            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        $user = auth()->user();
+        $cargo = strtolower(trim($user->cargo ?? ''));
+
+        // Si es secretaria/o, solo muestra sus carreras asignadas
+        if (in_array($cargo, ['secretario', 'secretaria'])) {
+            $carreras = $user->persona ? $user->persona->carreras()->get() : collect();
+        } else {
+            $carreras = \App\Models\Carrera::all();
         }
 
-        // Obtener los tipos de resolución para mostrarlos en el formulario
-        $tipos = TipoResolucion::all();
-        $carreras = \App\Models\Carrera::all();
+        $tipos = \App\Models\TipoResolucion::all();
 
         // Mostrar la vista para crear la resolución
-        return view('resoluciones.create', compact('tipos', 'carreras'));
+        return view('resoluciones.create', compact('carreras', 'tipos'));
     }
 
     public function storeTemas(Request $request)
@@ -298,13 +299,22 @@ class ResolucionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
+
         if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
         $resolucion = \App\Models\Resolucion::findOrFail($id);
         $tipos = \App\Models\TipoResolucion::all();
-        $carreras = \App\Models\Carrera::all();
+
+        // Solo muestra las carreras asignadas si es secretaria/o
+        if (in_array($cargo, ['secretario', 'secretaria'])) {
+            $carreras = $persona && method_exists($persona, 'carreras')
+                ? $persona->carreras()->get()
+                : collect();
+        } else {
+            $carreras = \App\Models\Carrera::all();
+        }
 
         // Agrega la URL del archivo igual que en index
         $resolucion->archivo_url = $resolucion->archivo_pdf

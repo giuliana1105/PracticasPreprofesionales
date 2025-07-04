@@ -195,18 +195,13 @@
                 </div>
 
                 <div class="form-group mb-3">
-                    <label for="carrera_id">Carrera</label>
-                    <select name="carrera_id" id="carrera_id" class="form-control @error('carrera_id') is-invalid @enderror" required>
+                    <label for="carrera_id">Carrera:</label>
+                    <select name="carrera_id" id="carrera_id" class="form-control" required>
                         <option value="">Seleccione una carrera</option>
                         @foreach($carreras as $carrera)
-                            <option value="{{ $carrera->id_carrera }}" {{ old('carrera_id') == $carrera->id_carrera ? 'selected' : '' }}>
-                                {{ $carrera->siglas_carrera }}
-                            </option>
+                            <option value="{{ $carrera->id_carrera }}">{{ $carrera->siglas_carrera }}</option>
                         @endforeach
                     </select>
-                    @error('carrera_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
                 </div>
 
                 <div class="d-flex justify-content-between mt-4">
