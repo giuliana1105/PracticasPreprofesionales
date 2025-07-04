@@ -110,6 +110,12 @@ class PersonaController extends Controller
         if (in_array($cargo, ['secretario', 'secretaria'])) {
             $carreras = $user->persona ? $user->persona->carreras()->get() : collect();
             $cargos = ['estudiante'];
+        } elseif ($cargo === 'secretario_general') {
+            // Secretario general: puede crear cualquier cargo excepto estudiante
+            $carreras = Carrera::all();
+            $cargos = array_filter($this->CARGOS_VALIDOS, function($c) {
+                return $c !== 'estudiante';
+            });
         } else {
             $carreras = Carrera::all();
             $cargos = $this->CARGOS_VALIDOS;
@@ -203,14 +209,23 @@ class PersonaController extends Controller
         $persona = \App\Models\Persona::findOrFail($id);
 
         $cargo = strtolower(trim($user->cargo ?? ''));
+
         // Si es secretaria/o, solo muestra sus carreras asignadas
         if (in_array($cargo, ['secretario', 'secretaria'])) {
             $carreras = $user->persona ? $user->persona->carreras()->get() : collect();
+            $cargos = ['estudiante'];
+        } elseif ($cargo === 'secretario_general') {
+            // Secretario general: puede editar cualquier cargo excepto estudiante
+            $carreras = \App\Models\Carrera::all();
+            $cargos = array_filter($this->CARGOS_VALIDOS, function($c) {
+                return $c !== 'estudiante';
+            });
         } else {
             $carreras = \App\Models\Carrera::all();
+            $cargos = $this->CARGOS_VALIDOS;
         }
 
-        return view('personas.edit', compact('persona', 'carreras'));
+        return view('personas.edit', compact('persona', 'carreras', 'cargos'));
     }
 
     // Actualizar persona existente
@@ -455,6 +470,12 @@ public function import(Request $request)
                     $errores[$fila] = 'La secretaria/o solo puede subir personas con cargo estudiante.';
                     continue;
                 }
+            }
+
+            // Si es secretario general: NO puede importar estudiantes
+            if ($esSecretarioGeneral && $cargoCsv === 'estudiante') {
+                $errores[$fila] = 'El secretario general no puede importar personas con cargo estudiante.';
+                continue;
             }
 
             // Si es secretario general y el cargo es coordinador/a o secretario/a, permite varias carreras separadas por /

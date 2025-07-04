@@ -205,29 +205,42 @@ public function index(Request $request)
     public function create()
     {
         $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
+        $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
+
         if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-        $personas = Persona::all();
-        $periodos = Periodo::all();
-        $estados = EstadoTitulacion::all();
+        $periodos = \App\Models\Periodo::all();
+        $estados = \App\Models\EstadoTitulacion::all();
         $resolucionesSeleccionadas = \App\Models\Resolucion::whereIn(
             'id_Reso',
             \App\Models\ResolucionSeleccionada::pluck('resolucion_id')
         )->get();
-
-        $docentes = Persona::whereRaw("LOWER(cargo) = 'docente'")->orderBy('nombres')->get();
-
-        // Obtener todos los cargos distintos de la tabla personas
-        $cargosEstablecidos = Persona::select('cargo')
+        $docentes = \App\Models\Persona::whereRaw("LOWER(cargo) = 'docente'")->orderBy('nombres')->get();
+        $cargosEstablecidos = \App\Models\Persona::select('cargo')
             ->distinct()
             ->whereNotNull('cargo')
             ->orderBy('cargo')
             ->pluck('cargo')
             ->toArray();
+
+        // SOLO PARA SECRETARIA/O: filtra estudiantes de sus carreras
+        if (in_array($cargo, ['secretario', 'secretaria'])) {
+            $carrerasIds = $persona->carreras()->pluck('id_carrera')->toArray();
+            $personas = \App\Models\Persona::where(function($q) use ($carrerasIds) {
+        $q->where('cargo', 'docente')
+          ->orWhere(function($sub) use ($carrerasIds) {
+              $sub->where('cargo', 'estudiante')
+                  ->whereHas('carreras', function($q2) use ($carrerasIds) {
+                      $q2->whereIn('id_carrera', $carrerasIds);
+                  });
+          });
+    })->get();
+        } else {
+            $personas = \App\Models\Persona::all();
+        }
 
         return view('titulaciones.create', compact(
             'periodos', 'estados', 'resolucionesSeleccionadas', 'personas', 'docentes', 'cargosEstablecidos'
@@ -306,7 +319,7 @@ public function index(Request $request)
     public function edit($id)
     {
         $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
+        $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['estudiante', 'coordinador', 'decano'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
@@ -314,7 +327,22 @@ public function index(Request $request)
         $titulacion = Titulacion::findOrFail($id);
         $periodos = Periodo::all();
         $estados = EstadoTitulacion::all();
-        $personas = Persona::all();
+
+        // Filtra estudiantes solo de las carreras de la secretaria/o, pero muestra todos los docentes
+        if (in_array($cargo, ['secretario', 'secretaria'])) {
+            $carrerasIds = $persona->carreras()->pluck('id_carrera')->toArray();
+            $personas = \App\Models\Persona::where(function($q) use ($carrerasIds) {
+                $q->where('cargo', 'docente')
+                  ->orWhere(function($sub) use ($carrerasIds) {
+                      $sub->where('cargo', 'estudiante')
+                          ->whereHas('carreras', function($q2) use ($carrerasIds) {
+                              $q2->whereIn('id_carrera', $carrerasIds);
+                          });
+                  });
+            })->get();
+        } else {
+            $personas = \App\Models\Persona::all();
+        }
 
         $personaEstudiante = $personas->firstWhere('cedula', $titulacion->cedula_estudiante);
         $personaDirector = $personas->firstWhere('cedula', $titulacion->cedula_director);
@@ -578,6 +606,14 @@ public function index(Request $request)
             $estudiante = Persona::where('cedula', $data['cedula_estudiante'])->first();
             if (!$estudiante) {
                 $erroresFila[] = "Estudiante con cédula '{$data['cedula_estudiante']}' no registrado";
+            } elseif (in_array($cargo, ['secretario', 'secretaria'])) {
+                // Solo permitir si el estudiante pertenece a una de las carreras asignadas a la secretaria
+                $carrerasSecretaria = $persona->carreras()->pluck('id_carrera')->toArray();
+                $carrerasEstudiante = $estudiante->carreras()->pluck('id_carrera')->toArray();
+                $interseccion = array_intersect($carrerasSecretaria, $carrerasEstudiante);
+                if (empty($interseccion)) {
+                    $erroresFila[] = "La secretaria/o solo puede importar estudiantes de sus carreras asignadas. Cédula: '{$data['cedula_estudiante']}'";
+                }
             }
 
             $director = Persona::where('cedula', $data['cedula_director'])->first();

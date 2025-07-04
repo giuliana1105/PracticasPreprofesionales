@@ -276,14 +276,11 @@
                 <label for="cargo">Cargo:</label>
                 <select id="cargo" name="cargo" class="form-control @error('cargo') is-invalid @enderror" required>
                     <option value="">Seleccione un cargo</option>
-                    <option value="secretario_general" {{ old('cargo', $persona->cargo ?? '') == 'secretario_general' ? 'selected' : '' }}>Secretario General</option>
-                    <option value="secretario" {{ old('cargo', $persona->cargo ?? '') == 'secretario' ? 'selected' : '' }}>Secretario/a</option>
-                    <option value="abogado" {{ old('cargo', $persona->cargo ?? '') == 'abogado' ? 'selected' : '' }}>Abogado/a</option>
-                    <option value="decano" {{ old('cargo', $persona->cargo ?? '') == 'decano' ? 'selected' : '' }}>Decano</option>
-                    <option value="subdecano" {{ old('cargo', $persona->cargo ?? '') == 'subdecano' ? 'selected' : '' }}>Subdecano/a</option>
-                    <option value="docente" {{ old('cargo', $persona->cargo ?? '') == 'docente' ? 'selected' : '' }}>Docente</option>
-                    <option value="estudiante" {{ old('cargo', $persona->cargo ?? '') == 'estudiante' ? 'selected' : '' }}>Estudiante</option>
-                    <option value="coordinador" {{ old('cargo', $persona->cargo ?? '') == 'coordinador' ? 'selected' : '' }}>Coordinador/a</option>
+                    @foreach($cargos as $cargoItem)
+                        <option value="{{ $cargoItem }}" {{ old('cargo', $persona->cargo ?? '') == $cargoItem ? 'selected' : '' }}>
+                            {{ ucfirst($cargoItem) }}
+                        </option>
+                    @endforeach
                 </select>
                 @error('cargo')
                     <div class="invalid-feedback">{{ $message }}</div>
