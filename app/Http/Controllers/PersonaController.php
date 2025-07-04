@@ -45,11 +45,31 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
+
+        // Cargos restringidos
         if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
         $query = Persona::with(['carreras']);
+
+        // Si es secretaria/o, filtra los estudiantes por sus carreras asignadas
+        if (in_array($cargo, ['secretario', 'secretaria'])) {
+            // Obtén las carreras asignadas a la secretaria
+            $carrerasAsignadas = $user->persona ? $user->persona->carreras()->pluck('id_carrera')->toArray() : [];
+
+            $query->where(function($q) use ($carrerasAsignadas) {
+                // Mostrar estudiantes SOLO de las carreras asignadas
+                $q->where(function($sub) use ($carrerasAsignadas) {
+                    $sub->where('cargo', 'estudiante')
+                        ->whereHas('carreras', function($q2) use ($carrerasAsignadas) {
+                            $q2->whereIn('id_carrera', $carrerasAsignadas);
+                        });
+                })
+                // Mostrar todos los otros cargos
+                ->orWhere('cargo', '!=', 'estudiante');
+            });
+        }
 
         // Búsqueda
         if ($request->filled('buscar')) {
@@ -70,7 +90,10 @@ class PersonaController extends Controller
 
         $personas = $query->get();
 
-        return view('personas.index', compact('personas'));
+        // Para la vista: pasa también las carreras asignadas (por si las necesitas)
+        $carrerasAsignadas = isset($carrerasAsignadas) ? $carrerasAsignadas : [];
+
+        return view('personas.index', compact('personas', 'carrerasAsignadas'));
     }
 
     // Mostrar formulario de creación
