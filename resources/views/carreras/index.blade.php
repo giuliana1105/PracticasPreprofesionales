@@ -1,6 +1,20 @@
 @extends('layouts.app')
 
 @section('content')
+
+
+    @php
+        $user = auth()->user();
+        $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
+        $cargo = strtolower(trim($persona->cargo ?? ''));
+        $esEstudiante = $cargo === 'estudiante';
+        $esSecretaria = $cargo === 'secretario' || $cargo === 'secretaria';
+    @endphp
+    @if($esEstudiante)
+        <div class="alert alert-danger">No autorizado.</div>
+        @php exit; @endphp
+    @endif
+
 <style>
     body {
         background-color: #e9ecef;
@@ -207,10 +221,12 @@
     <h1 class="page-title">Gestión de Carreras</h1>
 
      <div class="flex mb-4">
+        @if(!$esSecretaria)
         <a href="{{ route('carreras.create') }}"
            class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded shadow hover:bg-red-700 transition">
             <i class="fas fa-plus mr-2"></i> Crear Carrera
         </a>
+        @endif
         <a href="{{ route('home') }}"
            class="inline-flex items-center px-4 py-2 bg-gray-500 text-white text-sm font-semibold rounded shadow hover:bg-gray-800 transition ml-2">
             <i class="fas fa-home mr-2"></i> Home
@@ -236,16 +252,6 @@
         </div>
     @endif
 
-    @php
-        $user = auth()->user();
-        $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
-        $esEstudiante = $persona && strtolower(trim($persona->cargo ?? '')) === 'estudiante';
-    @endphp
-    @if($esEstudiante)
-        <div class="alert alert-danger">No autorizado.</div>
-        @php exit; @endphp
-    @endif
-
     <div class="table-container">
         <table class="table table-hover">
             <thead>
@@ -263,6 +269,7 @@
                         <td class="align-middle">{{ $carrera->nombre_carrera }}</td>
                         <td class="align-middle">{{ $carrera->siglas_carrera }}</td>
                         <td class="text-center align-middle">
+                            @if(!$esSecretaria)
                             <div class="d-flex justify-content-center">
                                 <a href="{{ route('carreras.edit', $carrera->id_carrera) }}" class="btn btn-sm btn-warning mx-1">
                                     <i class="fas fa-edit"></i>
@@ -276,6 +283,7 @@
                                     Eliminar
                                 </button>
                             </div>
+                            @endif
                         </td>
                     </tr>
                 @empty

@@ -121,6 +121,8 @@ class PersonaController extends Controller
             $cargos = $this->CARGOS_VALIDOS;
         }
 
+        $cargos = $this->unificarCargos($cargos);
+
         return view('personas.create', compact('carreras', 'cargos'));
     }
 
@@ -224,6 +226,8 @@ class PersonaController extends Controller
             $carreras = \App\Models\Carrera::all();
             $cargos = $this->CARGOS_VALIDOS;
         }
+
+        $cargos = $this->unificarCargos($cargos);
 
         return view('personas.edit', compact('persona', 'carreras', 'cargos'));
     }
@@ -595,4 +599,28 @@ public function import(Request $request)
             return redirect()->route('personas.index')->with('error', 'No existe usuario asociado a esta persona.');
         }
     }
+
+
+private function unificarCargos($cargos)
+{
+    $map = [
+        'secretario' => 'secretario/a',
+        'secretaria' => 'secretario/a',
+        'coordinador' => 'coordinador/a',
+        'coordinadora' => 'coordinador/a',
+        'decano' => 'decano/a',
+        'decana' => 'decano/a',
+        'subdecano' => 'subdecano/a',
+        'subdecana' => 'subdecano/a',
+        'abogado' => 'abogado/a',
+        'abogada' => 'abogado/a',
+    ];
+    $result = [];
+    foreach ($cargos as $cargo) {
+        $cargoLower = strtolower($cargo);
+        $result[$map[$cargoLower] ?? $cargo] = $map[$cargoLower] ?? $cargo;
+    }
+    // Elimina duplicados y conserva el orden
+    return array_values(array_unique($result));
+}
 }

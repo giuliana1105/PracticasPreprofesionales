@@ -1,4 +1,3 @@
-
 @extends('layouts.app')
 
 @section('content')
@@ -114,6 +113,7 @@
         color: #fff !important;
     }
     .mb-3 { margin-bottom: 1rem; }
+    
     .mt-2 { margin-top: 0.5rem; }
     .fw-bold { font-weight: bold; }
     .text-muted { color: #888; }
@@ -127,6 +127,7 @@
     $esCoordinador = $persona && strtolower(trim($persona->cargo ?? '')) === 'coordinador';
     $esDecano = $persona && strtolower(trim($persona->cargo ?? '')) === 'decano';
     $cargo = strtolower(trim($persona->cargo ?? ''));
+    $esSecretarioGeneral = $persona && $cargo === 'secretario_general';
 @endphp
 @if($esEstudiante && $titulacion->cedula_estudiante !== ($persona->cedula ?? null))
     <div class="alert alert-danger">No autorizado para ver esta titulación.</div>
@@ -142,7 +143,7 @@
     </div>
     <div class="page-title">Detalles de Titulación</div>
     <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary mb-3">Volver</a>
-    @if(!$esEstudiante)
+    @if(!$esEstudiante && !$esSecretarioGeneral)
         <a href="#" id="btn-anexo-x" class="btn btn-info mb-3" style="margin-left: 8px;">
             <i class="fas fa-file-pdf"></i> Anexo X
         </a>
@@ -250,71 +251,73 @@
                 @endif
             </td>
         </tr>
-        <tr>
-            <th>Cambios</th>
-            <td>
-                <button id="btn-ver-cambios" class="btn btn-success btn-sm mb-2" type="button" onclick="mostrarCambios()" style="display: inline-block;">
-                    <i class="fas fa-eye"></i> Ver más
-                </button>
-                <button id="btn-ocultar-cambios" class="btn btn-success btn-sm mb-2" type="button" onclick="ocultarCambios()" style="display: none;">
-                    <i class="fas fa-eye-slash"></i> Ver menos
-                </button>
-                <div id="tabla-cambios" style="display: none;">
-                    @if($titulacion->avanceHistorial && count($titulacion->avanceHistorial))
-                        <table style="width:100%; font-size:13px; border-collapse:collapse;">
-                            <thead>
-                                <tr style="background:#f8f9fa;">
-                                    <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:110px;">Fecha</th>
-                                    <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:120px;">Docente</th>
-                                    <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:120px;">Campo</th>
-                                    <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:120px;">Valor anterior</th>
-                                    <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:120px;">Valor nuevo</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($titulacion->avanceHistorial->sortByDesc('created_at') as $historial)
-                                    <tr>
-                                        <td style="padding:8px; border-bottom:1px solid #f1f1f1;">{{ $historial->created_at->format('d/m/Y H:i') }}</td>
-                                        <td style="padding:8px; border-bottom:1px solid #f1f1f1;">
-                                            {{ $historial->docente->nombres ?? '' }} {{ $historial->docente->apellidos ?? '' }}
-                                        </td>
-                                        <td style="padding:8px; border-bottom:1px solid #f1f1f1;">
-                                            @switch($historial->campo)
-                                                @case('avance') Avance (%) @break
-                                                @case('observaciones') Observaciones @break
-                                                @case('actividades_cronograma') Actividades según el cronograma @break
-                                                @case('cumplio_cronograma') Cumplió el cronograma @break
-                                                @case('resultados') Resultados @break
-                                                @case('horas_asesoria') Horas de asesoría @break
-                                                @default {{ ucfirst($historial->campo) }}
-                                            @endswitch
-                                        </td>
-                                        <td style="padding:8px; border-bottom:1px solid #f1f1f1; white-space:pre-line;">
-                                            {{ trim($historial->valor_anterior) !== '' ? $historial->valor_anterior : 'Sin valor' }}
-                                        </td>
-                                        <td style="padding:8px; border-bottom:1px solid #f1f1f1; white-space:pre-line;">{{ $historial->valor_nuevo }}</td>
+        @if(!$esSecretarioGeneral)
+            <tr>
+                <th>Cambios</th>
+                <td>
+                    <button id="btn-ver-cambios" class="btn btn-success btn-sm mb-2" type="button" onclick="mostrarCambios()" style="display: inline-block;">
+                        <i class="fas fa-eye"></i> Ver más
+                    </button>
+                    <button id="btn-ocultar-cambios" class="btn btn-success btn-sm mb-2" type="button" onclick="ocultarCambios()" style="display: none;">
+                        <i class="fas fa-eye-slash"></i> Ver menos
+                    </button>
+                    <div id="tabla-cambios" style="display: none;">
+                        @if($titulacion->avanceHistorial && count($titulacion->avanceHistorial))
+                            <table style="width:100%; font-size:13px; border-collapse:collapse;">
+                                <thead>
+                                    <tr style="background:#f8f9fa;">
+                                        <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:110px;">Fecha</th>
+                                        <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:120px;">Docente</th>
+                                        <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:120px;">Campo</th>
+                                        <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:120px;">Valor anterior</th>
+                                        <th style="padding:8px; border-bottom:1px solid #dee2e6; min-width:120px;">Valor nuevo</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    @else
-                        <span class="text-muted">Sin cambios registrados</span>
-                    @endif
-                </div>
-                <script>
-                    function mostrarCambios() {
-                        document.getElementById('tabla-cambios').style.display = 'block';
-                        document.getElementById('btn-ver-cambios').style.display = 'none';
-                        document.getElementById('btn-ocultar-cambios').style.display = 'inline-block';
-                    }
-                    function ocultarCambios() {
-                        document.getElementById('tabla-cambios').style.display = 'none';
-                        document.getElementById('btn-ver-cambios').style.display = 'inline-block';
-                        document.getElementById('btn-ocultar-cambios').style.display = 'none';
-                    }
-                </script>
-            </td>
-        </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($titulacion->avanceHistorial->sortByDesc('created_at') as $historial)
+                                        <tr>
+                                            <td style="padding:8px; border-bottom:1px solid #f1f1f1;">{{ $historial->created_at->format('d/m/Y H:i') }}</td>
+                                            <td style="padding:8px; border-bottom:1px solid #f1f1f1;">
+                                                {{ $historial->docente->nombres ?? '' }} {{ $historial->docente->apellidos ?? '' }}
+                                            </td>
+                                            <td style="padding:8px; border-bottom:1px solid #f1f1f1;">
+                                                @switch($historial->campo)
+                                                    @case('avance') Avance (%) @break
+                                                    @case('observaciones') Observaciones @break
+                                                    @case('actividades_cronograma') Actividades según el cronograma @break
+                                                    @case('cumplio_cronograma') Cumplió el cronograma @break
+                                                    @case('resultados') Resultados @break
+                                                    @case('horas_asesoria') Horas de asesoría @break
+                                                    @default {{ ucfirst($historial->campo) }}
+                                                @endswitch
+                                            </td>
+                                            <td style="padding:8px; border-bottom:1px solid #f1f1f1; white-space:pre-line;">
+                                                {{ trim($historial->valor_anterior) !== '' ? $historial->valor_anterior : 'Sin valor' }}
+                                            </td>
+                                            <td style="padding:8px; border-bottom:1px solid #f1f1f1; white-space:pre-line;">{{ $historial->valor_nuevo }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @else
+                            <span class="text-muted">Sin cambios registrados</span>
+                        @endif
+                    </div>
+                    <script>
+                        function mostrarCambios() {
+                            document.getElementById('tabla-cambios').style.display = 'block';
+                            document.getElementById('btn-ver-cambios').style.display = 'none';
+                            document.getElementById('btn-ocultar-cambios').style.display = 'inline-block';
+                        }
+                        function ocultarCambios() {
+                            document.getElementById('tabla-cambios').style.display = 'none';
+                            document.getElementById('btn-ver-cambios').style.display = 'inline-block';
+                            document.getElementById('btn-ocultar-cambios').style.display = 'none';
+                        }
+                    </script>
+                </td>
+            </tr>
+        @endif
         @if($esDocente)
             <tr>
                 <th>Acciones</th>

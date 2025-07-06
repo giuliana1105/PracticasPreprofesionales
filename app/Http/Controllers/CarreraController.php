@@ -12,9 +12,11 @@ class CarreraController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        // Cambia para usar el campo string 'cargo'
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
+        // Solo restringe para cargos que no pueden ver el listado (secretaria/o sí puede ver)
+        if (in_array($cargo, [
+            'coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'
+        ])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
     }
@@ -25,7 +27,10 @@ class CarreraController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
+        // Solo restringe para cargos que no pueden ver el listado (secretaria/o sí puede ver)
+        if (in_array($cargo, [
+            'coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'
+        ])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -39,7 +44,10 @@ class CarreraController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
+        // Ahora también restringe a secretaria/o
+        if (in_array($cargo, [
+            'coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario', 'secretaria'
+        ])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -52,7 +60,10 @@ class CarreraController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
+        // Ahora también restringe a secretaria/o
+        if (in_array($cargo, [
+            'coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario', 'secretaria'
+        ])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -72,7 +83,10 @@ class CarreraController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
+        // Ahora también restringe a secretaria/o
+        if (in_array($cargo, [
+            'coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario', 'secretaria'
+        ])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -85,7 +99,10 @@ class CarreraController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
+        // Ahora también restringe a secretaria/o
+        if (in_array($cargo, [
+            'coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario', 'secretaria'
+        ])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -105,7 +122,10 @@ class CarreraController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
+        // Ahora también restringe a secretaria/o
+        if (in_array($cargo, [
+            'coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario', 'secretaria'
+        ])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 

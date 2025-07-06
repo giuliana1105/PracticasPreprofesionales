@@ -11,6 +11,7 @@
     $esDocente = $persona && $cargo === 'docente';
     $esDecano = $persona && in_array($cargo, ['decano', 'subdecano', 'subdecana', 'abogado', 'abogada']);
     $esCoordinador = $persona && $cargo === 'coordinador';
+    $esSecretarioGeneral = $persona && $cargo === 'secretario_general';
 @endphp
 
 <style>
@@ -388,7 +389,7 @@
 
     {{-- Botones de acción --}}
     <div class="d-flex flex-column flex-md-row justify-content-start mb-4" style="gap: 10px;">
-        @if(!$esEstudiante && !$esDocente && !$esDecano && !$esCoordinador)
+        @if(!$esEstudiante && !$esDocente && !$esDecano && !$esCoordinador && !$esSecretarioGeneral)
             <a href="{{ route('titulaciones.create') }}" class="btn btn-primary me-2 mb-2 mb-md-0" id="btnNuevaTitulacion">
                 <i class="fas fa-plus"></i> Nueva Titulación
             </a>
@@ -566,7 +567,7 @@
                                     </a>
                                 @endif
                             @else
-                                @if(!$esEstudiante && !$esDocente && !$esDecano && !$esCoordinador)
+                                @if(!$esEstudiante && !$esDocente && !$esDecano && !$esCoordinador && !$esSecretarioGeneral)
                                     <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" class="btn btn-sm btn-warning mx-1 mb-1" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
@@ -574,15 +575,16 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="button"
-    class="btn btn-sm btn-danger mx-1 mb-1"
-    data-bs-toggle="modal"
-    data-bs-target="#modalEliminarTitulacion"
-    data-id="{{ $tit->id_titulacion }}"
-    title="Eliminar">
-    <i class="fas fa-trash-alt"></i>
-</button>
+                                            class="btn btn-sm btn-danger mx-1 mb-1"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalEliminarTitulacion"
+                                            data-id="{{ $tit->id_titulacion }}"
+                                            title="Eliminar">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
                                     </form>
-                                @elseif($esDocente)
+                                @endif
+                                @if($esDocente)
                                     <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" class="btn btn-sm btn-warning mx-1 mb-1" title="Editar avance y observaciones">
                                         <i class="fas fa-edit"></i>
                                     </a>

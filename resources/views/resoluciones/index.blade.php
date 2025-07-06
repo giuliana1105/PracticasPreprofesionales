@@ -404,6 +404,7 @@
     $cargo = strtolower(trim($persona->cargo ?? ''));
     $esDecano = in_array($cargo, ['decano', 'subdecano', 'subdecana', 'abogado', 'abogada']);
     $esEstudiante = $persona && $cargo === 'estudiante';
+    $esSecretarioGeneral = $persona && $cargo === 'secretario_general';
 @endphp
 @if($esEstudiante)
     <div class="alert alert-danger">No autorizado.</div>
@@ -423,10 +424,12 @@
     <h1 class="page-title">Gestión de Resoluciones</h1>
 
     <div class="flex mb-4">
-        <a href="{{ route('resoluciones.create') }}"
-           class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded shadow hover:bg-red-700 transition">
-            <i class="fas fa-plus mr-2"></i> Crear Nueva Resolución
-        </a>
+        @if(!$esSecretarioGeneral)
+            <a href="{{ route('resoluciones.create') }}"
+               class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded shadow hover:bg-red-700 transition">
+                <i class="fas fa-plus mr-2"></i> Crear Nueva Resolución
+            </a>
+        @endif
         <a href="{{ route('home') }}"
            class="inline-flex items-center px-4 py-2 bg-gray-500 text-white text-sm font-semibold rounded shadow hover:bg-gray-800 transition ml-2">
             <i class="fas fa-home mr-2"></i> Home
@@ -516,35 +519,37 @@
                             @endif
                         </td>
                         <td class="align-middle">
-                            {{-- Botón editar --}}
-                            <a href="{{ route('resoluciones.edit', $resolucion->id_Reso) }}"
-                               class="btn btn-warning btn-sm"
-                               title="Editar"
-                               style="background:#f39c12;border:none;color:#fff;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;font-size:1.3em;border-radius:8px;margin-right:4px;">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            {{-- Botón eliminar --}}
-                            <button type="button"
-                                    class="btn btn-danger btn-sm"
-                                    style="background:#dc3545;border:none;color:#fff;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;font-size:1.3em;border-radius:8px;"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modalEliminarResolucion"
-                                    data-id="{{ $resolucion->id_Reso }}"
-                                    title="Eliminar">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                            {{-- Formulario eliminar oculto --}}
-                            <form id="form-eliminar-{{ $resolucion->id_Reso }}" action="{{ route('resoluciones.destroy', $resolucion->id_Reso) }}" method="POST" style="display:none;">
-                                @csrf
-                                @method('DELETE')
-                            </form>
+                            @if(!$esSecretarioGeneral)
+                                {{-- Botón editar --}}
+                                <a href="{{ route('resoluciones.edit', $resolucion->id_Reso) }}"
+                                   class="btn btn-warning btn-sm"
+                                   title="Editar"
+                                   style="background:#f39c12;border:none;color:#fff;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;font-size:1.3em;border-radius:8px;margin-right:4px;">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {{-- Botón eliminar --}}
+                                <button type="button"
+                                        class="btn btn-danger btn-sm"
+                                        style="background:#dc3545;border:none;color:#fff;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;font-size:1.3em;border-radius:8px;"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalEliminarResolucion"
+                                        data-id="{{ $resolucion->id_Reso }}"
+                                        title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {{-- Formulario eliminar oculto --}}
+                                <form id="form-eliminar-{{ $resolucion->id_Reso }}" action="{{ route('resoluciones.destroy', $resolucion->id_Reso) }}" method="POST" style="display:none;">
+                                    @csrf
+                                    @method('DELETE')
+                                </form>
+                            @endif
                         </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
 
-        {{-- Formulario separado solo para enviar las resoluciones seleccionadas --}}
+        @if(!$esSecretarioGeneral)
         <div style="display: flex; justify-content: center; width: 100%; margin-top: 1.5rem;">
             <form id="form-seleccionar" action="{{ route('resoluciones.seleccionar') }}" method="POST">
                 @csrf
@@ -556,6 +561,7 @@
                 </button>
             </form>
         </div>
+        @endif
     </div>
 </div>
 
