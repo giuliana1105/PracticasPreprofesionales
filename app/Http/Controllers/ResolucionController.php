@@ -226,10 +226,14 @@ class ResolucionController extends Controller
             return redirect()->route('resoluciones.index')->with('error', 'Debe seleccionar al menos una resolución.');
         }
 
-        ResolucionSeleccionada::truncate();
+        // Eliminar solo las resoluciones seleccionadas por este usuario
+        ResolucionSeleccionada::where('user_id', $user->id)->delete();
 
         foreach ($resolucionesIds as $id) {
-            ResolucionSeleccionada::create(['resolucion_id' => $id]);
+            ResolucionSeleccionada::create([
+                'resolucion_id' => $id,
+                'user_id' => $user->id
+            ]);
         }
 
         return redirect()->route('titulaciones.index')->with('success', 'Resoluciones seleccionadas correctamente. Ahora puede ingresar los temas.');
@@ -244,11 +248,12 @@ class ResolucionController extends Controller
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
-        // Eliminar todas las resoluciones seleccionadas
-        \App\Models\ResolucionSeleccionada::truncate();
+        // Eliminar solo las resoluciones seleccionadas por este usuario
+        $user = Auth::user();
+        \App\Models\ResolucionSeleccionada::where('user_id', $user->id)->delete();
 
         // Redirigir a la pantalla de selección de resoluciones
-        return redirect()->route('resoluciones.index')->with('success', 'Resoluciones limpiadas. Seleccione nuevas resoluciones.');
+        return redirect()->route('resoluciones.index')->with('success', 'Resoluciones limpiadas solo para usted. Seleccione nuevas resoluciones.');
     }
 
     public function destroy($id)

@@ -14,6 +14,7 @@ class ResolucionSeleccionada extends Model
     protected $fillable = [
         'resolucion_id',
         'fecha_seleccion',
+        'user_id',
     ];
 
     // Relación con el modelo Resolucion

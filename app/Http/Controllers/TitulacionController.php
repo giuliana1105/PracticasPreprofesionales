@@ -209,20 +209,14 @@ class TitulacionController extends Controller
 
         $periodos = \App\Models\Periodo::all();
         $estados = \App\Models\EstadoTitulacion::all();
-        $resolucionesSeleccionadas = \App\Models\Resolucion::whereIn(
-            'id_Reso',
-            \App\Models\ResolucionSeleccionada::pluck('resolucion_id')
-        )->get();
-        $docentes = \App\Models\Persona::whereRaw("LOWER(cargo) = 'docente'")->orderBy('nombres')->get();
-        $cargosEstablecidos = \App\Models\Persona::select('cargo')
-            ->distinct()
-            ->whereNotNull('cargo')
-            ->orderBy('cargo')
-            ->pluck('cargo')
-            ->toArray();
-
+        $userId = $user->id;
         if (in_array($cargo, ['secretario', 'secretaria'])) {
             $carrerasIds = $persona->carreras()->pluck('id_carrera')->toArray();
+            // Solo resoluciones seleccionadas por este usuario y de sus carreras
+            $resolucionesSeleccionadas = \App\Models\Resolucion::whereIn(
+                'id_Reso',
+                \App\Models\ResolucionSeleccionada::where('user_id', $userId)->pluck('resolucion_id')
+            )->whereIn('carrera_id', $carrerasIds)->get();
             $personas = \App\Models\Persona::where(function($q) use ($carrerasIds) {
                 $q->where('cargo', 'docente')
                   ->orWhere(function($sub) use ($carrerasIds) {
@@ -233,8 +227,20 @@ class TitulacionController extends Controller
                   });
             })->get();
         } else {
+            // Para otros roles, solo filtra por usuario
+            $resolucionesSeleccionadas = \App\Models\Resolucion::whereIn(
+                'id_Reso',
+                \App\Models\ResolucionSeleccionada::where('user_id', $userId)->pluck('resolucion_id')
+            )->get();
             $personas = \App\Models\Persona::all();
         }
+        $docentes = \App\Models\Persona::whereRaw("LOWER(cargo) = 'docente'")->orderBy('nombres')->get();
+        $cargosEstablecidos = \App\Models\Persona::select('cargo')
+            ->distinct()
+            ->whereNotNull('cargo')
+            ->orderBy('cargo')
+            ->pluck('cargo')
+            ->toArray();
 
         return view('titulaciones.create', compact(
             'periodos', 'estados', 'resolucionesSeleccionadas', 'personas', 'docentes', 'cargosEstablecidos'
@@ -262,7 +268,17 @@ class TitulacionController extends Controller
             'acta_grado' => 'nullable|file|mimes:pdf|max:2048',
         ]);
 
-        $resolucionesSeleccionadas = \App\Models\ResolucionSeleccionada::pluck('resolucion_id');
+        $userId = $user->id;
+        if (in_array($cargo, ['secretario', 'secretaria'])) {
+            $carrerasIds = $persona->carreras()->pluck('id_carrera')->toArray();
+            $resolucionesSeleccionadas = \App\Models\ResolucionSeleccionada::where('user_id', $userId)
+                ->whereHas('resolucion', function($q) use ($carrerasIds) {
+                    $q->whereIn('carrera_id', $carrerasIds);
+                })
+                ->pluck('resolucion_id');
+        } else {
+            $resolucionesSeleccionadas = \App\Models\ResolucionSeleccionada::where('user_id', $userId)->pluck('resolucion_id');
+        }
 
         if ($resolucionesSeleccionadas->isEmpty()) {
             return redirect()->back()
