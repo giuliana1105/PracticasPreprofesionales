@@ -10,7 +10,7 @@
     $esEstudiante = $cargo === 'estudiante';
     $esDocente = $cargo === 'docente';
     $esSoloLectura = in_array($cargo, ['decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada']);
-    $esCoordinador = $cargo === 'coordinador';
+    $esCoordinador = in_array($cargo, ['coordinador', 'coordinadora']);
     $esSecretarioGeneral = $cargo === 'secretario_general';
 @endphp
 
@@ -389,6 +389,7 @@
 
     {{-- Botones de acción --}}
     <div class="d-flex flex-column flex-md-row justify-content-start mb-4" style="gap: 10px;">
+        {{-- El coordinador NO puede crear ni cambiar resoluciones --}}
         @if(!$esEstudiante && !$esDocente && !$esSoloLectura && !$esCoordinador && !$esSecretarioGeneral)
             <a href="{{ route('titulaciones.create') }}" class="btn btn-primary me-2 mb-2 mb-md-0" id="btnNuevaTitulacion">
                 <i class="fas fa-plus"></i> Nueva Titulación
@@ -546,20 +547,10 @@
                     </td>
                     <td>
                         <div class="d-flex justify-content-center flex-wrap">
+                            {{-- El coordinador/a solo puede ver detalles, no puede editar, eliminar, crear ni subir acta --}}
                             <a href="{{ route('titulaciones.show', $tit->id_titulacion) }}" class="btn btn-outline-primary btn-sm mx-1 mb-1" style="border: 1px solid #d32f2f;">
                                 <i class="fas fa-file-pdf"></i> Ver detalles
                             </a>
-                            @if(
-                                $tit->estado &&
-                                strtolower($tit->estado->nombre_estado) === 'graduado' &&
-                                !$tit->acta_grado
-                            )
-                                <a href="{{ route('titulaciones.subir-acta', $tit->id_titulacion) }}"
-                                   class="btn btn-info btn-sm mx-1 mb-1"
-                                   style="color: #fff;">
-                                    <i class="fas fa-upload"></i> Subir acta de grado
-                                </a>
-                            @endif
                             @if($esEstudiante)
                                 @if($tit->estado && strtolower($tit->estado->nombre_estado) === 'graduado' && $tit->acta_grado)
                                     <a href="{{ asset('storage/' . $tit->acta_grado) }}" target="_blank" class="btn btn-outline-primary btn-sm mx-1 mb-1" style="border: 1px solid #d32f2f;">
@@ -567,6 +558,14 @@
                                     </a>
                                 @endif
                             @else
+                                @php $esSecretaria = in_array($cargo, ['secretario', 'secretaria']); @endphp
+                                @if($esSecretaria && $tit->estado && strtolower($tit->estado->nombre_estado) === 'graduado' && !$tit->acta_grado)
+                                    <a href="{{ route('titulaciones.subir-acta', $tit->id_titulacion) }}"
+                                       class="btn btn-info btn-sm mx-1 mb-1"
+                                       style="color: #fff;">
+                                        <i class="fas fa-upload"></i> Subir acta de grado
+                                    </a>
+                                @endif
                                 @if(!$esEstudiante && !$esDocente && !$esSoloLectura && !$esCoordinador && !$esSecretarioGeneral)
                                     <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" class="btn btn-sm btn-warning mx-1 mb-1" title="Editar">
                                         <i class="fas fa-edit"></i>

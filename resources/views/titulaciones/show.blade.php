@@ -125,7 +125,7 @@
     $cargo = strtolower(trim($persona->cargo ?? ''));
     $esEstudiante = $cargo === 'estudiante';
     $esDocente = $cargo === 'docente';
-    $esCoordinador = $cargo === 'coordinador';
+    $esCoordinador = in_array($cargo, ['coordinador', 'coordinadora']);
     $esDecano = in_array($cargo, ['decano', 'decana']);
     $esSubdecano = in_array($cargo, ['subdecano', 'subdecana']);
     $esAbogado = in_array($cargo, ['abogado', 'abogada']);
@@ -146,7 +146,7 @@
     </div>
     <div class="page-title">Detalles de Titulación</div>
     <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary mb-3">Volver</a>
-    @if(!$esEstudiante && !$esSecretarioGeneral && !$esSoloLectura)
+    @if(!$esEstudiante && !$esSecretarioGeneral && !$esSoloLectura && !$esCoordinador)
         <a href="#" id="btn-anexo-x" class="btn btn-info mb-3" style="margin-left: 8px;">
             <i class="fas fa-file-pdf"></i> Anexo X
         </a>
@@ -321,7 +321,7 @@
                 </td>
             </tr>
         @endif
-        @if($esDocente && !$esSoloLectura)
+        @if($esDocente && !$esSoloLectura && !$esCoordinador)
             <tr>
                 <th>Acciones</th>
                 <td>
