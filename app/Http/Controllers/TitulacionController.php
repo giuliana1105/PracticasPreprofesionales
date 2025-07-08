@@ -460,7 +460,8 @@ class TitulacionController extends Controller
             // No permitir editar
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
-        if (in_array($cargo, ['estudiante', 'docente', 'coordinador','coordinadora', 'decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada', 'secretario_general'])) {
+        // Permitir acceso a docente para editar avance y observaciones
+        if (in_array($cargo, ['estudiante', 'coordinador','coordinadora', 'decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -506,6 +507,7 @@ class TitulacionController extends Controller
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
+        // Permitir a docente editar avance, observaciones y campos automáticos
         if ($esDocente) {
             $request->validate([
                 'avance' => 'required|integer|min:0|max:100',
@@ -556,7 +558,7 @@ class TitulacionController extends Controller
             if ($titulacion->horas_asesoria != $request->horas_asesoria) {
                 $cambios[] = [
                     'campo' => 'horas_asesoria',
-                    'valor_anterior' => $titulacion->horas_asesoriPIa,
+                    'valor_anterior' => $titulacion->horas_asesoria,
                     'valor_nuevo' => $request->horas_asesoria,
                 ];
             }

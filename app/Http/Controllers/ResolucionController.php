@@ -19,7 +19,7 @@ class ResolucionController extends Controller
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         // Cambia para usar el campo string 'cargo'
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
+        if (in_array($cargo, ['coordinador','coordinadora', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'decana'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
     }

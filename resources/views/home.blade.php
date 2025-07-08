@@ -141,7 +141,13 @@
     </div>
     <div id="alertaPermisoHome"></div>
     <div class="module-container">
-        @if(in_array($cargo, ['decano', 'subdecano', 'subdecana','coordinador','coordinadora',  'abogado', 'abogada','estudiante','docente']))
+        @if(in_array($cargo, ['decano', 'decana']))
+            {{-- Decano/a: solo titulaciones --}}
+            <a href="{{ route('titulaciones.index') }}" class="module-card">
+                <i class="fas fa-certificate module-icon"></i>
+                <div class="module-title">Titulaciones</div>
+            </a>
+        @elseif(in_array($cargo, ['subdecano','subdecana','coordinador','coordinadora',  'abogado', 'abogada','estudiante','docente']))
             {{-- Solo muestra Titulaciones --}}
             <a href="{{ route('titulaciones.index') }}" class="module-card">
                 <i class="fas fa-certificate module-icon"></i>

@@ -131,6 +131,9 @@
     $esAbogado = in_array($cargo, ['abogado', 'abogada']);
     $esSoloLectura = $esDecano || $esSubdecano || $esAbogado;
     $esSecretarioGeneral = $cargo === 'secretario_general';
+    $esSecretaria = in_array($cargo, ['secretario', 'secretaria']);
+    // Para secretaria, obtener solo resoluciones de sus carreras asignadas
+    $carrerasSecretaria = $esSecretaria && $persona ? $persona->carreras()->pluck('id_carrera')->toArray() : [];
 @endphp
 @if($esEstudiante && $titulacion->cedula_estudiante !== ($persona->cedula ?? null))
     <div class="alert alert-danger">No autorizado para ver esta titulación.</div>
@@ -222,19 +225,28 @@
             <th>Resoluciones</th>
             <td>
                 @foreach($titulacion->resTemas as $resTema)
-                    <div class="mb-2">
-                        <span class="fw-bold">Tipo:</span> {{ $resTema->resolucion->tipoResolucion->nombre_tipo_res ?? '' }}<br>
-                        <span class="fw-bold">Número:</span> {{ $resTema->resolucion->numero_res ?? '' }}<br>
-                        <span class="fw-bold">Fecha aprobación:</span> {{ $resTema->resolucion->fecha_res ?? '' }}<br>
-                        @if(!empty($resTema->resolucion->archivo_pdf))
-                            <a href="{{ asset('storage/' . $resTema->resolucion->archivo_pdf) }}" target="_blank" class="btn btn-outline-primary btn-sm mt-1">
-                                <i class="fas fa-file-pdf"></i> Ver PDF
-                            </a>
-                        @else
-                            <span class="text-muted">Sin PDF</span>
-                        @endif
-                    </div>
-                    <hr>
+                    @php
+                        // Si es secretaria, solo mostrar resoluciones de sus carreras asignadas
+                        $mostrarResolucion = true;
+                        if ($esSecretaria && !empty($carrerasSecretaria)) {
+                            $mostrarResolucion = in_array($resTema->resolucion->carrera_id ?? null, $carrerasSecretaria);
+                        }
+                    @endphp
+                    @if($mostrarResolucion)
+                        <div class="mb-2">
+                            <span class="fw-bold">Tipo:</span> {{ $resTema->resolucion->tipoResolucion->nombre_tipo_res ?? '' }}<br>
+                            <span class="fw-bold">Número:</span> {{ $resTema->resolucion->numero_res ?? '' }}<br>
+                            <span class="fw-bold">Fecha aprobación:</span> {{ $resTema->resolucion->fecha_res ?? '' }}<br>
+                            @if(!empty($resTema->resolucion->archivo_pdf))
+                                <a href="{{ asset('storage/' . $resTema->resolucion->archivo_pdf) }}" target="_blank" class="btn btn-outline-primary btn-sm mt-1">
+                                    <i class="fas fa-file-pdf"></i> Ver PDF
+                                </a>
+                            @else
+                                <span class="text-muted">Sin PDF</span>
+                            @endif
+                        </div>
+                        <hr>
+                    @endif
                 @endforeach
             </td>
         </tr>
@@ -323,12 +335,7 @@
         @endif
         @if($esDocente && !$esSoloLectura && !$esCoordinador)
             <tr>
-                <th>Acciones</th>
-                <td>
-                    <a href="{{ route('titulaciones.anexoX', $titulacion->id_titulacion) }}" class="btn btn-success btn-sm mx-1 mb-1">
-                        <i class="fas fa-file-alt"></i> Generar Anexo X
-                    </a>
-                </td>
+                
             </tr>
         @endif
     </table>

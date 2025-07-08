@@ -15,7 +15,7 @@ class CarreraController extends Controller
         $cargo = strtolower(trim($persona->cargo ?? ''));
         // Solo restringe para cargos que no pueden ver el listado (secretaria/o sí puede ver)
         if (in_array($cargo, [
-            'coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'
+            'coordinador','coordinadora', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'decana'
         ])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
