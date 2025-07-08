@@ -337,10 +337,18 @@ class PersonaController extends Controller
                     ->with('error', 'No se puede eliminar este estado porque está referenciado en otras tablas.');
             }
 
+            // Eliminar el usuario asociado si existe
+            if (!empty($persona->email)) {
+                $usuario = \App\Models\User::where('email', $persona->email)->first();
+                if ($usuario) {
+                    $usuario->delete();
+                }
+            }
+
             $persona->delete();
 
             return redirect()->route('personas.index')
-                ->with('success', 'Persona eliminada exitosamente');
+                ->with('success', 'Persona y usuario eliminados correctamente.');
         } catch (\Exception $e) {
             return back()->with('error', 'Error al eliminar: ' . $e->getMessage());
         }
