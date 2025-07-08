@@ -139,6 +139,13 @@
             Formulario de Registro de Resolución
         </div>
         <div class="card-body">
+            @if(session('error'))
+                <div style="background:#f8d7da;border:1px solid #f5c6cb;color:#721c24;padding:16px 24px;border-radius:8px;margin-bottom:20px;position:relative;">
+                    {{ session('error') }}
+                    <button type="button" onclick="this.parentElement.style.display='none';"
+                        style="position:absolute;top:12px;right:18px;background:none;border:none;color:#721c24;font-size:18px;cursor:pointer;">&times;</button>
+                </div>
+            @endif
             <form action="{{ route('resoluciones.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 

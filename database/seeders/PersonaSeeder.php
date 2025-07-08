@@ -21,10 +21,10 @@ class PersonaSeeder extends Seeder
 
         $personaData = [
             'cedula' => '1234567890',
-            'nombres' => 'Karina Maria',
+            'nombres' => 'Marlon Dario',
             'apellidos' => 'Chicaiza Pérez',
             'celular' => '0999999999',
-            'email' => 'csoft@utn.edu.ec',
+            'email' => 'marlond@utn.edu.ec',
             'carrera_id' => 1, // Debe existir en la tabla 'carreras'
             'cargo' => 'secretario_general',   // Debe existir en la tabla 'cargos'
             'created_at' => now(),

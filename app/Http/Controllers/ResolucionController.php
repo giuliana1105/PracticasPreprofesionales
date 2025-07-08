@@ -189,6 +189,16 @@ class ResolucionController extends Controller
             'carrera_id' => 'required|exists:carreras,id_carrera',
         ]);
 
+        // Validación manual de duplicados por número y carrera
+        $existe = \App\Models\Resolucion::where('numero_res', $request->numero_res)
+            ->where('carrera_id', $request->carrera_id)
+            ->exists();
+        if ($existe) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Ya existe una resolución con ese número para la carrera seleccionada.');
+        }
+
         // Almacenar el archivo PDF
         $archivoPath = $request->file('archivo_pdf')->store('resoluciones', 'public');
 
