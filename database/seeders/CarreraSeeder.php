@@ -16,7 +16,7 @@ class CarreraSeeder extends Seeder
             [
                // 'id_carrera' => 1,
                 'nombre_carrera' => 'Software',
-                'siglas_carrera' => 'IS',
+                'siglas_carrera' => 'CSOFT',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

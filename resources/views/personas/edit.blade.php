@@ -276,9 +276,22 @@
                 <label for="cargo">Cargo:</label>
                 <select id="cargo" name="cargo" class="form-control @error('cargo') is-invalid @enderror" required>
                     <option value="">Seleccione un cargo</option>
-                    @foreach($cargos as $cargoItem)
-                        <option value="{{ $cargoItem }}" {{ old('cargo', $persona->cargo ?? '') == $cargoItem ? 'selected' : '' }}>
-                            {{ ucfirst($cargoItem) }}
+                    @php
+                        // Solo mostrar una opción por label unificado, usando el valor masculino como value
+                        $cargoOptions = [
+                            'secretario_general' => 'Secretario General',
+                            'secretario' => 'Secretario/a',
+                            'abogado' => 'Abogado/a',
+                            'decano' => 'Decano/a',
+                            'subdecano' => 'Subdecano/a',
+                            'docente' => 'Docente',
+                            'estudiante' => 'Estudiante',
+                            'coordinador' => 'Coordinador/a',
+                        ];
+                    @endphp
+                    @foreach($cargoOptions as $value => $label)
+                        <option value="{{ $value }}" {{ old('cargo', $persona->cargo ?? '') == $value ? 'selected' : '' }}>
+                            {{ $label }}
                         </option>
                     @endforeach
                 </select>

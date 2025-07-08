@@ -27,7 +27,7 @@ return new class extends Migration
     {
         Schema::table('resoluciones', function (Blueprint $table) {
             $table->dropUnique('resoluciones_numero_res_carrera_id_unique');
-            $table->unique('numero_res', 'resoluciones_numero_res_unique');
+            // No se vuelve a crear el índice único antiguo para evitar errores con datos duplicados
         });
     }
 };
