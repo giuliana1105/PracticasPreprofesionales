@@ -122,12 +122,15 @@
 @php
     $user = auth()->user();
     $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
-    $esEstudiante = $persona && strtolower(trim($persona->cargo ?? '')) === 'estudiante';
-    $esDocente = $persona && strtolower(trim($persona->cargo ?? '')) === 'docente';
-    $esCoordinador = $persona && strtolower(trim($persona->cargo ?? '')) === 'coordinador';
-    $esDecano = $persona && strtolower(trim($persona->cargo ?? '')) === 'decano';
     $cargo = strtolower(trim($persona->cargo ?? ''));
-    $esSecretarioGeneral = $persona && $cargo === 'secretario_general';
+    $esEstudiante = $cargo === 'estudiante';
+    $esDocente = $cargo === 'docente';
+    $esCoordinador = $cargo === 'coordinador';
+    $esDecano = in_array($cargo, ['decano', 'decana']);
+    $esSubdecano = in_array($cargo, ['subdecano', 'subdecana']);
+    $esAbogado = in_array($cargo, ['abogado', 'abogada']);
+    $esSoloLectura = $esDecano || $esSubdecano || $esAbogado;
+    $esSecretarioGeneral = $cargo === 'secretario_general';
 @endphp
 @if($esEstudiante && $titulacion->cedula_estudiante !== ($persona->cedula ?? null))
     <div class="alert alert-danger">No autorizado para ver esta titulación.</div>
@@ -143,7 +146,7 @@
     </div>
     <div class="page-title">Detalles de Titulación</div>
     <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary mb-3">Volver</a>
-    @if(!$esEstudiante && !$esSecretarioGeneral)
+    @if(!$esEstudiante && !$esSecretarioGeneral && !$esSoloLectura)
         <a href="#" id="btn-anexo-x" class="btn btn-info mb-3" style="margin-left: 8px;">
             <i class="fas fa-file-pdf"></i> Anexo X
         </a>
@@ -318,7 +321,7 @@
                 </td>
             </tr>
         @endif
-        @if($esDocente)
+        @if($esDocente && !$esSoloLectura)
             <tr>
                 <th>Acciones</th>
                 <td>

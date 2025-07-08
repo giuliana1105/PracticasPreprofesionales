@@ -349,9 +349,27 @@
                     <label for="cargo">Cargo:</label>
                     <select id="cargo" name="cargo" class="form-control @error('cargo') is-invalid @enderror" required>
                         <option value="">Seleccione un cargo</option>
+                        @php
+                            $cargoMap = [
+                                'secretario' => 'Secretario/a',
+                                'secretaria' => 'Secretario/a',
+                                'coordinador' => 'Coordinador/a',
+                                'coordinadora' => 'Coordinador/a',
+                                'decano' => 'Decano/a',
+                                'decana' => 'Decano/a',
+                                'subdecano' => 'Subdecano/a',
+                                'subdecana' => 'Subdecano/a',
+                                'abogado' => 'Abogado/a',
+                                'abogada' => 'Abogado/a',
+                                'docente' => 'Docente',
+                                'estudiante' => 'Estudiante',
+                                'secretario_general' => 'Secretario General',
+                            ];
+                        @endphp
                         @foreach($cargos as $cargoItem)
+                            @php $label = $cargoMap[strtolower($cargoItem)] ?? ucfirst($cargoItem); @endphp
                             <option value="{{ $cargoItem }}" {{ old('cargo', $persona->cargo ?? '') == $cargoItem ? 'selected' : '' }}>
-                                {{ ucfirst($cargoItem) }}
+                                {{ $label }}
                             </option>
                         @endforeach
                     </select>

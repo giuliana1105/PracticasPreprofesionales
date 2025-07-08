@@ -443,18 +443,13 @@
                                     @endif
                                 </div>
                                 @php
-                                    $esAdmin = $user && in_array(strtolower($user->cargo), ['secretario', 'secretario_general']);
+                                    $esAdmin = $user && in_array(strtolower($user->cargo), ['secretario', 'secretaria', 'secretario_general']);
                                     // Solo puede resetear si puede editar (es secretaria/o y estudiante de su carrera)
                                 @endphp
                                 @if($esAdmin && $puedeEditar)
-                                    <form action="{{ route('personas.reset-password', $persona->id) }}" method="POST" class="d-inline mt-2">
-                                        @csrf
-                                        <button type="submit" class="btn btn-info btn-sm"
-                                            style="background-color: #17a2b8; border-color: #17a2b8; color: #fff;"
-                                            onclick="return confirm('¿Está seguro de resetear la contraseña de {{ $persona->nombres }}?')">
-                                            <i class="fas fa-key"></i> Resetear contraseña
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalResetPassword" data-id="{{ $persona->id }}" data-nombre="{{ $persona->nombres }}">
+                                        <i class="fas fa-key"></i> Resetear contraseña
+                                    </button>
                                 @endif
                             </div>
                         </td>
@@ -492,9 +487,31 @@
   </div>
 </div>
 
+<!-- Modal de confirmación de reseteo de contraseña -->
+<div class="modal fade" id="modalResetPassword" tabindex="-1" aria-labelledby="modalResetPasswordLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalResetPasswordLabel">Confirmar reseteo de contraseña</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <span id="resetPasswordMsg">¿Está seguro que desea resetear la contraseña de este usuario?</span>
+      </div>
+      <div class="modal-footer">
+        <form id="formResetPassword" method="POST" action="">
+            @csrf
+            <button type="submit" class="btn btn-danger">Resetear</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 @push('scripts')
 <script>
-    // Script para pasar el ID al formulario del modal
+    // Script para pasar el ID al formulario del modal de eliminación
     document.addEventListener('DOMContentLoaded', function () {
         var modal = document.getElementById('modalEliminarPersona');
         modal.addEventListener('show.bs.modal', function (event) {
@@ -502,6 +519,16 @@
             var personaId = button.getAttribute('data-id');
             var form = document.getElementById('formEliminarPersona');
             form.action = '/personas/' + personaId;
+        });
+        // Script para pasar el ID y nombre al formulario del modal de reset password
+        var modalReset = document.getElementById('modalResetPassword');
+        modalReset.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var personaId = button.getAttribute('data-id');
+            var nombre = button.getAttribute('data-nombre');
+            var form = document.getElementById('formResetPassword');
+            form.action = '/personas/' + personaId + '/reset-password';
+            document.getElementById('resetPasswordMsg').textContent = '¿Está seguro que desea resetear la contraseña de ' + nombre + '?';
         });
     });
 </script>

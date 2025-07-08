@@ -16,28 +16,32 @@ use App\Models\Carrera;
 
 class TitulacionController extends Controller
 {
+    /**
+     * Determina si el usuario tiene un rol de solo lectura (decano/a, subdecano/a, abogado/a)
+     */
+    private function esSoloLectura($persona)
+    {
+        if (!$persona) return false;
+        $cargo = strtolower(trim($persona->cargo ?? ''));
+        return in_array($cargo, ['decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada']);
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-
-        $esEstudiante = $cargo === 'estudiante';
         $esDocente = $cargo === 'docente';
         $esCoordinador = $cargo === 'coordinador';
-        $esSecretaria = in_array($cargo, ['secretaria', 'secretario']);
+        $esSecretaria = in_array($cargo, ['secretario', 'secretaria']);
+        $esSoloLectura = in_array($cargo, ['decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada']);
 
-        if ($esEstudiante) {
-            $titulaciones = Titulacion::with([
-                'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
-            ])->where('cedula_estudiante', $persona->cedula)->get();
+        // Solo bloquear acceso a index para estudiante
+        if ($cargo === 'estudiante') {
+            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        }
 
-            $estados = collect();
-            $docentes = collect();
-            $periodos = collect();
-
-            return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados'));
-        } elseif ($esDocente) {
+        if ($esDocente || $esCoordinador) {
             $query = Titulacion::with([
                 'periodo', 'estado', 'resTemas.resolucion', 'directorPersona', 'asesor1Persona', 'estudiantePersona'
             ])->where(function($q) use ($persona) {
@@ -203,7 +207,7 @@ class TitulacionController extends Controller
         $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
 
-        if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano', 'secretario_general'])) {
+        if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -252,7 +256,7 @@ class TitulacionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano', 'secretario_general'])) {
+        if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -332,7 +336,7 @@ class TitulacionController extends Controller
         $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
 
-        if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano', 'secretario_general'])) {
+        if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -374,7 +378,7 @@ class TitulacionController extends Controller
         $cargo = strtolower(trim($persona->cargo ?? ''));
         $esDocente = $cargo === 'docente';
 
-        if (in_array($cargo, ['estudiante', 'coordinador', 'decano', 'secretario_general'])) {
+        if (in_array($cargo, ['estudiante', 'coordinador', 'decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -428,7 +432,7 @@ class TitulacionController extends Controller
             if ($titulacion->horas_asesoria != $request->horas_asesoria) {
                 $cambios[] = [
                     'campo' => 'horas_asesoria',
-                    'valor_anterior' => $titulacion->horas_asesoria,
+                    'valor_anterior' => $titulacion->horas_asesoriPIa,
                     'valor_nuevo' => $request->horas_asesoria,
                 ];
             }
@@ -674,7 +678,7 @@ class TitulacionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano', 'secretario_general'])) {
+        if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -762,6 +766,12 @@ class TitulacionController extends Controller
 
     public function generarAnexoX($id)
     {
+        $user = Auth::user();
+        $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
+        if ($this->esSoloLectura($persona)) {
+            abort(403, 'El cargo ' . ucfirst(strtolower(trim($persona->cargo ?? ''))) . ' no tiene permisos para generar el Anexo X.');
+        }
+
         $titulacion = Titulacion::with([
             'directorPersona',
             'asesor1Persona',

@@ -277,22 +277,31 @@
                 <select id="cargo" name="cargo" class="form-control @error('cargo') is-invalid @enderror" required>
                     <option value="">Seleccione un cargo</option>
                     @php
-                        // Solo mostrar una opción por label unificado, usando el valor masculino como value
-                        $cargoOptions = [
-                            'secretario_general' => 'Secretario General',
+                        $cargoMap = [
                             'secretario' => 'Secretario/a',
-                            'abogado' => 'Abogado/a',
+                            'secretaria' => 'Secretario/a',
+                            'coordinador' => 'Coordinador/a',
+                            'coordinadora' => 'Coordinador/a',
                             'decano' => 'Decano/a',
+                            'decana' => 'Decano/a',
                             'subdecano' => 'Subdecano/a',
+                            'subdecana' => 'Subdecano/a',
+                            'abogado' => 'Abogado/a',
+                            'abogada' => 'Abogado/a',
                             'docente' => 'Docente',
                             'estudiante' => 'Estudiante',
-                            'coordinador' => 'Coordinador/a',
+                            'secretario_general' => 'Secretario General',
                         ];
+                        $labelsMostrados = [];
                     @endphp
-                    @foreach($cargoOptions as $value => $label)
-                        <option value="{{ $value }}" {{ old('cargo', $persona->cargo ?? '') == $value ? 'selected' : '' }}>
-                            {{ $label }}
-                        </option>
+                    @foreach($cargos as $cargoItem)
+                        @php $label = $cargoMap[strtolower($cargoItem)] ?? ucfirst($cargoItem); @endphp
+                        @if(!in_array($label, $labelsMostrados))
+                            <option value="{{ $cargoItem }}" {{ old('cargo', $persona->cargo ?? '') == $cargoItem ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                            @php $labelsMostrados[] = $label; @endphp
+                        @endif
                     @endforeach
                 </select>
                 @error('cargo')

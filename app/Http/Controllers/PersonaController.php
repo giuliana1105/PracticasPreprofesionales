@@ -121,8 +121,7 @@ class PersonaController extends Controller
             $cargos = $this->CARGOS_VALIDOS;
         }
 
-        $cargos = $this->unificarCargos($cargos);
-
+        // NO unificar cargos aquí, solo enviar los valores originales
         return view('personas.create', compact('carreras', 'cargos'));
     }
 
@@ -227,8 +226,7 @@ class PersonaController extends Controller
             $cargos = $this->CARGOS_VALIDOS;
         }
 
-        $cargos = $this->unificarCargos($cargos);
-
+        // NO unificar cargos aquí, solo enviar los valores originales
         return view('personas.edit', compact('persona', 'carreras', 'cargos'));
     }
 
@@ -581,7 +579,7 @@ public function import(Request $request)
     {
         $user = auth()->user();
         $cargo = strtolower(trim($user->cargo ?? ''));
-        $esAdmin = in_array($cargo, ['secretario', 'secretario_general']);
+        $esAdmin = in_array($cargo, ['secretario', 'secretaria', 'secretario_general']);
 
         if (!$esAdmin) {
             abort(403, 'No autorizado');

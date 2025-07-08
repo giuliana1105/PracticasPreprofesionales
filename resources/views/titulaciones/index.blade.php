@@ -7,11 +7,11 @@
     $user = auth()->user();
     $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
     $cargo = strtolower(trim($persona->cargo ?? ''));
-    $esEstudiante = $persona && $cargo === 'estudiante';
-    $esDocente = $persona && $cargo === 'docente';
-    $esDecano = $persona && in_array($cargo, ['decano', 'subdecano', 'subdecana', 'abogado', 'abogada']);
-    $esCoordinador = $persona && $cargo === 'coordinador';
-    $esSecretarioGeneral = $persona && $cargo === 'secretario_general';
+    $esEstudiante = $cargo === 'estudiante';
+    $esDocente = $cargo === 'docente';
+    $esSoloLectura = in_array($cargo, ['decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada']);
+    $esCoordinador = $cargo === 'coordinador';
+    $esSecretarioGeneral = $cargo === 'secretario_general';
 @endphp
 
 <style>
@@ -389,7 +389,7 @@
 
     {{-- Botones de acción --}}
     <div class="d-flex flex-column flex-md-row justify-content-start mb-4" style="gap: 10px;">
-        @if(!$esEstudiante && !$esDocente && !$esDecano && !$esCoordinador && !$esSecretarioGeneral)
+        @if(!$esEstudiante && !$esDocente && !$esSoloLectura && !$esCoordinador && !$esSecretarioGeneral)
             <a href="{{ route('titulaciones.create') }}" class="btn btn-primary me-2 mb-2 mb-md-0" id="btnNuevaTitulacion">
                 <i class="fas fa-plus"></i> Nueva Titulación
             </a>
@@ -567,7 +567,7 @@
                                     </a>
                                 @endif
                             @else
-                                @if(!$esEstudiante && !$esDocente && !$esDecano && !$esCoordinador && !$esSecretarioGeneral)
+                                @if(!$esEstudiante && !$esDocente && !$esSoloLectura && !$esCoordinador && !$esSecretarioGeneral)
                                     <a href="{{ route('titulaciones.edit', $tit->id_titulacion) }}" class="btn btn-sm btn-warning mx-1 mb-1" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
@@ -624,29 +624,18 @@
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-@if($esEstudiante || $esDocente || $esDecano || $esCoordinador)
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    var btn = document.getElementById('btnNuevaTitulacion');
-    if(btn){
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            var alerta = document.getElementById('alertaPermiso');
-            alerta.innerHTML = '<div class="alert alert-danger mt-2">El usuario con el cargo {{ $esDocente ? "Docente" : ($esEstudiante ? "Estudiante" : ($esDecano ? "Decano" : "Coordinador")) }} no tiene permisos para acceder a esta funcionalidad del sistema.</div>';
-        });
-    }
-});
-</script>
-@endif
+{{-- Ya no se muestra alerta de permiso, solo se ocultan los botones --}}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var modal = document.getElementById('modalEliminarTitulacion');
-        modal.addEventListener('show.bs.modal', function (event) {
-            var button = event.relatedTarget;
-            var titulacionId = button.getAttribute('data-id');
-            var form = document.getElementById('formEliminarTitulacion');
-            form.action = '/titulaciones/' + titulacionId;
-        });
+        if(modal){
+            modal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var titulacionId = button.getAttribute('data-id');
+                var form = document.getElementById('formEliminarTitulacion');
+                form.action = '/titulaciones/' + titulacionId;
+            });
+        }
     });
 </script>
 @endpush
