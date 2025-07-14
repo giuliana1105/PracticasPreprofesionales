@@ -23,7 +23,7 @@ class TitulacionController extends Controller
     {
         if (!$persona) return false;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        return in_array($cargo, ['decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada']);
+        return in_array($cargo, ['decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a','abogado/a', 'abogado', 'abogada']);
     }
 
     public function index(Request $request)
@@ -32,9 +32,9 @@ class TitulacionController extends Controller
         $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
         $esDocente = $cargo === 'docente';
-        $esCoordinador = in_array($cargo, ['coordinador', 'coordinadora']);
-        $esSecretaria = in_array($cargo, ['secretario', 'secretaria']);
-        $esSoloLectura = in_array($cargo, ['decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada']);
+        $esCoordinador = in_array($cargo, ['coordinador', 'coordinadora','coordinador/a']);
+        $esSecretaria = in_array($cargo, ['secretario', 'secretaria','secretario/a']);
+        $esSoloLectura = in_array($cargo, ['decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a','abogado/a', 'abogado', 'abogada']);
 
         // Si es estudiante, solo puede ver sus propias titulaciones
         if ($cargo === 'estudiante') {
@@ -318,14 +318,14 @@ class TitulacionController extends Controller
         $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
 
-        if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada', 'secretario_general'])) {
+        if (in_array($cargo, ['estudiante', 'docente', 'coordinador','coordinador/a', 'decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
         $periodos = \App\Models\Periodo::all();
         $estados = \App\Models\EstadoTitulacion::all();
         $userId = $user->id;
-        if (in_array($cargo, ['secretario', 'secretaria'])) {
+        if (in_array($cargo, ['secretario', 'secretaria','secretario/a'])) {
             $carrerasIds = $persona->carreras()->pluck('id_carrera')->toArray();
             // Solo resoluciones seleccionadas por este usuario y de sus carreras
             $resolucionesSeleccionadas = \App\Models\Resolucion::whereIn(
@@ -367,7 +367,7 @@ class TitulacionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada', 'secretario_general'])) {
+        if (in_array($cargo, ['estudiante', 'docente', 'coordinador','coordinador/a', 'decano', 'decana', 'decano/a','subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -449,7 +449,7 @@ class TitulacionController extends Controller
 
 
         // Coordinador/a solo puede ver titulaciones de sus carreras asignadas (no puede editar, pero por seguridad, abortar si no corresponde)
-        if (in_array($cargo, ['coordinador', 'coordinadora'])) {
+        if (in_array($cargo, ['coordinador', 'coordinadora','coordinador/a'])) {
             $titulacion = Titulacion::with('estudiantePersona.carrera')->findOrFail($id);
             $carrerasIds = $persona->carreras->pluck('id_carrera')->toArray();
             $carreraEstudiante = optional($titulacion->estudiantePersona->carrera)->id_carrera;
@@ -461,7 +461,7 @@ class TitulacionController extends Controller
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
         // Permitir acceso a docente para editar avance y observaciones
-        if (in_array($cargo, ['estudiante', 'coordinador','coordinadora', 'decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada', 'secretario_general'])) {
+        if (in_array($cargo, ['estudiante', 'coordinador','coordinadora','coordinador/a', 'decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -503,7 +503,7 @@ class TitulacionController extends Controller
         $cargo = strtolower(trim($persona->cargo ?? ''));
         $esDocente = $cargo === 'docente';
 
-        if (in_array($cargo, ['estudiante', 'coordinador', 'decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada', 'secretario_general'])) {
+        if (in_array($cargo, ['estudiante', 'coordinador','coordinador/a', 'decano', 'decana','decano/a','subdecano/a', 'subdecano', 'subdecana','abogado/a', 'abogado', 'abogada', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -804,7 +804,7 @@ class TitulacionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['estudiante', 'docente', 'coordinador', 'decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada', 'secretario_general'])) {
+        if (in_array($cargo, ['estudiante', 'docente', 'coordinador','coordinador/a', 'decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado','abogado/a', 'abogada', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -895,7 +895,7 @@ class TitulacionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if ($this->esSoloLectura($persona) || $cargo === 'coordinador') {
+        if ($this->esSoloLectura($persona) || $cargo === 'coordinador/a' || $cargo === 'coordinador') {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para generar el Anexo X.');
         }
 
@@ -913,11 +913,13 @@ class TitulacionController extends Controller
             $carrera = $titulacion->estudiantePersona->carrera->siglas_carrera;
         }
 
-        $valoresActuales = [
-            'actividades_cronograma' => $titulacion->actividades_cronograma,
-            'cumplio_cronograma' => $titulacion->cumplio_cronograma,
+
+        // Inicializar con los valores iniciales (antes de cualquier cambio)
+        $valoresIniciales = [
+            'actividad' => $titulacion->actividades_cronograma,
+            'cumplio' => $titulacion->cumplio_cronograma,
             'resultados' => $titulacion->resultados,
-            'horas_asesoria' => $titulacion->horas_asesoria,
+            'horas' => $titulacion->horas_asesoria,
             'observaciones' => $titulacion->observaciones,
         ];
 
@@ -929,65 +931,58 @@ class TitulacionController extends Controller
                 'horas_asesoria',
                 'observaciones'
             ])
-            ->sortBy('created_at')
-            ->groupBy(function($item, $key) {
-                return $item->created_at->format('Y-m-d H:i:s');
-            });
+            ->sortBy('created_at');
 
         $actividades = [];
-        foreach ($historial as $fecha => $cambios) {
-            $actividad = $valoresActuales['actividades_cronograma'];
-            $cumplio = $valoresActuales['cumplio_cronograma'];
-            $resultados = $valoresActuales['resultados'];
-            $horas = $valoresActuales['horas_asesoria'];
-            $observaciones = $valoresActuales['observaciones'];
+        $estado = $valoresIniciales;
+        $ultimaFecha = null;
+        $cambiosActividades = [];
 
-            foreach ($cambios as $cambio) {
-                switch ($cambio->campo) {
-                    case 'actividades_cronograma':
-                        if (!empty($cambio->valor_nuevo)) $actividad = $cambio->valor_nuevo;
-                        break;
-                    case 'cumplio_cronograma':
-                        if (!empty($cambio->valor_nuevo)) $cumplio = $cambio->valor_nuevo;
-                        break;
-                    case 'resultados':
-                        if (!empty($cambio->valor_nuevo)) $resultados = $cambio->valor_nuevo;
-                        break;
-                    case 'horas_asesoria':
-                        if (!empty($cambio->valor_nuevo)) $horas = $cambio->valor_nuevo;
-                        break;
-                    case 'observaciones':
-                        if (!empty($cambio->valor_nuevo)) $observaciones = $cambio->valor_nuevo;
-                        break;
-                }
+        foreach ($historial as $cambio) {
+            $ultimaFecha = $cambio->created_at->format('Y-m-d H:i:s');
+            switch ($cambio->campo) {
+                case 'actividades_cronograma':
+                    if (!empty($cambio->valor_nuevo)) $estado['actividad'] = $cambio->valor_nuevo;
+                    break;
+                case 'cumplio_cronograma':
+                    if (!empty($cambio->valor_nuevo)) $estado['cumplio'] = $cambio->valor_nuevo;
+                    break;
+                case 'resultados':
+                    if (!empty($cambio->valor_nuevo)) $estado['resultados'] = $cambio->valor_nuevo;
+                    break;
+                case 'horas_asesoria':
+                    if (!empty($cambio->valor_nuevo)) $estado['horas'] = $cambio->valor_nuevo;
+                    break;
+                case 'observaciones':
+                    if (!empty($cambio->valor_nuevo)) $estado['observaciones'] = $cambio->valor_nuevo;
+                    break;
             }
-
-            $actividades[$fecha] = [
-                'actividad' => $actividad,
-                'cumplio' => $cumplio,
-                'resultados' => $resultados,
-                'horas' => $horas,
-                'observaciones' => $observaciones,
-                'fecha' => $fecha,
-            ];
+            $nombreActividad = $estado['actividad'] ?? '';
+            if ($nombreActividad !== '') {
+                $cambiosActividades[] = array_merge($estado, ['fecha' => $ultimaFecha, 'nombre' => $nombreActividad]);
+            }
         }
 
-        if (empty($actividades)) {
-            $actividades[] = [
-                'actividad' => $valoresActuales['actividades_cronograma'],
-                'cumplio' => $valoresActuales['cumplio_cronograma'],
-                'resultados' => $valoresActuales['resultados'],
-                'horas' => $valoresActuales['horas_asesoria'],
-                'observaciones' => $valoresActuales['observaciones'],
-                'fecha' => now()->format('Y-m-d'),
-            ];
+        if (empty($cambiosActividades)) {
+            // No hay historial, solo el estado actual
+            $actividades[] = array_merge($valoresIniciales, ['fecha' => now()->format('Y-m-d')]);
+        } else {
+            // Solo dejar la última versión de cada actividad (por nombre), pero usando la fecha real de su último cambio
+            $ultimas = [];
+            foreach ($cambiosActividades as $item) {
+                $ultimas[$item['nombre']] = $item;
+            }
+            $actividades = array_values($ultimas);
+            usort($actividades, function($a, $b) {
+                return strtotime($a['fecha']) <=> strtotime($b['fecha']);
+            });
         }
 
         $data = [
             'tema' => $titulacion->tema,
             'director' => $titulacion->directorPersona ? ($titulacion->directorPersona->nombres . ' ' . $titulacion->directorPersona->apellidos) : '',
             'asesor_tic' => $titulacion->asesor1Persona ? ($titulacion->asesor1Persona->nombres . ' ' . $titulacion->asesor1Persona->apellidos) : '',
-            'facultad' => 'FACULTAD DE INGENIERÍA',
+            'facultad' => 'FACULTAD DE INGENIERÍA EN CIENCIAS APLICADAS',
             'carrera' => $carrera,
             'autor' => $titulacion->estudiantePersona ? ($titulacion->estudiantePersona->nombres . ' ' . $titulacion->estudiantePersona->apellidos) : '',
             'actividades' => $actividades,

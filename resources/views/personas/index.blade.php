@@ -265,6 +265,55 @@
     .mt-2 {
         margin-top: 0.5rem !important;
     }
+
+    /* Dropdown estilo botón para filtros de carrera/cargo */
+    .carrera-dropdown-btn {
+        background-color: #d32f2f;
+        color: #fff;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 24px;
+        font-size: 1em;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        cursor: pointer;
+        transition: background 0.2s;
+        min-width: 170px;
+        text-align: left;
+        position: relative;
+    }
+    .carrera-dropdown-btn:focus, .carrera-dropdown-btn:hover {
+        background-color: #b71c1c;
+        outline: none;
+    }
+    .carrera-dropdown-menu {
+        position: absolute;
+        top: 110%;
+        left: 0;
+        min-width: 170px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+        z-index: 1000;
+        padding: 6px 0;
+        margin-top: 2px;
+    }
+    .carrera-dropdown-item {
+        width: 100%;
+        background: none;
+        border: none;
+        color: #d32f2f;
+        font-weight: 500;
+        text-align: left;
+        padding: 10px 24px;
+        font-size: 1em;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+    .carrera-dropdown-item.active, .carrera-dropdown-item:hover {
+        background: #d32f2f;
+        color: #fff;
+    }
 </style>
 
 <div class="container">
@@ -278,24 +327,68 @@
 
     <h1 class="page-title">Listado de Personas</h1>
 
-    {{-- Filtros de Todos y Recientes + Buscador --}}
+    {{-- Filtros de Todos y Recientes + Carrera + Cargo + Buscador --}}
     <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-bottom: 24px;">
-        {{-- Tabs de Todos y Recientes --}}
-        <div style="display: flex; gap: 8px;">
-            <a href="{{ route('personas.index', ['filtro' => 'todos']) }}"
-               class="px-4 py-2 {{ request('filtro', 'todos') == 'todos' ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-600' }} text-sm font-semibold rounded shadow transition"
-               style="text-decoration:none;">
-                Todos
-            </a>
-            <a href="{{ route('personas.index', ['filtro' => 'recientes']) }}"
-               class="px-4 py-2 {{ request('filtro') == 'recientes' ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-600' }} text-sm font-semibold rounded shadow transition"
-               style="text-decoration:none;">
-                Recientes
-            </a>
-        </div>
+        {{-- Filtro por Carrera (estilo botón desplegable) --}}
+        <form action="{{ route('personas.index') }}" method="GET" style="position:relative;display:flex;align-items:center;gap:8px;">
+            <input type="hidden" name="filtro" value="{{ request('filtro', 'todos') }}">
+            <input type="hidden" name="cargo_filtro" value="{{ request('cargo_filtro') }}">
+            <div class="dropdown" style="position:relative;">
+                <button type="button" id="carreraDropdownBtn" class="carrera-dropdown-btn" onclick="toggleCarreraDropdown()">
+                    {{ request('carrera_filtro') ? ($carrerasFiltro->where('id_carrera', request('carrera_filtro'))->first()->siglas_carrera ?? 'Carrera') : 'Todas las carreras' }}
+                    <span style="margin-left:8px;">&#9662;</span>
+                </button>
+                <div id="carreraDropdownMenu" class="carrera-dropdown-menu" style="display:none;">
+                    <button type="submit" name="carrera_filtro" value="" class="carrera-dropdown-item {{ request('carrera_filtro') == '' ? 'active' : '' }}">Todas las carreras</button>
+                    @foreach($carrerasFiltro as $carrera)
+                        <button type="submit" name="carrera_filtro" value="{{ $carrera->id_carrera }}" class="carrera-dropdown-item {{ request('carrera_filtro') == $carrera->id_carrera ? 'active' : '' }}">{{ $carrera->siglas_carrera }}</button>
+                    @endforeach
+                </div>
+            </div>
+        </form>
+        {{-- Filtro por Cargo (estilo botón desplegable, agrupado) --}}
+        <form action="{{ route('personas.index') }}" method="GET" style="position:relative;display:flex;align-items:center;gap:8px;">
+            <input type="hidden" name="filtro" value="{{ request('filtro', 'todos') }}">
+            <input type="hidden" name="carrera_filtro" value="{{ request('carrera_filtro') }}">
+            @php
+                // Agrupar cargos equivalentes
+                $cargosAgrupados = [
+                    'secretario/a' => ['secretario', 'secretaria'],
+                    'subdecano/a' => ['subdecano', 'subdecana'],
+                    'decano/a' => ['decano', 'decana'],
+                    'coordinador/a' => ['coordinador', 'coordinadora'],
+                    'docente' => ['docente'],
+                    'estudiante' => ['estudiante'],
+                    'abogado/a' => ['abogado', 'abogada'],
+                    'secretario general' => ['secretario_general'],
+                ];
+                // Determinar el valor seleccionado
+                $cargoSeleccionado = '';
+                foreach($cargosAgrupados as $label => $values) {
+                    if (in_array(request('cargo_filtro'), $values)) {
+                        $cargoSeleccionado = $label;
+                        break;
+                    }
+                }
+            @endphp
+            <div class="dropdown" style="position:relative;">
+                <button type="button" id="cargoDropdownBtn" class="carrera-dropdown-btn" onclick="toggleCargoDropdown()">
+                    {{ $cargoSeleccionado ? ucfirst($cargoSeleccionado) : 'Todos los cargos' }}
+                    <span style="margin-left:8px;">&#9662;</span>
+                </button>
+                <div id="cargoDropdownMenu" class="carrera-dropdown-menu" style="display:none;">
+                    <button type="submit" name="cargo_filtro" value="" class="carrera-dropdown-item {{ request('cargo_filtro') == '' ? 'active' : '' }}">Todos los cargos</button>
+                    @foreach($cargosAgrupados as $label => $values)
+                        <button type="submit" name="cargo_filtro" value="{{ $values[0] }}" class="carrera-dropdown-item {{ in_array(request('cargo_filtro'), $values) ? 'active' : '' }}">{{ ucfirst($label) }}</button>
+                    @endforeach
+                </div>
+            </div>
+        </form>
         {{-- Buscador --}}
         <form action="{{ route('personas.index') }}" method="GET" style="flex:1; min-width:220px; display:flex; align-items:center; gap:8px;">
             <input type="hidden" name="filtro" value="{{ request('filtro', 'todos') }}">
+            <input type="hidden" name="carrera_filtro" value="{{ request('carrera_filtro') }}">
+            <input type="hidden" name="cargo_filtro" value="{{ request('cargo_filtro') }}">
             <input type="text" name="buscar" value="{{ request('buscar') }}"
                    placeholder="Buscar por cédula, nombre o apellido"
                    style="flex:1; padding:8px 12px; border:1px solid #d32f2f; border-radius:5px; font-size:1em;">
@@ -531,6 +624,31 @@
             document.getElementById('resetPasswordMsg').textContent = '¿Está seguro que desea resetear la contraseña de ' + nombre + '?';
         });
     });
+
+    // Dropdown para filtro de carrera
+    function toggleCarreraDropdown() {
+        var menu = document.getElementById('carreraDropdownMenu');
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        document.addEventListener('click', closeCarreraDropdownOnClick);
+    }
+    function closeCarreraDropdownOnClick(e) {
+        if (!e.target.closest('.dropdown')) {
+            document.getElementById('carreraDropdownMenu').style.display = 'none';
+            document.removeEventListener('click', closeCarreraDropdownOnClick);
+        }
+    }
+    // Dropdown para filtro de cargo
+    function toggleCargoDropdown() {
+        var menu = document.getElementById('cargoDropdownMenu');
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        document.addEventListener('click', closeCargoDropdownOnClick);
+    }
+    function closeCargoDropdownOnClick(e) {
+        if (!e.target.closest('.dropdown')) {
+            document.getElementById('cargoDropdownMenu').style.display = 'none';
+            document.removeEventListener('click', closeCargoDropdownOnClick);
+        }
+    }
 </script>
 @endpush
 

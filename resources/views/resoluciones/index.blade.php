@@ -436,24 +436,78 @@
         </a>
     </div>
 
-    {{-- Filtros de Todos y Recientes + Buscador --}}
+    {{-- Filtros de Todos y Recientes + Buscador + Carrera --}}
     <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-bottom: 24px;">
-        {{-- Tabs de Todos y Recientes --}}
-        <div style="display: flex; gap: 8px;">
-            <a href="{{ route('resoluciones.index', ['filtro' => 'todos']) }}"
-               class="px-4 py-2 {{ request('filtro', 'todos') == 'todos' ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-600' }} text-sm font-semibold rounded shadow transition"
-               style="text-decoration:none;">
-                Todos
-            </a>
-            <a href="{{ route('resoluciones.index', ['filtro' => 'recientes']) }}"
-               class="px-4 py-2 {{ request('filtro') == 'recientes' ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-600' }} text-sm font-semibold rounded shadow transition"
-               style="text-decoration:none;">
-                Recientes
-            </a>
+        {{-- Tabs de Todos y Recientes eliminados por requerimiento --}}
+        {{-- Filtro por Carrera --}}
+        <!-- Dropdown personalizado para filtro de carrera -->
+        <div class="dropdown" style="position:relative;">
+            <button id="carreraDropdownBtn" type="button"
+                class="px-4 py-2 {{ !request('carrera_filtro') ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-600' }} text-sm font-semibold rounded shadow transition"
+                style="min-width:160px; text-align:left; display:flex; align-items:center; gap:8px;"
+                onclick="document.getElementById('carreraDropdownMenu').classList.toggle('show')">
+                <span>
+                    @php
+                        $selectedCarrera = null;
+                        if(request('carrera_filtro')) {
+                            $selectedCarrera = \App\Models\Carrera::find(request('carrera_filtro'));
+                        }
+                    @endphp
+                    {{ $selectedCarrera ? $selectedCarrera->siglas_carrera : 'Todas las carreras' }}
+                </span>
+                <i class="fas fa-chevron-down" style="font-size:0.9em;"></i>
+            </button>
+            <div id="carreraDropdownMenu" class="dropdown-menu" style="display:none; position:absolute; z-index:10; background:#fff; border:1px solid #ddd; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.08); min-width:160px; margin-top:4px;">
+                <form id="carreraFiltroForm" action="{{ route('resoluciones.index') }}" method="GET" style="margin:0;">
+                    <input type="hidden" name="filtro" value="{{ request('filtro', 'todos') }}">
+                    <input type="hidden" name="buscar" value="{{ request('buscar') }}">
+                    <button type="submit" name="carrera_filtro" value="" class="w-100 px-4 py-2 text-left bg-red-600 text-white font-semibold rounded shadow transition" style="border:none;outline:none;cursor:pointer;@if(!request('carrera_filtro')) font-weight:bold; @endif">
+                        Todas las carreras
+                    </button>
+                    @php
+                        // Solo restringir si es secretaria/o y NO es secretario general
+                        $esSecretariaSolo = $persona && (str_contains($cargo, 'secretaria') || str_contains($cargo, 'secretario')) && !$esSecretarioGeneral;
+                        $carrerasFiltrar = $esSecretariaSolo ? $persona->carreras : \App\Models\Carrera::orderBy('siglas_carrera')->get();
+                    @endphp
+                    @foreach($carrerasFiltrar as $carrera)
+                        <button type="submit" name="carrera_filtro" value="{{ $carrera->id_carrera }}" class="w-100 px-4 py-2 text-left {{ request('carrera_filtro') == $carrera->id_carrera ? 'bg-red-600 text-white font-semibold' : 'bg-white text-red-600' }}" style="border:none;outline:none;cursor:pointer; border-radius:0;">
+                            {{ $carrera->siglas_carrera }}
+                        </button>
+                    @endforeach
+                </form>
+            </div>
         </div>
+        <script>
+            // Cerrar el dropdown al hacer click fuera
+            document.addEventListener('click', function(event) {
+                var btn = document.getElementById('carreraDropdownBtn');
+                var menu = document.getElementById('carreraDropdownMenu');
+                if (!btn.contains(event.target) && !menu.contains(event.target)) {
+                    menu.classList.remove('show');
+                    menu.style.display = 'none';
+                }
+            });
+            // Mostrar/ocultar menú
+            document.getElementById('carreraDropdownBtn').addEventListener('click', function(e) {
+                var menu = document.getElementById('carreraDropdownMenu');
+                if(menu.classList.contains('show')) {
+                    menu.style.display = 'block';
+                } else {
+                    menu.style.display = 'none';
+                }
+            });
+        </script>
+        <style>
+            .dropdown-menu.show { display: block !important; }
+            .dropdown-menu button:hover, .dropdown-menu button:focus {
+                background: #d32f2f !important;
+                color: #fff !important;
+            }
+        </style>
         {{-- Buscador --}}
         <form action="{{ route('resoluciones.index') }}" method="GET" style="flex:1; min-width:220px; display:flex; align-items:center; gap:8px;">
             <input type="hidden" name="filtro" value="{{ request('filtro', 'todos') }}">
+            <input type="hidden" name="carrera_filtro" value="{{ request('carrera_filtro') }}">
             <input type="text" name="buscar" value="{{ request('buscar') }}"
                    placeholder="Buscar por número o tipo"
                    style="flex:1; padding:8px 12px; border:1px solid #d32f2f; border-radius:5px; font-size:1em;">

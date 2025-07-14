@@ -15,7 +15,7 @@ class CarreraController extends Controller
         $cargo = strtolower(trim($persona->cargo ?? ''));
         // Solo restringe para cargos que no pueden ver el listado (secretaria/o sí puede ver)
         if (in_array($cargo, [
-            'coordinador','coordinadora', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'decana'
+            'coordinador','coordinadora','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana', 'subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'decana'
         ])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -29,7 +29,7 @@ class CarreraController extends Controller
         $cargo = strtolower(trim($persona->cargo ?? ''));
         // Solo restringe para cargos que no pueden ver el listado (secretaria/o sí puede ver)
         if (in_array($cargo, [
-            'coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'
+            'coordinador','coordinador/a', 'decano','decano/a', 'subdecano','subdecano/a', 'subdecana', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante'
         ])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -46,7 +46,7 @@ class CarreraController extends Controller
         $cargo = strtolower(trim($persona->cargo ?? ''));
         // Ahora también restringe a secretaria/o
         if (in_array($cargo, [
-            'coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario', 'secretaria'
+            'coordinador','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada', 'abogado/a','docente', 'estudiante','secretario/a', 'secretario', 'secretaria'
         ])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -62,7 +62,7 @@ class CarreraController extends Controller
         $cargo = strtolower(trim($persona->cargo ?? ''));
         // Ahora también restringe a secretaria/o
         if (in_array($cargo, [
-            'coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario', 'secretaria'
+            'coordinador','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'secretario','secretario/a', 'secretaria'
         ])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -85,7 +85,7 @@ class CarreraController extends Controller
         $cargo = strtolower(trim($persona->cargo ?? ''));
         // Ahora también restringe a secretaria/o
         if (in_array($cargo, [
-            'coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario', 'secretaria'
+            'coordinador','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante','secretario/a', 'secretario', 'secretaria'
         ])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -101,7 +101,7 @@ class CarreraController extends Controller
         $cargo = strtolower(trim($persona->cargo ?? ''));
         // Ahora también restringe a secretaria/o
         if (in_array($cargo, [
-            'coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario', 'secretaria'
+            'coordinador','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante','secretario/a', 'secretario', 'secretaria'
         ])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -124,7 +124,7 @@ class CarreraController extends Controller
         $cargo = strtolower(trim($persona->cargo ?? ''));
         // Ahora también restringe a secretaria/o
         if (in_array($cargo, [
-            'coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario', 'secretaria'
+            'coordinador','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'secretario','secretario/a', 'secretaria'
         ])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }

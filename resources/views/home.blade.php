@@ -141,13 +141,13 @@
     </div>
     <div id="alertaPermisoHome"></div>
     <div class="module-container">
-        @if(in_array($cargo, ['decano', 'decana']))
+        @if(in_array($cargo, ['decano', 'decana','decano/a']))
             {{-- Decano/a: solo titulaciones --}}
             <a href="{{ route('titulaciones.index') }}" class="module-card">
                 <i class="fas fa-certificate module-icon"></i>
                 <div class="module-title">Titulaciones</div>
             </a>
-        @elseif(in_array($cargo, ['subdecano','subdecana','coordinador','coordinadora',  'abogado', 'abogada','estudiante','docente']))
+        @elseif(in_array($cargo, ['subdecano','subdecana','subdecano/a','coordinador','coordinadora', 'coordinador/a', 'abogado', 'abogada', 'abogado/a','estudiante','docente']))
             {{-- Solo muestra Titulaciones --}}
             <a href="{{ route('titulaciones.index') }}" class="module-card">
                 <i class="fas fa-certificate module-icon"></i>

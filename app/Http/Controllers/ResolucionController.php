@@ -19,7 +19,7 @@ class ResolucionController extends Controller
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         // Cambia para usar el campo string 'cargo'
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador','coordinadora', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'decana'])) {
+        if (in_array($cargo, ['coordinador','coordinadora','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'decana'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
     }
@@ -31,7 +31,7 @@ class ResolucionController extends Controller
         $cargo = strtolower(trim($persona->cargo ?? ''));
 
         // Filtro para secretaria
-        $esSecretaria = $cargo === 'secretaria' || $cargo === 'secretario';
+        $esSecretaria = $cargo === 'secretaria' || $cargo === 'secretario'|| $cargo === 'secretario/a';
 
         $query = Resolucion::with(['tipoResolucion', 'carrera']);
 
@@ -59,6 +59,11 @@ class ResolucionController extends Controller
             });
         }
 
+        // Filtro por carrera
+        if ($request->filled('carrera_filtro')) {
+            $query->where('carrera_id', $request->carrera_filtro);
+        }
+
         // Filtro de recientes
         if ($request->filtro === 'recientes') {
             $query->orderBy('fecha_res', 'desc');
@@ -83,7 +88,7 @@ class ResolucionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario_general'])) {
+        if (in_array($cargo, ['coordinador','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -99,7 +104,7 @@ class ResolucionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario_general'])) {
+        if (in_array($cargo, ['coordinador','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -119,7 +124,7 @@ class ResolucionController extends Controller
         $cargo = strtolower(trim($user->cargo ?? ''));
 
         // Si es secretaria/o, solo muestra sus carreras asignadas
-        if (in_array($cargo, ['secretario', 'secretaria'])) {
+        if (in_array($cargo, ['secretario', 'secretaria','secretario/a'])) {
             $carreras = $user->persona ? $user->persona->carreras()->get() : collect();
         } else {
             $carreras = \App\Models\Carrera::all();
@@ -136,7 +141,7 @@ class ResolucionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario_general'])) {
+        if (in_array($cargo, ['coordinador','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -176,7 +181,7 @@ class ResolucionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario_general'])) {
+        if (in_array($cargo, ['coordinador','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -221,7 +226,7 @@ class ResolucionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario_general'])) {
+        if (in_array($cargo, ['coordinador','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -254,7 +259,7 @@ class ResolucionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario_general'])) {
+        if (in_array($cargo, ['coordinador','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -271,7 +276,7 @@ class ResolucionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario_general'])) {
+        if (in_array($cargo, ['coordinador','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -301,7 +306,7 @@ class ResolucionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario_general'])) {
+        if (in_array($cargo, ['coordinador','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -315,7 +320,7 @@ class ResolucionController extends Controller
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
 
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario_general'])) {
+        if (in_array($cargo, ['coordinador','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -323,7 +328,7 @@ class ResolucionController extends Controller
         $tipos = \App\Models\TipoResolucion::all();
 
         // Solo muestra las carreras asignadas si es secretaria/o
-        if (in_array($cargo, ['secretario', 'secretaria'])) {
+        if (in_array($cargo, ['secretario', 'secretaria','secretario/a'])) {
             $carreras = $persona && method_exists($persona, 'carreras')
                 ? $persona->carreras()->get()
                 : collect();
@@ -344,7 +349,7 @@ class ResolucionController extends Controller
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'secretario_general'])) {
+        if (in_array($cargo, ['coordinador','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 

@@ -35,7 +35,7 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
-        if (in_array($cargo, ['coordinador','coordinadora', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante', 'decana'])) {
+        if (in_array($cargo, ['coordinador','coordinadora','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'decana'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
     }
@@ -47,28 +47,39 @@ class PersonaController extends Controller
         $cargo = strtolower(trim($user->cargo ?? ''));
 
         // Cargos restringidos
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
+        if (in_array($cargo, ['coordinador', 'coordinadora', 'coordinador/a', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a', 'abogado', 'abogada', 'abogado/a', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
+
         $query = Persona::with(['carreras']);
-
-        // Si es secretaria/o, filtra los estudiantes por sus carreras asignadas
-        if (in_array($cargo, ['secretario', 'secretaria'])) {
-            // Obtén las carreras asignadas a la secretaria
+        $carrerasAsignadas = [];
+        $esSecretaria = in_array($cargo, ['secretario', 'secretaria', 'secretario/a']);
+        if ($esSecretaria) {
             $carrerasAsignadas = $user->persona ? $user->persona->carreras()->pluck('id_carrera')->toArray() : [];
-
             $query->where(function($q) use ($carrerasAsignadas) {
-                // Mostrar estudiantes SOLO de las carreras asignadas
                 $q->where(function($sub) use ($carrerasAsignadas) {
                     $sub->where('cargo', 'estudiante')
                         ->whereHas('carreras', function($q2) use ($carrerasAsignadas) {
                             $q2->whereIn('id_carrera', $carrerasAsignadas);
                         });
                 })
-                // Mostrar todos los otros cargos
                 ->orWhere('cargo', '!=', 'estudiante');
             });
+        }
+
+        // Filtro por carrera
+        if ($request->filled('carrera_filtro')) {
+            $carreraFiltro = $request->carrera_filtro;
+            $query->whereHas('carreras', function($q) use ($carreraFiltro) {
+                $q->where('id_carrera', $carreraFiltro);
+            });
+        }
+
+        // Filtro por cargo
+        if ($request->filled('cargo_filtro')) {
+            $cargoFiltro = $request->cargo_filtro;
+            $query->where('cargo', $cargoFiltro);
         }
 
         // Búsqueda
@@ -93,7 +104,15 @@ class PersonaController extends Controller
         // Para la vista: pasa también las carreras asignadas (por si las necesitas)
         $carrerasAsignadas = isset($carrerasAsignadas) ? $carrerasAsignadas : [];
 
-        return view('personas.index', compact('personas', 'carrerasAsignadas'));
+        // Para el filtro de carreras: solo mostrar las carreras asignadas si es secretaria, si no, todas
+        $carrerasFiltro = $esSecretaria
+            ? ($user->persona ? $user->persona->carreras()->orderBy('siglas_carrera')->get() : collect())
+            : \App\Models\Carrera::orderBy('siglas_carrera')->get();
+
+        // Para el filtro de cargos: mostrar todos los cargos presentes en la base
+        $cargosFiltro = \App\Models\Persona::select('cargo')->distinct()->pluck('cargo')->toArray();
+
+        return view('personas.index', compact('personas', 'carrerasAsignadas', 'carrerasFiltro', 'cargosFiltro'));
     }
 
     // Mostrar formulario de creación
@@ -102,12 +121,12 @@ class PersonaController extends Controller
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
 
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
+        if (in_array($cargo, ['coordinador', 'coordinadora', 'coordinador/a', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a', 'abogado', 'abogada', 'abogado/a', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
         // Si es secretaria/o, solo puede crear estudiantes y solo de sus carreras asignadas
-        if (in_array($cargo, ['secretario', 'secretaria'])) {
+        if (in_array($cargo, ['secretario', 'secretaria', 'secretario/a'])) {
             $carreras = $user->persona ? $user->persona->carreras()->get() : collect();
             $cargos = ['estudiante'];
         } elseif ($cargo === 'secretario_general') {
@@ -130,7 +149,7 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
+        if (in_array($cargo, ['coordinador', 'coordinadora', 'coordinador/a', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a', 'abogado', 'abogada', 'abogado/a', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -169,7 +188,7 @@ class PersonaController extends Controller
             $carreras = $request->carrera_id;
 
             // Si es coordinador o secretario/a, guarda la primera carrera en carrera_id y todas en la relación
-            if (in_array($cargoSeleccionado, ['coordinador', 'coordinadora', 'secretario', 'secretaria'])) {
+            if (in_array($cargoSeleccionado, ['coordinador', 'coordinadora','coordinador/a', 'secretario', 'secretaria', 'secretario/a'])) {
                 $persona = Persona::create(array_merge(
                     $request->except('carrera_id'),
                     ['carrera_id' => is_array($carreras) ? $carreras[0] : $carreras]
@@ -212,7 +231,7 @@ class PersonaController extends Controller
         $cargo = strtolower(trim($user->cargo ?? ''));
 
         // Si es secretaria/o, solo muestra sus carreras asignadas
-        if (in_array($cargo, ['secretario', 'secretaria'])) {
+        if (in_array($cargo, ['secretario', 'secretaria', 'secretario/a'])) {
             $carreras = $user->persona ? $user->persona->carreras()->get() : collect();
             $cargos = ['estudiante'];
         } elseif ($cargo === 'secretario_general') {
@@ -235,7 +254,7 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
+        if (in_array($cargo, ['coordinador', 'coordinadora', 'coordinador/a', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a', 'abogado', 'abogada', 'abogado/a', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -275,7 +294,7 @@ class PersonaController extends Controller
             $cargoSeleccionado = strtolower(trim($request->cargo));
             $carreras = $request->carrera_id;
 
-            if (in_array($cargoSeleccionado, ['coordinador', 'coordinadora', 'secretario', 'secretaria'])) {
+            if (in_array($cargoSeleccionado, ['coordinador', 'coordinadora','coordinador/a', 'secretario', 'secretaria', 'secretario/a'])) {
                 $persona->update(array_merge(
                     $request->except('carrera_id'),
                     ['carrera_id' => is_array($carreras) ? $carreras[0] : $carreras]
@@ -313,7 +332,7 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
+        if (in_array($cargo, ['coordinador', 'coordinadora', 'coordinador/a', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a', 'abogado', 'abogada', 'abogado/a', 'docente', 'estudiante'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
@@ -358,7 +377,7 @@ public function import(Request $request)
 {
     $user = Auth::user();
     $cargo = strtolower(trim($user->cargo ?? ''));
-    if (in_array($cargo, ['coordinador', 'decano', 'subdecano', 'subdecana', 'abogado', 'abogada', 'docente', 'estudiante'])) {
+    if (in_array($cargo, ['coordinador', 'coordinadora', 'coordinador/a', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a', 'abogado', 'abogada', 'abogado/a', 'docente', 'estudiante'])) {
         abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
     }
 
@@ -371,7 +390,7 @@ public function import(Request $request)
     // Si es secretaria/o, obtiene las carreras permitidas
     $soloEstudiantes = false;
     $carrerasPermitidas = [];
-    if (in_array($cargo, ['secretario', 'secretaria'])) {
+    if (in_array($cargo, ['secretario', 'secretaria', 'secretario/a'])) {
         $soloEstudiantes = true;
         $carrerasPermitidas = $user->persona ? $user->persona->carreras()->pluck('id_carrera')->toArray() : [];
     }
@@ -472,6 +491,20 @@ public function import(Request $request)
             }
 
             $cargoCsv = strtolower(trim($normalizedRow['cargo']));
+            // Unificar cargos para guardar
+            $cargoMap = [
+                'secretario' => 'secretario/a',
+                'secretaria' => 'secretario/a',
+                'decano' => 'decano/a',
+                'decana' => 'decano/a',
+                'subdecano' => 'subdecano/a',
+                'subdecana' => 'subdecano/a',
+                'coordinador' => 'coordinador/a',
+                'coordinadora' => 'coordinador/a',
+                'abogado' => 'abogado/a',
+                'abogada' => 'abogado/a',
+            ];
+            $cargoCsv = $cargoMap[$cargoCsv] ?? $cargoCsv;
             $siglasCarrera = trim($normalizedRow['sigla_carrera']);
 
             // Si es secretaria/o: solo estudiantes y solo carreras permitidas
@@ -492,7 +525,7 @@ public function import(Request $request)
             $carrerasIds = [];
             if (
                 $esSecretarioGeneral &&
-                in_array($cargoCsv, ['coordinador', 'coordinadora', 'secretario', 'secretaria'])
+                in_array($cargoCsv, ['coordinador', 'coordinadora', 'coordinador/a', 'secretario', 'secretaria', 'secretario/a'])
             ) {
                 $siglas = preg_split('/\s*\/\s*/', $siglasCarrera);
                 foreach ($siglas as $sigla) {
