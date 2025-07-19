@@ -9,7 +9,7 @@
     $cargo = strtolower(trim($persona->cargo ?? ''));
     $esEstudiante = $cargo === 'estudiante';
     $esDocente = $cargo === 'docente';
-    $esSoloLectura = in_array($cargo, ['decano', 'decana', 'subdecano', 'subdecana', 'abogado', 'abogada']);
+    $esSoloLectura = in_array($cargo, ['decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a']);
     $esCoordinador = in_array($cargo, ['coordinador', 'coordinadora']);
     $esSecretarioGeneral = $cargo === 'secretario_general';
 @endphp

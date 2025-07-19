@@ -1,6 +1,29 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $user = auth()->user();
+    $persona = $user ? ($user->persona ?? null) : null;
+    $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? $persona->cargo ?? ''));
+    $bloqueados = [
+        'docente',
+        'decano', 'decana', 'decano/a',
+        'subdecano', 'subdecana', 'subdecano/a',
+        'abogado', 'abogada', 'abogado/a',
+        'coordinador', 'coordinadora', 'coordinador/a'
+    ];
+    $esBloqueado = in_array($cargo, $bloqueados);
+@endphp
+
+@if($esBloqueado)
+    <div style="text-align:center; margin-top:60px;">
+        <h1 style="font-size:3em; color:#d32f2f;">403</h1>
+        <div class="alert alert-danger mt-4" style="display:inline-block; font-size:1.2em;">
+            El cargo {{ ucfirst($cargo) }} no tiene permisos para acceder a esta funcionalidad del sistema.
+        </div>
+    </div>
+    @php exit; @endphp
+@endif
 <style>
     body {
         background-color: #e9ecef;
@@ -213,6 +236,14 @@
         }
     }
 </style>
+@php
+    $user = auth()->user();
+    $persona = $user ? ($user->persona ?? null) : null;
+    $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? $persona->cargo ?? ''));
+    $esDocente = $cargo === 'docente';
+    $esDecano = in_array($cargo, ['decano', 'subdecano', 'subdecana', 'abogado', 'abogada']);
+@endphp
+
 
 <div class="container">
     <div class="header-container">
@@ -270,6 +301,7 @@
                     <td class="text-center align-middle">{{ $tipo->created_at->format('d/m/Y') }}</td>
                     <td class="text-center align-middle">
                         <div class="d-inline">
+                            @if(!$esDocente)
                             <a href="{{ route('tipo_resoluciones.edit', $tipo->id_tipo_res) }}"
                                class="btn btn-sm btn-warning mx-1"
                                title="Editar">
@@ -283,6 +315,7 @@
                                     title="Eliminar">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
+                            @endif
                         </div>
                     </td>
                 </tr>
@@ -346,11 +379,16 @@
 @endpush
 
 
+
+
 @php
-    $cargo = strtolower(trim($persona->cargo ?? ''));
-    $esDecano = in_array($cargo, ['decano', 'subdecano', 'subdecana', 'abogado', 'abogada']);
+    $user = auth()->user();
+    $persona = $user ? ($user->persona ?? null) : null;
+    $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? $persona->cargo ?? ''));
+    $esDocente = $cargo === 'docente';
 @endphp
-@if($esDecano)
-    <a href="...">Solo para decano, subdecano/a, abogado/a</a>
+@if($esDocente)
+    <div class="alert alert-danger mt-4">No autorizado.</div>
+    @php exit; @endphp
 @endif
 @endsection

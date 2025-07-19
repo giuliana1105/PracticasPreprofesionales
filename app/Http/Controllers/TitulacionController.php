@@ -991,6 +991,7 @@ class TitulacionController extends Controller
             ])
             ->sortBy('created_at');
 
+
         $actividades = [];
         $estado = $valoresIniciales;
         $ultimaFecha = null;
@@ -1000,24 +1001,53 @@ class TitulacionController extends Controller
             $ultimaFecha = $cambio->created_at->format('Y-m-d H:i:s');
             switch ($cambio->campo) {
                 case 'actividades_cronograma':
-                    if (!empty($cambio->valor_nuevo)) $estado['actividad'] = $cambio->valor_nuevo;
+                    if (!empty($cambio->valor_nuevo)) {
+                        $estado['actividad'] = $cambio->valor_nuevo;
+                        $estado['cumplio'] = null;
+                        $estado['resultados'] = null;
+                        $estado['horas'] = null;
+                        $estado['observaciones'] = null;
+                        // Guardar la fila después de aplicar el cambio de actividad
+                        if (!empty($estado['actividad'])) {
+                            $cambiosActividades[] = array_merge($estado, ['fecha' => $ultimaFecha, 'nombre' => $estado['actividad']]);
+                        }
+                    }
                     break;
                 case 'cumplio_cronograma':
                     if (!empty($cambio->valor_nuevo)) $estado['cumplio'] = $cambio->valor_nuevo;
+                    if (!empty($estado['actividad'])) {
+                        $cambiosActividades[] = array_merge($estado, ['fecha' => $ultimaFecha, 'nombre' => $estado['actividad']]);
+                    }
                     break;
                 case 'resultados':
                     if (!empty($cambio->valor_nuevo)) $estado['resultados'] = $cambio->valor_nuevo;
+                    if (!empty($estado['actividad'])) {
+                        $cambiosActividades[] = array_merge($estado, ['fecha' => $ultimaFecha, 'nombre' => $estado['actividad']]);
+                    }
                     break;
                 case 'horas_asesoria':
                     if (!empty($cambio->valor_nuevo)) $estado['horas'] = $cambio->valor_nuevo;
+                    if (!empty($estado['actividad'])) {
+                        $cambiosActividades[] = array_merge($estado, ['fecha' => $ultimaFecha, 'nombre' => $estado['actividad']]);
+                    }
                     break;
                 case 'observaciones':
                     if (!empty($cambio->valor_nuevo)) $estado['observaciones'] = $cambio->valor_nuevo;
+                    if (!empty($estado['actividad'])) {
+                        $cambiosActividades[] = array_merge($estado, ['fecha' => $ultimaFecha, 'nombre' => $estado['actividad']]);
+                    }
                     break;
             }
-            $nombreActividad = $estado['actividad'] ?? '';
-            if ($nombreActividad !== '') {
-                $cambiosActividades[] = array_merge($estado, ['fecha' => $ultimaFecha, 'nombre' => $nombreActividad]);
+        }
+        // Guardar la última actividad si existe y no se guardó ya
+        if (!empty($estado['actividad'])) {
+            $yaGuardada = false;
+            if (!empty($cambiosActividades)) {
+                $last = end($cambiosActividades);
+                $yaGuardada = $last['nombre'] === $estado['actividad'] && $last['fecha'] === $ultimaFecha;
+            }
+            if (!$yaGuardada) {
+                $cambiosActividades[] = array_merge($estado, ['fecha' => $ultimaFecha ?? now()->format('Y-m-d'), 'nombre' => $estado['actividad']]);
             }
         }
 
@@ -1025,7 +1055,7 @@ class TitulacionController extends Controller
             // No hay historial, solo el estado actual
             $actividades[] = array_merge($valoresIniciales, ['fecha' => now()->format('Y-m-d')]);
         } else {
-            // Solo dejar la última versión de cada actividad (por nombre), pero usando la fecha real de su último cambio
+            // Mostrar solo la última versión de cada actividad (por nombre)
             $ultimas = [];
             foreach ($cambiosActividades as $item) {
                 $ultimas[$item['nombre']] = $item;
