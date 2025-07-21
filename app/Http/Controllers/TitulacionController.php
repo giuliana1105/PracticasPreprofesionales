@@ -30,11 +30,12 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
-        $cargo = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
-        $esDocente = $cargo === 'docente';
-        $esCoordinador = in_array($cargo, ['coordinador', 'coordinadora','coordinador/a']);
-        $esSecretaria = in_array($cargo, ['secretario', 'secretaria','secretario/a']);
-        $esSoloLectura = in_array($cargo, ['decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a','abogado/a', 'abogado', 'abogada']);
+        $selectedRole = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
+        $cargo = $selectedRole;
+        $esDocente = $selectedRole === 'docente';
+        $esCoordinador = in_array($selectedRole, ['coordinador', 'coordinadora','coordinador/a']);
+        $esSecretaria = in_array($selectedRole, ['secretario', 'secretaria','secretario/a']);
+        $esSoloLectura = in_array($selectedRole, ['decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a','abogado/a', 'abogado', 'abogada']);
 
         // Si es estudiante, solo puede ver sus propias titulaciones
         if ($cargo === 'estudiante') {
@@ -352,10 +353,11 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
-        $cargo = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
+        $selectedRole = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
+        $cargo = $selectedRole;
 
-        if (in_array($cargo, ['estudiante', 'docente', 'coordinador','coordinador/a', 'decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'secretario_general'])) {
-            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        if (in_array($selectedRole, ['estudiante', 'docente', 'coordinador','coordinador/a', 'decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'secretario_general'])) {
+            abort(403, 'El cargo ' . ucfirst($selectedRole) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
         $periodos = \App\Models\Periodo::all();
@@ -386,7 +388,8 @@ class TitulacionController extends Controller
             $personas = \App\Models\Persona::all();
         }
         $docentes = \App\Models\Persona::whereIn(\DB::raw('LOWER(cargo)'), [
-            'docente', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a'
+            'docente', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a',
+            'docente-decano/a', 'docente-subdecano/a'
         ])->orderBy('nombres')->get();
         $cargosEstablecidos = \App\Models\Persona::select('cargo')
             ->distinct()
@@ -404,9 +407,10 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
-        $cargo = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['estudiante', 'docente', 'coordinador','coordinador/a', 'decano', 'decana', 'decano/a','subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'secretario_general'])) {
-            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        $selectedRole = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
+        $cargo = $selectedRole;
+        if (in_array($selectedRole, ['estudiante', 'docente', 'coordinador','coordinador/a', 'decano', 'decana', 'decano/a','subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'secretario_general'])) {
+            abort(403, 'El cargo ' . ucfirst($selectedRole) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
         $request->validate([
@@ -483,11 +487,11 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
-        $cargo = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
-
+        $selectedRole = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
+        $cargo = $selectedRole;
 
         // Coordinador/a solo puede ver titulaciones de sus carreras asignadas (no puede editar, pero por seguridad, abortar si no corresponde)
-        if (in_array($cargo, ['coordinador', 'coordinadora','coordinador/a'])) {
+        if (in_array($selectedRole, ['coordinador', 'coordinadora','coordinador/a'])) {
             $titulacion = Titulacion::with('estudiantePersona.carrera')->findOrFail($id);
             $carrerasIds = $persona->carreras->pluck('id_carrera')->toArray();
             $carreraEstudiante = optional($titulacion->estudiantePersona->carrera)->id_carrera;
@@ -499,8 +503,8 @@ class TitulacionController extends Controller
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
         // Permitir acceso a docente para editar avance y observaciones
-        if (in_array($cargo, ['estudiante', 'coordinador','coordinadora','coordinador/a', 'decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'secretario_general'])) {
-            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        if (in_array($selectedRole, ['estudiante', 'coordinador','coordinadora','coordinador/a', 'decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'secretario_general'])) {
+            abort(403, 'El cargo ' . ucfirst($selectedRole) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
         $titulacion = Titulacion::findOrFail($id);
@@ -530,7 +534,8 @@ class TitulacionController extends Controller
 
         // Para los selects de director y asesor, incluir docentes, decanos y subdecanos
         $docentes = \App\Models\Persona::whereIn(\DB::raw('LOWER(cargo)'), [
-            'docente', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a'
+            'docente', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a',
+            'docente-decano/a', 'docente-subdecano/a'
         ])->orderBy('nombres')->get();
 
         return view('titulaciones.edit', compact(
@@ -543,11 +548,12 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
-        $cargo = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
-        $esDocente = $cargo === 'docente';
+        $selectedRole = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
+        $cargo = $selectedRole;
+        $esDocente = $selectedRole === 'docente';
 
-        if (in_array($cargo, ['estudiante', 'coordinador','coordinador/a', 'decano', 'decana','decano/a','subdecano/a', 'subdecano', 'subdecana','abogado/a', 'abogado', 'abogada', 'secretario_general'])) {
-            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        if (in_array($selectedRole, ['estudiante', 'coordinador','coordinador/a', 'decano', 'decana','decano/a','subdecano/a', 'subdecano', 'subdecana','abogado/a', 'abogado', 'abogada', 'secretario_general'])) {
+            abort(403, 'El cargo ' . ucfirst($selectedRole) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
 
         // Permitir a docente editar avance, observaciones y campos automáticos

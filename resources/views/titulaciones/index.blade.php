@@ -6,12 +6,13 @@
 @php
     $user = auth()->user();
     $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
-    $cargo = strtolower(trim($persona->cargo ?? ''));
-    $esEstudiante = $cargo === 'estudiante';
-    $esDocente = $cargo === 'docente';
-    $esSoloLectura = in_array($cargo, ['decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a']);
-    $esCoordinador = in_array($cargo, ['coordinador', 'coordinadora']);
-    $esSecretarioGeneral = $cargo === 'secretario_general';
+    $selectedRole = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
+    $cargo = $selectedRole;
+    $esEstudiante = $selectedRole === 'estudiante';
+    $esDocente = $selectedRole === 'docente';
+    $esSoloLectura = in_array($selectedRole, ['decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a']);
+    $esCoordinador = in_array($selectedRole, ['coordinador', 'coordinadora']);
+    $esSecretarioGeneral = $selectedRole === 'secretario_general';
 @endphp
 
 <style>

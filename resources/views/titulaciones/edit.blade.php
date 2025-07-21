@@ -5,11 +5,12 @@
 @php
     $user = auth()->user();
     $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
-    $esEstudiante = $persona && strtolower(trim($persona->cargo ?? '')) === 'estudiante';
-    $esDocente = $persona && strtolower(trim($persona->cargo ?? '')) === 'docente';
-    $esCoordinador = $persona && strtolower(trim($persona->cargo ?? '')) === 'coordinador';
-    $esDecano = $persona && strtolower(trim($persona->cargo ?? '')) === 'decano';
-    $cargo = strtolower(trim($persona->cargo ?? ''));
+    $selectedRole = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
+    $esEstudiante = $selectedRole === 'estudiante';
+    $esDocente = $selectedRole === 'docente';
+    $esCoordinador = $selectedRole === 'coordinador';
+    $esDecano = $selectedRole === 'decano';
+    $cargo = $selectedRole;
 @endphp
 
 @if(in_array($cargo, ['estudiante', 'coordinador', 'decano']))
@@ -257,6 +258,25 @@
                     <input type="text" id="tema" name="tema" class="form-control" value="{{ $titulacion->tema }}" required>
                 @endif
             </div>
+            <div class="form-group">
+                <label class="form-label">Estudiante</label>
+                @if($esDocente)
+                    <input type="text" class="form-control" value="{{ $personaEstudiante->nombres ?? '' }} {{ $personaEstudiante->apellidos ?? '' }}" readonly>
+                @else
+                    <select id="persona_estudiante_id" name="persona_estudiante_id" class="form-control" required>
+                        <option value="">Seleccione un estudiante</option>
+                        @foreach($personas as $persona)
+                            @if(strtolower(trim($persona->cargo)) === 'estudiante')
+                                <option value="{{ $persona->id }}"
+                                    data-cedula="{{ $persona->cedula }}"
+                                    {{ (old('persona_estudiante_id', $personaEstudiante->id ?? '') == $persona->id) ? 'selected' : '' }}>
+                                    {{ $persona->nombres }} {{ $persona->apellidos }}
+                                </option>
+                            @endif
+                        @endforeach
+                    </select>
+                @endif
+            </div>
 
             {{-- Estudiante --}}
             <div class="form-group">
@@ -300,6 +320,25 @@
                                 <option value="{{ $persona->id }}"
                                     data-cedula="{{ $persona->cedula }}"
                                     {{ (old('persona_director_id', $personaDirector->id ?? '') == $persona->id) ? 'selected' : '' }}>
+                                    {{ $persona->nombres }} {{ $persona->apellidos }}
+                                </option>
+                            @endif
+                        @endforeach
+                    </select>
+                @endif
+            </div>
+            <div class="form-group">
+                <label class="form-label">Asesor 1</label>
+                @if($esDocente)
+                    <input type="text" class="form-control" value="{{ $personaAsesor->nombres ?? '' }} {{ $personaAsesor->apellidos ?? '' }}" readonly>
+                @else
+                    <select id="persona_asesor_id" name="persona_asesor_id" class="form-control" required>
+                        <option value="">Seleccione un asesor</option>
+                        @foreach($personas as $persona)
+                            @if(strtolower(trim($persona->cargo)) === 'docente')
+                                <option value="{{ $persona->id }}"
+                                    data-cedula="{{ $persona->cedula }}"
+                                    {{ (old('persona_asesor_id', $personaAsesor->id ?? '') == $persona->id) ? 'selected' : '' }}>
                                     {{ $persona->nombres }} {{ $persona->apellidos }}
                                 </option>
                             @endif
