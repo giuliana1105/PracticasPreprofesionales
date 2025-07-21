@@ -12,7 +12,7 @@ class TipoResolucionController extends Controller
      
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? ''));
+        $cargo = session('selected_role') ? strtolower(trim(session('selected_role'))) : strtolower(trim($persona->cargo->nombre_cargo ?? $persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador','coordinadora','coordinador/a',  'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'decana'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }

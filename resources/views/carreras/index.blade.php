@@ -6,7 +6,7 @@
     @php
         $user = auth()->user();
         $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
-        $cargo = strtolower(trim($persona->cargo ?? ''));
+        $cargo = session('selected_role') ? strtolower(trim(session('selected_role'))) : strtolower(trim($persona->cargo ?? ''));
         $esEstudiante = $cargo === 'estudiante';
         $esSecretaria = $cargo === 'secretario' || $cargo === 'secretaria';
     @endphp

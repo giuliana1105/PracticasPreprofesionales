@@ -291,6 +291,8 @@
                             'docente' => 'Docente',
                             'estudiante' => 'Estudiante',
                             'secretario_general' => 'Secretario General',
+                            'docente-decano/a' => 'Docente-Decano/a',
+                            'docente-subdecano/a' => 'Docente-Subdecano/a',
                         ];
                         $labelsMostrados = [];
                     @endphp

@@ -29,6 +29,19 @@ class PasswordChangeController extends Controller
         $user->must_change_password = false;
         $user->save();
 
+        // Detect combined roles and redirect to role selection if needed
+        $combinedRoles = [
+            'docente-decano/a',
+            'docente-subdecano/a',
+            'docente-decano',
+            'docente-subdecano',
+            'docente-decanoa',
+            'docente-subdecanoa',
+        ];
+        if (in_array(strtolower($user->cargo), array_map('strtolower', $combinedRoles))) {
+            return redirect()->route('select.role')->with('success', 'Contraseña actualizada correctamente. Por favor seleccione su rol.');
+        }
+
         return redirect()->route('home')->with('success', 'Contraseña actualizada correctamente.');
     }
 }

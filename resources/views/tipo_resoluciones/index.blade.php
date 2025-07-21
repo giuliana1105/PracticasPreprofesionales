@@ -4,7 +4,7 @@
 @php
     $user = auth()->user();
     $persona = $user ? ($user->persona ?? null) : null;
-    $cargo = strtolower(trim($persona->cargo->nombre_cargo ?? $persona->cargo ?? ''));
+    $cargo = session('selected_role') ? strtolower(trim(session('selected_role'))) : strtolower(trim($persona->cargo->nombre_cargo ?? $persona->cargo ?? ''));
     $bloqueados = [
         'docente',
         'decano', 'decana', 'decano/a',

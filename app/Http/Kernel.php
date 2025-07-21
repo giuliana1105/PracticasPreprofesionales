@@ -32,6 +32,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\ForcePasswordChange::class, // <-- debe estar aquí
+            \App\Http\Middleware\CheckRoleSelection::class, // <-- nuevo middleware para selección de rol
         ],
 
         'api' => [
@@ -46,6 +47,7 @@ class Kernel extends HttpKernel
      */
     protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
+        'role.select' => \App\Http\Middleware\CheckRoleSelection::class,
         // ...otros middlewares...
     ];
 }

@@ -30,7 +30,7 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
-        $cargo = strtolower(trim($persona->cargo ?? ''));
+        $cargo = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
         $esDocente = $cargo === 'docente';
         $esCoordinador = in_array($cargo, ['coordinador', 'coordinadora','coordinador/a']);
         $esSecretaria = in_array($cargo, ['secretario', 'secretaria','secretario/a']);
@@ -352,7 +352,7 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
-        $cargo = strtolower(trim($persona->cargo ?? ''));
+        $cargo = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
 
         if (in_array($cargo, ['estudiante', 'docente', 'coordinador','coordinador/a', 'decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
@@ -385,7 +385,9 @@ class TitulacionController extends Controller
             )->get();
             $personas = \App\Models\Persona::all();
         }
-        $docentes = \App\Models\Persona::whereRaw("LOWER(cargo) = 'docente'")->orderBy('nombres')->get();
+        $docentes = \App\Models\Persona::whereIn(\DB::raw('LOWER(cargo)'), [
+            'docente', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a'
+        ])->orderBy('nombres')->get();
         $cargosEstablecidos = \App\Models\Persona::select('cargo')
             ->distinct()
             ->whereNotNull('cargo')
@@ -402,7 +404,7 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
-        $cargo = strtolower(trim($persona->cargo ?? ''));
+        $cargo = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['estudiante', 'docente', 'coordinador','coordinador/a', 'decano', 'decana', 'decano/a','subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -481,7 +483,7 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
-        $cargo = strtolower(trim($persona->cargo ?? ''));
+        $cargo = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
 
 
         // Coordinador/a solo puede ver titulaciones de sus carreras asignadas (no puede editar, pero por seguridad, abortar si no corresponde)
@@ -526,9 +528,14 @@ class TitulacionController extends Controller
 
         $esDocente = $cargo === 'docente';
 
+        // Para los selects de director y asesor, incluir docentes, decanos y subdecanos
+        $docentes = \App\Models\Persona::whereIn(\DB::raw('LOWER(cargo)'), [
+            'docente', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a'
+        ])->orderBy('nombres')->get();
+
         return view('titulaciones.edit', compact(
             'titulacion', 'periodos', 'estados', 'personas',
-            'personaEstudiante', 'personaDirector', 'personaAsesor', 'esDocente'
+            'personaEstudiante', 'personaDirector', 'personaAsesor', 'esDocente', 'docentes'
         ));
     }
 
@@ -536,7 +543,7 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
-        $cargo = strtolower(trim($persona->cargo ?? ''));
+        $cargo = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
         $esDocente = $cargo === 'docente';
 
         if (in_array($cargo, ['estudiante', 'coordinador','coordinador/a', 'decano', 'decana','decano/a','subdecano/a', 'subdecano', 'subdecana','abogado/a', 'abogado', 'abogada', 'secretario_general'])) {
@@ -839,7 +846,7 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
-        $cargo = strtolower(trim($persona->cargo ?? ''));
+        $cargo = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['estudiante', 'docente', 'coordinador','coordinador/a', 'decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado','abogado/a', 'abogada', 'secretario_general'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
@@ -853,7 +860,7 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? Persona::where('email', $user->email)->first() : $user;
-        $cargo = strtolower(trim($persona->cargo ?? ''));
+        $cargo = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
 
         $titulacion = Titulacion::with([
             'estudiantePersona', 'directorPersona', 'asesor1Persona',
@@ -874,7 +881,7 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
-        $cargo = strtolower(trim($persona->cargo ?? ''));
+        $cargo = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
         if ($cargo === 'estudiante') {
             abort(403, 'No autorizado');
         }
@@ -952,7 +959,7 @@ class TitulacionController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
-        $cargo = strtolower(trim($persona->cargo ?? ''));
+        $cargo = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
         if ($this->esSoloLectura($persona) || $cargo === 'coordinador/a' || $cargo === 'coordinador') {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para generar el Anexo X.');
         }

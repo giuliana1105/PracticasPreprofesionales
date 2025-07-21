@@ -12,7 +12,7 @@ class CarreraController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = strtolower(trim($persona->cargo ?? ''));
+        $cargo = session('selected_role') ? strtolower(trim(session('selected_role'))) : strtolower(trim($persona->cargo ?? ''));
         // Solo restringe para cargos que no pueden ver el listado (secretaria/o sí puede ver)
         if (in_array($cargo, [
             'coordinador','coordinadora','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana', 'subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'decana'

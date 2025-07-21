@@ -396,12 +396,10 @@
                     <label for="director_nombre">Director</label>
                     <select id="director_nombre" class="form-control">
                         <option value="">Seleccione...</option>
-                        @foreach($personas as $persona)
-                            @if(strtolower(trim($persona->cargo)) === 'docente')
-                                <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_director') == $persona->cedula ? 'selected' : '' }}>
-                                    {{ $persona->nombres }} {{ $persona->apellidos }}
-                                </option>
-                            @endif
+                        @foreach($docentes as $persona)
+                            <option value="{{ $persona->cedula }}" data-cedula="{{ $persona->cedula }}" {{ old('cedula_director') == $persona->cedula ? 'selected' : '' }}>
+                                {{ $persona->nombres }} {{ $persona->apellidos }}
+                            </option>
                         @endforeach
                     </select>
                     <div class="cedula-mostrada mt-2">Cédula: <span id="cedula_director_mostrada"></span></div>

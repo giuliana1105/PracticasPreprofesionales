@@ -29,12 +29,15 @@ class PersonaController extends Controller
         'estudiante',
         'coordinador',
         'coordinadora',
+        'docente-decano/a',
+        'docente-subdecano/a',
     ];
 
     public function __construct()
     {
         $user = Auth::user();
-        $cargo = strtolower(trim($user->cargo ?? ''));
+        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $cargo = session('selected_role') ? strtolower(trim(session('selected_role'))) : strtolower(trim($persona->cargo ?? ''));
         if (in_array($cargo, ['coordinador','coordinadora','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'decana'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }

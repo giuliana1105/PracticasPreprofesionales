@@ -20,7 +20,12 @@ Route::get('/', function () {
 });
 
 // Redirección después de login irá a /home (configurado en RouteServiceProvider)
+use App\Http\Controllers\RoleSelectionController;
+
 Route::middleware('auth')->group(function () {
+    // Selección de rol para cargos combinados
+    Route::get('/select-role', [RoleSelectionController::class, 'showSelection'])->name('role.select.show');
+    Route::post('/select-role', [RoleSelectionController::class, 'select'])->name('role.select');
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

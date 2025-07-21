@@ -34,6 +34,19 @@ class AuthenticatedSessionController extends Controller
     if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
         $request->session()->regenerate();
 
+        // Detect combined roles and redirect to role selection if needed
+        $user = Auth::user();
+        $combinedRoles = [
+            'docente-decano/a',
+            'docente-subdecano/a',
+            'docente-decano',
+            'docente-subdecano',
+            'docente-decanoa',
+            'docente-subdecanoa',
+        ];
+        if ($user && in_array(strtolower($user->cargo), array_map('strtolower', $combinedRoles))) {
+            return redirect()->route('role.select.show');
+        }
         return redirect()->intended('/home');
     }
 

@@ -123,7 +123,7 @@
 @php
     $user = auth()->user();
     $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
-    $cargo = strtolower(str_replace(' ', '_', trim($persona->cargo ?? '')));
+    $cargo = session('selected_role') ? strtolower(str_replace(' ', '_', trim(session('selected_role'))) ) : strtolower(str_replace(' ', '_', trim($persona->cargo ?? '')));
     $sinPermisoPersonas = !in_array($cargo, [
         'secretario', 'secretaria', 'secretario_general', 'secretario/a', 'secretaria/o', 'secretario general', 'secretaria general'
     ]);
@@ -217,7 +217,7 @@
     <div style="background: #ffeeba; color: #856404; padding: 10px; margin-bottom: 10px;">
          Usuario: <strong>{{ $user->email ?? 'NO USER' }}</strong><br>
     Persona: <strong>{{ $persona ? $persona->email : 'NO PERSONA' }}</strong><br>
-        Cargo detectado: <strong>{{ $cargo }}</strong>
+        Cargo detectado: <strong>{{ session('selected_role') ? session('selected_role') : $cargo }}</strong>
     </div>
 </div>
 

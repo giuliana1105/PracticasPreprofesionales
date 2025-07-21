@@ -5,7 +5,8 @@
 
 @php
     $user = auth()->user();
-    $cargo = strtolower(trim($user->cargo ?? ''));
+    $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
+    $cargo = session('selected_role') ? strtolower(trim(session('selected_role'))) : strtolower(trim($persona->cargo ?? ''));
     $esSecretaria = in_array($cargo, ['secretario', 'secretaria']);
     $esEstudiante = $cargo === 'estudiante';
 @endphp

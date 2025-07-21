@@ -24,14 +24,16 @@
                     <x-slot name="trigger">
                         @php
                             $persona = Auth::user()->persona ?? null;
-                            $cargo = $persona ? $persona->cargo : (Auth::user()->cargo ?? '');
+                            $cargo = session('selected_role') ? session('selected_role') : ($persona ? $persona->cargo : (Auth::user()->cargo ?? ''));
                             $nombreCompleto = $persona ? $persona->nombres . ' ' . $persona->apellidos : Auth::user()->name;
                             $cargos = [
                                 'secretario_general' => 'Secretario General',
                                 'secretario' => 'Secretario/a',
                                 'abogado' => 'Abogado/a',
                                 'decano' => 'Decano',
+                                'decano/a' => 'Decano/a',
                                 'subdecano' => 'Subdecano/a',
+                                'subdecano/a' => 'Subdecano/a',
                                 'docente' => 'Docente',
                                 'estudiante' => 'Estudiante',
                             ];
