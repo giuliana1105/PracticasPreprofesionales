@@ -984,14 +984,14 @@ class TitulacionController extends Controller
             $carrera = $titulacion->estudiantePersona->carrera->siglas_carrera;
         }
 
-
         // Inicializar con los valores iniciales (antes de cualquier cambio)
-        $valoresIniciales = [
-            'actividad' => $titulacion->actividades_cronograma,
-            'cumplio' => $titulacion->cumplio_cronograma,
-            'resultados' => $titulacion->resultados,
-            'horas' => $titulacion->horas_asesoria,
-            'observaciones' => $titulacion->observaciones,
+        $estado = [
+            'actividad'    => $titulacion->actividades_cronograma,
+            'cumplio'      => $titulacion->cumplio_cronograma,
+            'resultados'   => $titulacion->resultados,
+            'horas'        => $titulacion->horas_asesoria,
+            'observaciones'=> $titulacion->observaciones,
+            'fecha'        => $titulacion->created_at ? $titulacion->created_at->format('Y-m-d') : now()->format('Y-m-d'),
         ];
 
         $historial = $titulacion->avanceHistorial
@@ -1004,80 +1004,39 @@ class TitulacionController extends Controller
             ])
             ->sortBy('created_at');
 
-
-        $actividades = [];
-        $estado = $valoresIniciales;
-        $ultimaFecha = null;
-        $cambiosActividades = [];
-
-        foreach ($historial as $cambio) {
-            $ultimaFecha = $cambio->created_at->format('Y-m-d H:i:s');
-            switch ($cambio->campo) {
-                case 'actividades_cronograma':
-                    if (!empty($cambio->valor_nuevo)) {
-                        $estado['actividad'] = $cambio->valor_nuevo;
-                        $estado['cumplio'] = null;
-                        $estado['resultados'] = null;
-                        $estado['horas'] = null;
-                        $estado['observaciones'] = null;
-                        // Guardar la fila después de aplicar el cambio de actividad
-                        if (!empty($estado['actividad'])) {
-                            $cambiosActividades[] = array_merge($estado, ['fecha' => $ultimaFecha, 'nombre' => $estado['actividad']]);
-                        }
-                    }
-                    break;
-                case 'cumplio_cronograma':
-                    if (!empty($cambio->valor_nuevo)) $estado['cumplio'] = $cambio->valor_nuevo;
-                    if (!empty($estado['actividad'])) {
-                        $cambiosActividades[] = array_merge($estado, ['fecha' => $ultimaFecha, 'nombre' => $estado['actividad']]);
-                    }
-                    break;
-                case 'resultados':
-                    if (!empty($cambio->valor_nuevo)) $estado['resultados'] = $cambio->valor_nuevo;
-                    if (!empty($estado['actividad'])) {
-                        $cambiosActividades[] = array_merge($estado, ['fecha' => $ultimaFecha, 'nombre' => $estado['actividad']]);
-                    }
-                    break;
-                case 'horas_asesoria':
-                    if (!empty($cambio->valor_nuevo)) $estado['horas'] = $cambio->valor_nuevo;
-                    if (!empty($estado['actividad'])) {
-                        $cambiosActividades[] = array_merge($estado, ['fecha' => $ultimaFecha, 'nombre' => $estado['actividad']]);
-                    }
-                    break;
-                case 'observaciones':
-                    if (!empty($cambio->valor_nuevo)) $estado['observaciones'] = $cambio->valor_nuevo;
-                    if (!empty($estado['actividad'])) {
-                        $cambiosActividades[] = array_merge($estado, ['fecha' => $ultimaFecha, 'nombre' => $estado['actividad']]);
-                    }
-                    break;
-            }
+    $actividades = [];
+    $actividadesUnicas = [];
+    foreach ($historial as $cambio) {
+        // Actualiza solo el campo editado, el resto se mantiene
+        switch ($cambio->campo) {
+            case 'actividades_cronograma':
+                if (!empty($cambio->valor_nuevo)) $estado['actividad'] = $cambio->valor_nuevo;
+                break;
+            case 'cumplio_cronograma':
+                if (!empty($cambio->valor_nuevo)) $estado['cumplio'] = $cambio->valor_nuevo;
+                break;
+            case 'resultados':
+                if (!empty($cambio->valor_nuevo)) $estado['resultados'] = $cambio->valor_nuevo;
+                break;
+            case 'horas_asesoria':
+                if (!empty($cambio->valor_nuevo)) $estado['horas'] = $cambio->valor_nuevo;
+                break;
+            case 'observaciones':
+                if (!empty($cambio->valor_nuevo)) $estado['observaciones'] = $cambio->valor_nuevo;
+                break;
         }
-        // Guardar la última actividad si existe y no se guardó ya
-        if (!empty($estado['actividad'])) {
-            $yaGuardada = false;
-            if (!empty($cambiosActividades)) {
-                $last = end($cambiosActividades);
-                $yaGuardada = $last['nombre'] === $estado['actividad'] && $last['fecha'] === $ultimaFecha;
-            }
-            if (!$yaGuardada) {
-                $cambiosActividades[] = array_merge($estado, ['fecha' => $ultimaFecha ?? now()->format('Y-m-d'), 'nombre' => $estado['actividad']]);
-            }
-        }
+        $estado['fecha'] = $cambio->created_at ? $cambio->created_at->format('Y-m-d') : $estado['fecha'];
+        // Solo guarda si la combinación de actividad y fecha es nueva
+        $key = $estado['actividad'] . '|' . $estado['fecha'];
+        $actividadesUnicas[$key] = $estado;
+    }
 
-        if (empty($cambiosActividades)) {
-            // No hay historial, solo el estado actual
-            $actividades[] = array_merge($valoresIniciales, ['fecha' => now()->format('Y-m-d')]);
-        } else {
-            // Mostrar solo la última versión de cada actividad (por nombre)
-            $ultimas = [];
-            foreach ($cambiosActividades as $item) {
-                $ultimas[$item['nombre']] = $item;
-            }
-            $actividades = array_values($ultimas);
-            usort($actividades, function($a, $b) {
-                return strtotime($a['fecha']) <=> strtotime($b['fecha']);
-            });
-        }
+    // Si no hubo historial, mostrar el estado inicial
+    if (empty($actividadesUnicas)) {
+        $actividades[] = $estado;
+    } else {
+        $actividades = array_values($actividadesUnicas);
+    }
 
         $data = [
             'tema' => $titulacion->tema,
