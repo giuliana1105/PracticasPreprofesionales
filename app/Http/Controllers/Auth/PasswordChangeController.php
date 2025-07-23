@@ -39,7 +39,9 @@ class PasswordChangeController extends Controller
             'docente-subdecanoa',
         ];
         if (in_array(strtolower($user->cargo), array_map('strtolower', $combinedRoles))) {
-            return redirect()->route('select.role')->with('success', 'Contraseña actualizada correctamente. Por favor seleccione su rol.');
+            // Limpiar el rol seleccionado para forzar la selección después del cambio de contraseña
+            session()->forget('selected_role');
+            return redirect()->route('role.select.show')->with('success', 'Contraseña actualizada correctamente. Por favor seleccione su rol.');
         }
 
         return redirect()->route('home')->with('success', 'Contraseña actualizada correctamente.');

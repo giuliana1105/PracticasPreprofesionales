@@ -37,9 +37,16 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
-        $cargo = session('selected_role') ? strtolower(trim(session('selected_role'))) : strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador','coordinadora','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'decana'])) {
-            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
+        $cargo = strtolower(trim($persona->cargo ?? ''));
+        $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a'];
+        if (in_array($cargo, $cargosCompuestos) && !session('selected_role')) {
+            // Redirigir a selección de rol si no está seleccionado
+            redirect()->route('role.select.show')->send();
+        }
+        // Restricción de acceso para otros cargos
+        $cargoParaRestriccion = session('selected_role') ? strtolower(trim(session('selected_role'))) : $cargo;
+        if (in_array($cargoParaRestriccion, ['coordinador','coordinadora','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'decana'])) {
+            abort(403, 'El cargo ' . ucfirst($cargoParaRestriccion) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
     }
 
@@ -217,6 +224,16 @@ class PersonaController extends Controller
                 ]);
             }
 
+            // Si el usuario autenticado es la persona creada y el cargo es compuesto, forzar logout para selección de rol
+            $user = auth()->user();
+            $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a'];
+            if ($user && $persona->email === $user->email && in_array(strtolower(trim($persona->cargo)), $cargosCompuestos)) {
+                auth()->logout();
+                session()->invalidate();
+                session()->regenerateToken();
+                return redirect()->route('login')->with('info', 'Por favor, selecciona el rol con el que deseas operar.');
+            }
+
             return redirect()->route('personas.index')
                 ->with('success', 'Persona registrada exitosamente');
         } catch (\Exception $e) {
@@ -320,6 +337,24 @@ class PersonaController extends Controller
                     'cargo' => strtolower($persona->cargo),
                     'must_change_password' => true,
                 ]);
+            } else {
+                // Si ya existe usuario, actualizar el cargo para mantener sincronizado
+                $usuario = User::where('email', $persona->email)->first();
+                if ($usuario) {
+                    $usuario->cargo = strtolower($persona->cargo);
+                    $usuario->save();
+                }
+            }
+
+            // Si el usuario autenticado es la persona editada y el cargo es compuesto, limpiar selected_role y forzar logout para selección de rol
+            $user = Auth::user();
+            $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a'];
+            if ($user && $persona->email === $user->email && in_array(strtolower(trim($persona->cargo)), $cargosCompuestos)) {
+                session()->forget('selected_role');
+                Auth::logout();
+                session()->invalidate();
+                session()->regenerateToken();
+                return redirect()->route('login')->with('info', 'Por favor, selecciona el rol con el que deseas operar.');
             }
 
             return redirect()->route('personas.index')
@@ -621,7 +656,7 @@ public function import(Request $request)
     // Resetear contraseña
     public function resetPassword($id)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
         $esAdmin = in_array($cargo, ['secretario', 'secretaria', 'secretario_general']);
 
@@ -631,12 +666,22 @@ public function import(Request $request)
 
         $persona = Persona::findOrFail($id);
         $usuario = User::where('email', $persona->email)->first();
-
         if ($usuario) {
             $usuario->password = Hash::make($persona->cedula);
             $usuario->must_change_password = true;
             $usuario->save();
-            return redirect()->route('personas.index')->with('success', 'Contraseña reseteada correctamente. El usuario deberá cambiarla al ingresar.');
+
+            // Si el usuario editado es el autenticado y el cargo es compuesto, forzar logout para mostrar selección de rol
+            $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a'];
+            if ($user && $persona->email === $user->email && in_array(strtolower(trim($persona->cargo)), $cargosCompuestos)) {
+                Auth::logout();
+                session()->invalidate();
+                session()->regenerateToken();
+                // Redirigir al login, y el middleware y login forzarán el cambio de contraseña y luego la selección de rol
+                return redirect()->route('login')->with('info', 'Por favor, cambia tu contraseña y luego selecciona el rol con el que deseas operar.');
+            }
+
+            return redirect()->route('personas.index')->with('success', 'Contraseña restablecida correctamente.');
         } else {
             return redirect()->route('personas.index')->with('error', 'No existe usuario asociado a esta persona.');
         }
