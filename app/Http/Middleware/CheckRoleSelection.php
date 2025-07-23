@@ -8,6 +8,10 @@ class CheckRoleSelection
     {
         $user = Auth::user();
         if (!$user) return $next($request);
+        // Si el usuario debe cambiar la contraseña, no forzar selección de rol todavía
+        if ($user->must_change_password) {
+            return $next($request);
+        }
         $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
         $cargo = strtolower(trim($persona->cargo ?? ''));
         $cargoNorm = str_replace([' ', '_'], ['-', '-'], $cargo);

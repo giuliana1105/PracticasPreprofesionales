@@ -34,8 +34,12 @@ class AuthenticatedSessionController extends Controller
     if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
         $request->session()->regenerate();
 
-        // Detect combined roles and always force role selection
         $user = Auth::user();
+        // Si debe cambiar la contraseña, ir primero a esa pantalla
+        if ($user && $user->must_change_password) {
+            return redirect()->route('password.change');
+        }
+        // Si no debe cambiar la contraseña, forzar selección de rol si corresponde
         $combinedRoles = [
             'docente-decano/a',
             'docente-subdecano/a',
@@ -45,7 +49,6 @@ class AuthenticatedSessionController extends Controller
             'docente-subdecanoa',
         ];
         if ($user && in_array(strtolower($user->cargo), array_map('strtolower', $combinedRoles))) {
-            // Siempre limpiar el rol seleccionado para forzar selección
             session()->forget('selected_role');
             return redirect()->route('role.select.show');
         }
