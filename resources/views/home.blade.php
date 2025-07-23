@@ -123,10 +123,22 @@
 @php
     $user = auth()->user();
     $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
-    $cargo = session('selected_role') ? strtolower(str_replace(' ', '_', trim(session('selected_role'))) ) : strtolower(str_replace(' ', '_', trim($persona->cargo ?? '')));
-    $sinPermisoPersonas = !in_array($cargo, [
+    $cargo = $persona ? $persona->cargo : '';
+    $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a'];
+    $rolActual = session('selected_role');
+    $rolAlternativo = null;
+    // Solo mostrar el botón si el cargo original es compuesto y hay rol seleccionado
+    if (in_array(strtolower($cargo), $cargosCompuestos) && $rolActual) {
+        if (strpos(strtolower($cargo), 'decano') !== false) {
+            $rolAlternativo = $rolActual === 'docente' ? 'decano/a' : 'docente';
+        } elseif (strpos(strtolower($cargo), 'subdecano') !== false) {
+            $rolAlternativo = $rolActual === 'docente' ? 'subdecano/a' : 'docente';
+        }
+    }
+    $sinPermisoPersonas = !in_array(strtolower($cargo), [
         'secretario', 'secretaria', 'secretario_general', 'secretario/a', 'secretaria/o', 'secretario general', 'secretaria general'
     ]);
+    $rolParaPermisos = $rolActual ? strtolower($rolActual) : strtolower($cargo);
 @endphp
 <div class="alineado-home">
     <div class="header-container">
@@ -141,19 +153,31 @@
     </div>
     <div id="alertaPermisoHome"></div>
     <div class="module-container">
-        @if(in_array($cargo, ['decano', 'decana','decano/a']))
+        @if($rolParaPermisos === 'decano' || $rolParaPermisos === 'decano/a')
             {{-- Decano/a: solo titulaciones --}}
             <a href="{{ route('titulaciones.index') }}" class="module-card">
                 <i class="fas fa-certificate module-icon"></i>
                 <div class="module-title">Titulaciones</div>
             </a>
-        @elseif(in_array($cargo, ['subdecano','subdecana','subdecano/a','coordinador','coordinadora', 'coordinador/a', 'abogado', 'abogada', 'abogado/a','estudiante','docente']))
-            {{-- Solo muestra Titulaciones --}}
+        @elseif($rolParaPermisos === 'subdecano' || $rolParaPermisos === 'subdecano/a')
+            {{-- Subdecano/a: solo titulaciones --}}
             <a href="{{ route('titulaciones.index') }}" class="module-card">
                 <i class="fas fa-certificate module-icon"></i>
                 <div class="module-title">Titulaciones</div>
             </a>
-        @elseif(in_array($cargo, ['secretario', 'secretaria', 'secretario_general', 'secretario/a', 'secretaria/o']))
+        @elseif($rolParaPermisos === 'docente')
+            {{-- Docente: solo titulaciones --}}
+            <a href="{{ route('titulaciones.index') }}" class="module-card">
+                <i class="fas fa-certificate module-icon"></i>
+                <div class="module-title">Titulaciones</div>
+            </a>
+        @elseif(in_array($rolParaPermisos, ['coordinador','coordinadora','coordinador/a','abogado','abogada','abogado/a','estudiante']))
+            {{-- Otros roles: solo titulaciones --}}
+            <a href="{{ route('titulaciones.index') }}" class="module-card">
+                <i class="fas fa-certificate module-icon"></i>
+                <div class="module-title">Titulaciones</div>
+            </a>
+        @elseif(in_array($rolParaPermisos, ['secretario', 'secretaria', 'secretario_general', 'secretario/a', 'secretaria/o', 'secretario general', 'secretaria general']))
             {{-- Muestra todos los módulos administrativos --}}
             <a href="{{ route('personas.index') }}" class="module-card" id="btnPersonas">
                 <i class="fas fa-users module-icon"></i>
@@ -184,6 +208,7 @@
                 <div class="module-title">Tipos de Resoluciones</div>
             </a>
         @else
+            {{-- Otros roles: solo módulos básicos --}}
             <a href="{{ route('personas.index') }}" class="module-card" id="btnPersonas">
                 <i class="fas fa-users module-icon"></i>
                 <div class="module-title">Personas</div>
@@ -214,12 +239,22 @@
             </a>
         @endif
     </div>
-    <div style="background: #ffeeba; color: #856404; padding: 10px; margin-bottom: 10px;">
+    <!-- <div style="background: #ffeeba; color: #856404; padding: 10px; margin-bottom: 10px;">
          Usuario: <strong>{{ $user->email ?? 'NO USER' }}</strong><br>
     Persona: <strong>{{ $persona ? $persona->email : 'NO PERSONA' }}</strong><br>
-        Cargo detectado: <strong>{{ session('selected_role') ? session('selected_role') : $cargo }}</strong>
+        Cargo detectado: <strong>{{ session('selected_role') ? session('selected_role') : ($cargo ?? '') }}</strong><br>
+        <strong>Debug:</strong> Cargo original: {{ $cargo }} | Rol actual: {{ $rolActual }} | Rol alternativo: {{ $rolAlternativo }}
     </div>
-</div>
+    @if($rolAlternativo)
+        <form method="POST" action="{{ route('role.select') }}" style="position: fixed; bottom: 30px; right: 30px; z-index: 999;">
+            @csrf
+            <input type="hidden" name="role" value="{{ $rolAlternativo }}">
+            <button type="submit" class="btn btn-warning" style="padding: 12px 24px; font-weight: bold; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);">
+                Cambiar a {{ ucfirst($rolAlternativo) }}
+            </button>
+        </form>
+    @endif
+</div> -->
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>

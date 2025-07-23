@@ -55,6 +55,30 @@
                     </x-slot>
 
                     <x-slot name="content">
+                        <!-- Cambio rápido de rol para cargos compuestos -->
+                        @php
+                            $persona = Auth::user()->persona ?? null;
+                            $cargoOriginal = $persona ? $persona->cargo : (Auth::user()->cargo ?? '');
+                            $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a'];
+                            $rolActual = session('selected_role');
+                            $rolAlternativo = null;
+                            if (in_array(strtolower($cargoOriginal), $cargosCompuestos) && $rolActual) {
+                                if (strpos(strtolower($cargoOriginal), 'decano') !== false) {
+                                    $rolAlternativo = $rolActual === 'docente' ? 'decano/a' : 'docente';
+                                } elseif (strpos(strtolower($cargoOriginal), 'subdecano') !== false) {
+                                    $rolAlternativo = $rolActual === 'docente' ? 'subdecano/a' : 'docente';
+                                }
+                            }
+                        @endphp
+                        @if($rolAlternativo)
+                            <form method="POST" action="{{ route('role.select') }}" style="margin-bottom: 0;">
+                                @csrf
+                                <input type="hidden" name="role" value="{{ $rolAlternativo }}">
+                                <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none">
+                                    Cambiar a {{ ucfirst($rolAlternativo) }}
+                                </button>
+                            </form>
+                        @endif
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
