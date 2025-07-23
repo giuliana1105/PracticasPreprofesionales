@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\AvanceHistorial;
 use App\Models\Carrera;
+use Illuminate\Support\Facades\DB;
 
 class TitulacionController extends Controller
 {
@@ -387,7 +388,7 @@ class TitulacionController extends Controller
             )->get();
             $personas = \App\Models\Persona::all();
         }
-        $docentes = \App\Models\Persona::whereIn(\DB::raw('LOWER(cargo)'), [
+        $docentes = \App\Models\Persona::whereIn(DB::raw('LOWER(cargo)'), [
             'docente', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a',
             'docente-decano/a', 'docente-subdecano/a'
         ])->orderBy('nombres')->get();
@@ -490,6 +491,12 @@ class TitulacionController extends Controller
         $selectedRole = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
         $cargo = $selectedRole;
 
+        // Definir los cargos permitidos para director y asesor
+        $cargosPermitidos = [
+            'docente', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a',
+            'docente-decano/a', 'docente-subdecano/a'
+        ];
+
         // Coordinador/a solo puede ver titulaciones de sus carreras asignadas (no puede editar, pero por seguridad, abortar si no corresponde)
         if (in_array($selectedRole, ['coordinador', 'coordinadora','coordinador/a'])) {
             $titulacion = Titulacion::with('estudiantePersona.carrera')->findOrFail($id);
@@ -513,8 +520,8 @@ class TitulacionController extends Controller
 
         if (in_array($cargo, ['secretario', 'secretaria'])) {
             $carrerasIds = $persona->carreras()->pluck('id_carrera')->toArray();
-            $personas = \App\Models\Persona::where(function($q) use ($carrerasIds) {
-                $q->where('cargo', 'docente')
+            $personas = \App\Models\Persona::where(function($q) use ($carrerasIds, $cargosPermitidos) {
+                $q->whereIn(DB::raw('LOWER(cargo)'), $cargosPermitidos)
                   ->orWhere(function($sub) use ($carrerasIds) {
                       $sub->where('cargo', 'estudiante')
                           ->whereHas('carreras', function($q2) use ($carrerasIds) {
@@ -523,7 +530,7 @@ class TitulacionController extends Controller
                   });
             })->get();
         } else {
-            $personas = \App\Models\Persona::all();
+            $personas = \App\Models\Persona::whereIn(DB::raw('LOWER(cargo)'), $cargosPermitidos)->get();
         }
 
         $personaEstudiante = $personas->firstWhere('cedula', $titulacion->cedula_estudiante);
@@ -533,10 +540,9 @@ class TitulacionController extends Controller
         $esDocente = $cargo === 'docente';
 
         // Para los selects de director y asesor, incluir docentes, decanos y subdecanos
-        $docentes = \App\Models\Persona::whereIn(\DB::raw('LOWER(cargo)'), [
-            'docente', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a',
-            'docente-decano/a', 'docente-subdecano/a'
-        ])->orderBy('nombres')->get();
+        $docentes = $personas->filter(function($p) use ($cargosPermitidos) {
+            return in_array(strtolower($p->cargo), $cargosPermitidos);
+        });
 
         return view('titulaciones.edit', compact(
             'titulacion', 'periodos', 'estados', 'personas',

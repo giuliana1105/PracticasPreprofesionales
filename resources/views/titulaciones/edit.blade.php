@@ -316,7 +316,7 @@
                     <select id="persona_director_id" name="persona_director_id" class="form-control" required>
                         <option value="">Seleccione un director</option>
                         @foreach($personas as $persona)
-                            @if(strtolower(trim($persona->cargo)) === 'docente')
+                            @if(in_array(strtolower(trim($persona->cargo)), ['docente','decano','decano/a','subdecano','subdecano/a','docente-decano/a','docente-subdecano/a']))
                                 <option value="{{ $persona->id }}"
                                     data-cedula="{{ $persona->cedula }}"
                                     {{ (old('persona_director_id', $personaDirector->id ?? '') == $persona->id) ? 'selected' : '' }}>
@@ -335,7 +335,7 @@
                     <select id="persona_asesor_id" name="persona_asesor_id" class="form-control" required>
                         <option value="">Seleccione un asesor</option>
                         @foreach($personas as $persona)
-                            @if(strtolower(trim($persona->cargo)) === 'docente')
+                            @if(in_array(strtolower(trim($persona->cargo)), ['docente','decano','decano/a','subdecano','subdecano/a','docente-decano/a','docente-subdecano/a']) && ($personaDirector->id ?? null) != $persona->id)
                                 <option value="{{ $persona->id }}"
                                     data-cedula="{{ $persona->cedula }}"
                                     {{ (old('persona_asesor_id', $personaAsesor->id ?? '') == $persona->id) ? 'selected' : '' }}>
@@ -364,7 +364,7 @@
                     <select id="persona_asesor_id" name="persona_asesor_id" class="form-control" required>
                         <option value="">Seleccione un asesor</option>
                         @foreach($personas as $persona)
-                            @if(strtolower(trim($persona->cargo)) === 'docente')
+                            @if(in_array(strtolower(trim($persona->cargo)), ['docente','decano','decano/a','subdecano','subdecano/a','docente-decano/a','docente-subdecano/a']) && ($personaDirector->id ?? null) != $persona->id)
                                 <option value="{{ $persona->id }}"
                                     data-cedula="{{ $persona->cedula }}"
                                     {{ (old('persona_asesor_id', $personaAsesor->id ?? '') == $persona->id) ? 'selected' : '' }}>
