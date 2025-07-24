@@ -11,7 +11,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Support\Facades\Session;
 class PersonaController extends Controller
 {
     // Cargos permitidos (agrega las variantes femenino/masculino)
@@ -36,16 +36,23 @@ class PersonaController extends Controller
     public function __construct()
     {
         $user = Auth::user();
-        $persona = $user instanceof \App\Models\User ? $user->persona : $user;
+        $persona = null;
+        if ($user) {
+            if ($user instanceof \App\Models\User && method_exists($user, 'persona')) {
+                $persona = $user->persona;
+            } elseif ($user instanceof \App\Models\Persona) {
+                $persona = $user;
+            }
+        }
         $cargo = strtolower(trim($persona->cargo ?? ''));
         $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a'];
-        if (in_array($cargo, $cargosCompuestos) && !session('selected_role')) {
+        if ($persona && in_array($cargo, $cargosCompuestos) && !session('selected_role')) {
             // Redirigir a selección de rol si no está seleccionado
             redirect()->route('role.select.show')->send();
         }
         // Restricción de acceso para otros cargos
         $cargoParaRestriccion = session('selected_role') ? strtolower(trim(session('selected_role'))) : $cargo;
-        if (in_array($cargoParaRestriccion, ['coordinador','coordinadora','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'decana'])) {
+        if ($persona && in_array($cargoParaRestriccion, ['coordinador','coordinadora','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'decana'])) {
             abort(403, 'El cargo ' . ucfirst($cargoParaRestriccion) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
     }
@@ -199,38 +206,38 @@ class PersonaController extends Controller
 
             // Si es coordinador o secretario/a, guarda la primera carrera en carrera_id y todas en la relación
             if (in_array($cargoSeleccionado, ['coordinador', 'coordinadora','coordinador/a', 'secretario', 'secretaria', 'secretario/a'])) {
-                $persona = Persona::create(array_merge(
+                $personaCreada = Persona::create(array_merge(
                     $request->except('carrera_id'),
                     ['carrera_id' => is_array($carreras) ? $carreras[0] : $carreras]
                 ));
-                $persona->carreras()->sync($carreras);
+                $personaCreada->carreras()->sync($carreras);
             } else {
                 // Para otros cargos, solo una carrera
-                $persona = Persona::create(array_merge(
+                $personaCreada = Persona::create(array_merge(
                     $request->except('carrera_id'),
                     ['carrera_id' => is_array($carreras) ? $carreras[0] : $carreras]
                 ));
-                $persona->carreras()->sync([is_array($carreras) ? $carreras[0] : $carreras]);
+                $personaCreada->carreras()->sync([is_array($carreras) ? $carreras[0] : $carreras]);
             }
 
             // Crea el usuario automáticamente si no existe y el email no es nulo/ vacío
-            if (!empty($persona->email) && !User::where('email', $persona->email)->exists()) {
+            if (!empty($personaCreada->email) && !User::where('email', $personaCreada->email)->exists()) {
                 User::create([
-                    'name' => $persona->nombres . ' ' . $persona->apellidos,
-                    'email' => $persona->email,
-                    'password' => Hash::make($persona->cedula), // SIEMPRE hasheada
-                    'cargo' => strtolower($persona->cargo),
+                    'name' => $personaCreada->nombres . ' ' . $personaCreada->apellidos,
+                    'email' => $personaCreada->email,
+                    'password' => Hash::make($personaCreada->cedula), // SIEMPRE hasheada
+                    'cargo' => strtolower($personaCreada->cargo),
                     'must_change_password' => true,
                 ]);
             }
 
             // Si el usuario autenticado es la persona creada y el cargo es compuesto, forzar logout para selección de rol
-            $user = auth()->user();
+            $usuarioActual = Auth::user();
             $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a'];
-            if ($user && $persona->email === $user->email && in_array(strtolower(trim($persona->cargo)), $cargosCompuestos)) {
-                auth()->logout();
-                session()->invalidate();
-                session()->regenerateToken();
+            if ($usuarioActual && $personaCreada->email === $usuarioActual->email && in_array(strtolower(trim($personaCreada->cargo)), $cargosCompuestos)) {
+                Auth::logout();
+                Session::invalidate();
+                Session::regenerateToken();
                 return redirect()->route('login')->with('info', 'Por favor, selecciona el rol con el que deseas operar.');
             }
 
@@ -245,7 +252,7 @@ class PersonaController extends Controller
     // Mostrar formulario de edición
     public function edit($id)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $persona = \App\Models\Persona::findOrFail($id);
 
         $cargo = strtolower(trim($user->cargo ?? ''));
@@ -347,13 +354,13 @@ class PersonaController extends Controller
             }
 
             // Si el usuario autenticado es la persona editada y el cargo es compuesto, limpiar selected_role y forzar logout para selección de rol
-            $user = Auth::user();
+            $usuarioActual = Auth::user();
             $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a'];
-            if ($user && $persona->email === $user->email && in_array(strtolower(trim($persona->cargo)), $cargosCompuestos)) {
-                session()->forget('selected_role');
+            if ($usuarioActual && $persona->email === $usuarioActual->email && in_array(strtolower(trim($persona->cargo)), $cargosCompuestos)) {
+                Session::forget('selected_role');
                 Auth::logout();
-                session()->invalidate();
-                session()->regenerateToken();
+                Session::invalidate();
+                Session::regenerateToken();
                 return redirect()->route('login')->with('info', 'Por favor, selecciona el rol con el que deseas operar.');
             }
 
@@ -419,20 +426,6 @@ public function import(Request $request)
         abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
     }
 
-    $request->validate([
-        'archivo_csv' => 'required|file|mimes:csv,txt|max:2048',
-    ]);
-
-    $esSecretarioGeneral = $cargo === 'secretario_general';
-
-    // Si es secretaria/o, obtiene las carreras permitidas
-    $soloEstudiantes = false;
-    $carrerasPermitidas = [];
-    if (in_array($cargo, ['secretario', 'secretaria', 'secretario/a'])) {
-        $soloEstudiantes = true;
-        $carrerasPermitidas = $user->persona ? $user->persona->carreras()->pluck('id_carrera')->toArray() : [];
-    }
-
     $file = $request->file('archivo_csv');
     $handle = fopen($file->getPathname(), 'r');
     $firstLine = fgets($handle);
@@ -478,6 +471,14 @@ public function import(Request $request)
                 }
             }
         }
+    }
+
+    $esSecretarioGeneral = $cargo === 'secretario_general';
+    $soloEstudiantes = false;
+    $carrerasPermitidas = [];
+    if (in_array($cargo, ['secretario', 'secretaria', 'secretario/a'])) {
+        $soloEstudiantes = true;
+        $carrerasPermitidas = $user->persona ? $user->persona->carreras()->pluck('id_carrera')->toArray() : [];
     }
 
     DB::beginTransaction();
@@ -528,21 +529,29 @@ public function import(Request $request)
                 continue;
             }
 
+            // Normalizar y mapear cargos especiales
             $cargoCsv = strtolower(trim($normalizedRow['cargo']));
-            // Unificar cargos para guardar
-            $cargoMap = [
-                'secretario' => 'secretario/a',
-                'secretaria' => 'secretario/a',
-                'decano' => 'decano/a',
-                'decana' => 'decano/a',
-                'subdecano' => 'subdecano/a',
-                'subdecana' => 'subdecano/a',
-                'coordinador' => 'coordinador/a',
-                'coordinadora' => 'coordinador/a',
-                'abogado' => 'abogado/a',
-                'abogada' => 'abogado/a',
-            ];
-            $cargoCsv = $cargoMap[$cargoCsv] ?? $cargoCsv;
+            if ($cargoCsv === 'docente/decano' || $cargoCsv === 'docente-decano' || $cargoCsv === 'docente decano') {
+                $cargoCsv = 'docente-decano/a';
+            } elseif ($cargoCsv === 'docente/subdecano' || $cargoCsv === 'docente-subdecano' || $cargoCsv === 'docente subdecano') {
+                $cargoCsv = 'docente-subdecano/a';
+            } else {
+                // Unificar otros cargos
+                $cargoMap = [
+                    'secretario' => 'secretario/a',
+                    'secretaria' => 'secretario/a',
+                    'decano' => 'decano/a',
+                    'decana' => 'decano/a',
+                    'subdecano' => 'subdecano/a',
+                    'subdecana' => 'subdecano/a',
+                    'coordinador' => 'coordinador/a',
+                    'coordinadora' => 'coordinador/a',
+                    'abogado' => 'abogado/a',
+                    'abogada' => 'abogado/a',
+                ];
+                $cargoCsv = $cargoMap[$cargoCsv] ?? $cargoCsv;
+            }
+
             $siglasCarrera = trim($normalizedRow['sigla_carrera']);
 
             // Si es secretaria/o: solo estudiantes y solo carreras permitidas
@@ -653,6 +662,7 @@ public function import(Request $request)
         return back()->with('error', 'Error en la importación: ' . $e->getMessage());
     }
 }
+
     // Resetear contraseña
     public function resetPassword($id)
     {

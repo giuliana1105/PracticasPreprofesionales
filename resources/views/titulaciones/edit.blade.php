@@ -308,10 +308,15 @@
             </div>
 
             {{-- Director --}}
+
             <div class="form-group">
                 <label class="form-label">Director</label>
                 @if($esDocente)
                     <input type="text" class="form-control" value="{{ $personaDirector->nombres ?? '' }} {{ $personaDirector->apellidos ?? '' }}" readonly>
+                    <div class="form-group mt-2">
+                        <label class="form-label">Cédula Director</label>
+                        <input type="text" class="form-control" value="{{ $personaDirector->cedula ?? '' }}" readonly>
+                    </div>
                 @else
                     <select id="persona_director_id" name="persona_director_id" class="form-control" required>
                         <option value="">Seleccione un director</option>
@@ -325,41 +330,21 @@
                             @endif
                         @endforeach
                     </select>
-                @endif
-            </div>
-            <div class="form-group">
-                <label class="form-label">Asesor 1</label>
-                @if($esDocente)
-                    <input type="text" class="form-control" value="{{ $personaAsesor->nombres ?? '' }} {{ $personaAsesor->apellidos ?? '' }}" readonly>
-                @else
-                    <select id="persona_asesor_id" name="persona_asesor_id" class="form-control" required>
-                        <option value="">Seleccione un asesor</option>
-                        @foreach($personas as $persona)
-                            @if(in_array(strtolower(trim($persona->cargo)), ['docente','decano','decano/a','subdecano','subdecano/a','docente-decano/a','docente-subdecano/a']) && ($personaDirector->id ?? null) != $persona->id)
-                                <option value="{{ $persona->id }}"
-                                    data-cedula="{{ $persona->cedula }}"
-                                    {{ (old('persona_asesor_id', $personaAsesor->id ?? '') == $persona->id) ? 'selected' : '' }}>
-                                    {{ $persona->nombres }} {{ $persona->apellidos }}
-                                </option>
-                            @endif
-                        @endforeach
-                    </select>
-                @endif
-            </div>
-            <div class="form-group">
-                <label class="form-label">Cédula Director</label>
-                @if($esDocente)
-                    <input type="text" class="form-control" value="{{ $personaDirector->cedula ?? '' }}" readonly>
-                @else
-                    <input type="text" id="cedula_director" name="cedula_director" class="form-control" readonly>
+                    <div class="form-group mt-2">
+                        <label class="form-label">Cédula Director</label>
+                        <input type="text" id="cedula_director" name="cedula_director" class="form-control" readonly>
+                    </div>
                 @endif
             </div>
 
-            {{-- Asesor 1 --}}
             <div class="form-group">
                 <label class="form-label">Asesor 1</label>
                 @if($esDocente)
                     <input type="text" class="form-control" value="{{ $personaAsesor->nombres ?? '' }} {{ $personaAsesor->apellidos ?? '' }}" readonly>
+                    <div class="form-group mt-2">
+                        <label class="form-label">Cédula Asesor 1</label>
+                        <input type="text" class="form-control" value="{{ $personaAsesor->cedula ?? '' }}" readonly>
+                    </div>
                 @else
                     <select id="persona_asesor_id" name="persona_asesor_id" class="form-control" required>
                         <option value="">Seleccione un asesor</option>
@@ -373,14 +358,10 @@
                             @endif
                         @endforeach
                     </select>
-                @endif
-            </div>
-            <div class="form-group">
-                <label class="form-label">Cédula Asesor 1</label>
-                @if($esDocente)
-                    <input type="text" class="form-control" value="{{ $personaAsesor->cedula ?? '' }}" readonly>
-                @else
-                    <input type="text" id="cedula_asesor1" name="cedula_asesor1" class="form-control" readonly>
+                    <div class="form-group mt-2">
+                        <label class="form-label">Cédula Asesor 1</label>
+                        <input type="text" id="cedula_asesor1" name="cedula_asesor1" class="form-control" readonly>
+                    </div>
                 @endif
             </div>
 
