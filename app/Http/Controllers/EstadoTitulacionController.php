@@ -14,7 +14,7 @@ class EstadoTitulacionController extends Controller
         $persona = $user instanceof \App\Models\User ? $user->persona : $user;
         // Cambia para usar el campo string 'cargo'
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'coordinadora','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'decana','docente-decano/a','docente-subdecano/a'])) {
+        if (in_array($cargo, ['coordinador', 'coordinadora','coordinador/a', 'decano','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a', 'docente', 'estudiante', 'decana','docente-decano/a','docente-subdecano/a','docente-coordinador/a'])) {
             abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
         }
     }
