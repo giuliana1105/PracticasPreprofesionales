@@ -412,24 +412,24 @@
             <div class="d-flex flex-wrap align-items-end gap-2">
                 @if(!$esDocente)
                     <div class="mb-2 me-3">
-                        <label for="director_filtro" class="form-label mb-1 fw-bold">Director</label>
-                        <select name="director_filtro" id="director_filtro" class="form-control">
+                        <label for="director_id" class="form-label mb-1 fw-bold">Director</label>
+                        <select name="director_id" id="director_id" class="form-select">
                             <option value="">-- Todos --</option>
                             @foreach($docentes as $docente)
-                                <option value="{{ $docente->cedula }}" {{ request('director_filtro') == $docente->cedula ? 'selected' : '' }}>
-                                    {{ $docente->nombres }} {{ $docente->apellidos }}
-                            </option>
+                                <option value="{{ $docente->id }}" {{ request('director_id') == $docente->id ? 'selected' : '' }}>
+                                    {{ $docente->nombres }} {{ $docente->apellidos }} ({{ $docente->cargo }})
+                                </option>
                             @endforeach
                         </select>
                     </div>
                     <div class="mb-2 me-3">
-                        <label for="asesor1_filtro" class="form-label mb-1 fw-bold">Asesor 1</label>
-                        <select name="asesor1_filtro" id="asesor1_filtro" class="form-control">
+                        <label for="asesor1_id" class="form-label mb-1 fw-bold">Asesor 1</label>
+                        <select name="asesor1_id" id="asesor1_id" class="form-select">
                             <option value="">-- Todos --</option>
                             @foreach($docentes as $docente)
-                                <option value="{{ $docente->cedula }}" {{ request('asesor1_filtro') == $docente->cedula ? 'selected' : '' }}>
-                                    {{ $docente->nombres }} {{ $docente->apellidos }}
-                            </option>
+                                <option value="{{ $docente->id }}" {{ request('asesor1_id') == $docente->id ? 'selected' : '' }}>
+                                    {{ $docente->nombres }} {{ $docente->apellidos }} ({{ $docente->cargo }})
+                                </option>
                             @endforeach
                         </select>
                     </div>

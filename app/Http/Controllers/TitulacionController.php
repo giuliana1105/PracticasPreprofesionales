@@ -80,7 +80,14 @@ class TitulacionController extends Controller
 
             $estados = EstadoTitulacion::orderBy('nombre_estado')->get();
             $periodos = Periodo::orderBy('periodo_academico')->get();
-            $docentes = collect();
+            $docentes = \App\Models\Persona::whereIn(DB::raw('LOWER(cargo)'), [
+                'docente',
+                'decano/a',
+                'subdecano/a',
+                'coordinador/a',
+                'docente-decano/a',
+                'docente-subdecano/a'
+            ])->orderBy('nombres')->get();
             $carreras = Carrera::orderBy('siglas_carrera')->get();
 
             return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados', 'carreras'));
@@ -201,7 +208,14 @@ class TitulacionController extends Controller
             $titulaciones = $query->get();
 
             $estados = EstadoTitulacion::orderBy('nombre_estado')->get();
-            $docentes = collect();
+            $docentes = \App\Models\Persona::whereIn(DB::raw('LOWER(cargo)'), [
+                'docente',
+                'decano/a',
+                'coordinador/a',
+                'subdecano/a',
+                'docente-decano/a',
+                'docente-subdecano/a'
+            ])->orderBy('nombres')->get();
             $periodos = Periodo::orderBy('periodo_academico')->get();
             $carreras = $persona->carreras()->orderBy('siglas_carrera')->get();
 
@@ -267,7 +281,14 @@ class TitulacionController extends Controller
             $titulaciones = $query->get();
             $estados = \App\Models\EstadoTitulacion::orderBy('nombre_estado')->get();
             $periodos = \App\Models\Periodo::orderBy('periodo_academico')->get();
-            $docentes = \App\Models\Persona::whereRaw("LOWER(cargo) = 'docente'")->orderBy('nombres')->get();
+            $docentes = \App\Models\Persona::whereIn(DB::raw('LOWER(cargo)'), [
+                'docente',
+                'decano/a',
+                'coordinador/a',
+                'subdecano/a',
+                'docente-decano/a',
+                'docente-subdecano/a'
+            ])->orderBy('nombres')->get();
             $carreras = $persona->carreras()->orderBy('siglas_carrera')->get();
             return view('titulaciones.index', compact('titulaciones', 'docentes', 'periodos', 'estados', 'carreras'));
         } else {
@@ -337,8 +358,16 @@ class TitulacionController extends Controller
             $titulaciones = $query->get();
 
             $estados = EstadoTitulacion::orderBy('nombre_estado')->get();
-            $docentes = Persona::whereRaw("LOWER(cargo) = 'docente'")->orderBy('nombres')->get();
-            $periodos = Periodo::orderBy('periodo_academico')->get();
+           // $docentes = Persona::whereRaw("LOWER(cargo) = 'docente'")->orderBy('nombres')->get();
+        $docentes = \App\Models\Persona::whereIn(DB::raw('LOWER(cargo)'), [
+    'docente',
+    'decano/a',
+    'subdecano/a',
+    'coordinador/a',
+    'docente-decano/a',
+    'docente-subdecano/a'
+])->orderBy('nombres')->get(); 
+           $periodos = Periodo::orderBy('periodo_academico')->get();
             $carreras = Carrera::orderBy('siglas_carrera')->get();
             if ($esCoordinador) {
                 $carreras = $persona->carreras()->orderBy('siglas_carrera')->get();
@@ -388,9 +417,13 @@ class TitulacionController extends Controller
             )->get();
             $personas = \App\Models\Persona::all();
         }
-        $docentes = \App\Models\Persona::whereIn(DB::raw('LOWER(cargo)'), [
-            'docente', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a',
-            'docente-decano/a', 'docente-subdecano/a'
+        $docentes = \App\Models\Persona::whereIn(\DB::raw('LOWER(cargo)'), [
+            'docente',
+            'decano/a',
+            'coordinador/a',
+            'subdecano/a',
+            'docente-decano/a',
+            'docente-subdecano/a'
         ])->orderBy('nombres')->get();
         $cargosEstablecidos = \App\Models\Persona::select('cargo')
             ->distinct()
