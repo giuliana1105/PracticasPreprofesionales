@@ -43,10 +43,13 @@ class AuthenticatedSessionController extends Controller
         $combinedRoles = [
             'docente-decano/a',
             'docente-subdecano/a',
+            'docente-coordinador/a', // <-- Debe estar aquí
             'docente-decano',
             'docente-subdecano',
+            'docente-coordinador',
             'docente-decanoa',
             'docente-subdecanoa',
+            'docente-coordinadora',
         ];
         if ($user && in_array(strtolower($user->cargo), array_map('strtolower', $combinedRoles))) {
             session()->forget('selected_role');

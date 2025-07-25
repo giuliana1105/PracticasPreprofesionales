@@ -14,6 +14,8 @@ class RoleSelectionController extends Controller
             $roles = ['docente', 'decano/a'];
         } elseif (strpos($cargo, 'docente-subdecano') !== false) {
             $roles = ['docente', 'subdecano/a'];
+        } elseif (strpos($cargo, 'docente-coordinador') !== false) {
+            $roles = ['docente', 'coordinador/a'];
         }
         if (empty($roles)) {
             return redirect()->route('home');

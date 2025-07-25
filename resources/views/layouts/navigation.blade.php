@@ -59,7 +59,7 @@
                         @php
                             $persona = Auth::user()->persona ?? null;
                             $cargoOriginal = $persona ? $persona->cargo : (Auth::user()->cargo ?? '');
-                            $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a'];
+                            $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a', 'docente-coordinador/a'];
                             $rolActual = session('selected_role');
                             $rolAlternativo = null;
                             if (in_array(strtolower($cargoOriginal), $cargosCompuestos) && $rolActual) {
@@ -67,6 +67,8 @@
                                     $rolAlternativo = $rolActual === 'docente' ? 'decano/a' : 'docente';
                                 } elseif (strpos(strtolower($cargoOriginal), 'subdecano') !== false) {
                                     $rolAlternativo = $rolActual === 'docente' ? 'subdecano/a' : 'docente';
+                                } elseif (strpos(strtolower($cargoOriginal), 'coordinador') !== false) {
+                                    $rolAlternativo = $rolActual === 'docente' ? 'coordinador/a' : 'docente';
                                 }
                             }
                         @endphp

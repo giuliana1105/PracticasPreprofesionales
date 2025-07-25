@@ -45,7 +45,7 @@ class PersonaController extends Controller
             }
         }
         $cargo = strtolower(trim($persona->cargo ?? ''));
-        $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a'];
+        $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a', 'docente-coordinador/a'];
         if ($persona && in_array($cargo, $cargosCompuestos) && !session('selected_role')) {
             // Redirigir a selección de rol si no está seleccionado
             redirect()->route('role.select.show')->send();
@@ -233,7 +233,7 @@ class PersonaController extends Controller
 
             // Si el usuario autenticado es la persona creada y el cargo es compuesto, forzar logout para selección de rol
             $usuarioActual = Auth::user();
-            $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a'];
+            $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a', 'docente-coordinador/a'];
             if ($usuarioActual && $personaCreada->email === $usuarioActual->email && in_array(strtolower(trim($personaCreada->cargo)), $cargosCompuestos)) {
                 Auth::logout();
                 Session::invalidate();
@@ -355,7 +355,7 @@ class PersonaController extends Controller
 
             // Si el usuario autenticado es la persona editada y el cargo es compuesto, limpiar selected_role y forzar logout para selección de rol
             $usuarioActual = Auth::user();
-            $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a'];
+            $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a', 'docente-coordinador/a'];
             if ($usuarioActual && $persona->email === $usuarioActual->email && in_array(strtolower(trim($persona->cargo)), $cargosCompuestos)) {
                 Session::forget('selected_role');
                 Auth::logout();
@@ -682,7 +682,7 @@ public function import(Request $request)
             $usuario->save();
 
             // Si el usuario editado es el autenticado y el cargo es compuesto, forzar logout para mostrar selección de rol
-            $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a'];
+            $cargosCompuestos = ['docente-decano/a', 'docente-subdecano/a', 'docente-coordinador/a'];
             if ($user && $persona->email === $user->email && in_array(strtolower(trim($persona->cargo)), $cargosCompuestos)) {
                 Auth::logout();
                 session()->invalidate();
