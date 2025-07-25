@@ -125,7 +125,7 @@
     $cargo = strtolower(trim($persona->cargo ?? ''));
     $esEstudiante = $cargo === 'estudiante';
     $esDocente = $cargo === 'docente';
-    $esCoordinador = in_array($cargo, ['coordinador', 'coordinadora']);
+    $esCoordinador = in_array($cargo, ['coordinador', 'coordinadora', 'coordinador/a','docente-coordinador/a']);
     $esDecano = in_array($cargo, ['decano', 'decana']);
     $esSubdecano = in_array($cargo, ['subdecano', 'subdecana']);
     $esAbogado = in_array($cargo, ['abogado', 'abogada']);
