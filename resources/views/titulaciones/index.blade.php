@@ -11,7 +11,7 @@
     $esEstudiante = $selectedRole === 'estudiante';
     $esDocente = $selectedRole === 'docente';
     $esSoloLectura = in_array($selectedRole, ['decano', 'decana','decano/a', 'subdecano', 'subdecana','subdecano/a', 'abogado', 'abogada','abogado/a']);
-    $esCoordinador = in_array($selectedRole, ['coordinador', 'coordinadora']);
+    $esCoordinador = in_array($selectedRole, ['coordinador', 'coordinadora', 'coordinador/a']);
     $esSecretarioGeneral = $selectedRole === 'secretario_general';
 @endphp
 
@@ -416,7 +416,7 @@
                         <select name="director_filtro" id="director_filtro" class="form-select">
                             <option value="">-- Todos --</option>
                             @foreach($docentes as $docente)
-                                <option value="{{ $docente->id }}" {{ request('director_filtro') == $docente->id ? 'selected' : '' }}>
+                                <option value="{{ $docente->cedula }}" {{ request('director_filtro') == $docente->cedula ? 'selected' : '' }}>
                                     {{ $docente->nombres }} {{ $docente->apellidos }} ({{ $docente->cargo }})
                                 </option>
                             @endforeach
@@ -427,7 +427,7 @@
                         <select name="asesor1_filtro" id="asesor1_filtro" class="form-select">
                             <option value="">-- Todos --</option>
                             @foreach($docentes as $docente)
-                                <option value="{{ $docente->id }}" {{ request('asesor1_filtro') == $docente->id ? 'selected' : '' }}>
+                                <option value="{{ $docente->cedula }}" {{ request('asesor1_filtro') == $docente->cedula ? 'selected' : '' }}>
                                     {{ $docente->nombres }} {{ $docente->apellidos }} ({{ $docente->cargo }})
                                 </option>
                             @endforeach
