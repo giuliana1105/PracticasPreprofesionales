@@ -349,32 +349,36 @@
                     <label for="cargo">Cargo:</label>
                     <select id="cargo" name="cargo" class="form-control @error('cargo') is-invalid @enderror" required>
                         <option value="">Seleccione un cargo</option>
-                        @php
-                            $cargoMap = [
-                                'secretario' => 'Secretario/a',
-                                'secretaria' => 'Secretario/a',
-                                'coordinador' => 'Coordinador/a',
-                                'coordinadora' => 'Coordinador/a',
-                                'decano' => 'Decano/a',
-                                'decana' => 'Decano/a',
-                                'subdecano' => 'Subdecano/a',
-                                'subdecana' => 'Subdecano/a',
-                                'abogado' => 'Abogado/a',
-                                'abogada' => 'Abogado/a',
-                                'docente' => 'Docente',
-                                'estudiante' => 'Estudiante',
-                                'secretario_general' => 'Secretario General',
-                                'docente-decano/a' => 'Docente-Decano/a',
-                                'docente-subdecano/a' => 'Docente-Subdecano/a',
-                                'docente-coordinador/a' => 'Docente-Coordinador/a',
-                            ];
-                        @endphp
-                        @foreach($cargos as $cargoItem)
-                            @php $label = $cargoMap[strtolower($cargoItem)] ?? ucfirst($cargoItem); @endphp
+                                            @php
+                        $cargoMap = [
+                            'secretario' => 'Secretario/a',
+                            'secretaria' => 'Secretario/a',
+                            'coordinador' => 'Coordinador/a',
+                            'coordinadora' => 'Coordinador/a',
+                            'decano' => 'Decano/a',
+                            'decana' => 'Decano/a',
+                            'subdecano' => 'Subdecano/a',
+                            'subdecana' => 'Subdecano/a',
+                            'abogado' => 'Abogado/a',
+                            'abogada' => 'Abogado/a',
+                            'docente' => 'Docente',
+                            'estudiante' => 'Estudiante',
+                            'secretario_general' => 'Secretario General',
+                            'docente-decano/a' => 'Docente-Decano/a',
+                            'docente-subdecano/a' => 'Docente-Subdecano/a',
+                            'docente-coordinador/a' => 'Docente-Coordinador/a',
+                        ];
+                        $labelsMostrados = [];
+                    @endphp
+                    @foreach($cargos as $cargoItem)
+                        @php $label = $cargoMap[strtolower($cargoItem)] ?? ucfirst($cargoItem); @endphp
+                        @if(!in_array($label, $labelsMostrados))
                             <option value="{{ $cargoItem }}" {{ old('cargo', $persona->cargo ?? '') == $cargoItem ? 'selected' : '' }}>
                                 {{ $label }}
                             </option>
-                        @endforeach
+                            @php $labelsMostrados[] = $label; @endphp
+                        @endif
+                    @endforeach
                     </select>
                     @error('cargo')
                         <div class="invalid-feedback">{{ $message }}</div>
