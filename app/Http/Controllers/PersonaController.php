@@ -306,15 +306,22 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $persona = \App\Models\Persona::findOrFail($id);
-
         $cargo = strtolower(trim($user->cargo ?? ''));
 
-        // Si es secretaria/o, solo muestra sus carreras asignadas
+        // Si es secretaria/o, solo puede editar estudiantes de sus carreras asignadas
         if (in_array($cargo, ['secretario', 'secretaria', 'secretario/a'])) {
+            if ($persona->cargo !== 'estudiante') {
+                abort(403, 'Solo puede editar estudiantes.');
+            }
+            $carrerasAsignadas = $user->persona ? $user->persona->carreras()->pluck('id_carrera')->toArray() : [];
+            $carrerasEstudiante = $persona->carreras()->pluck('id_carrera')->toArray();
+            $interseccion = array_intersect($carrerasAsignadas, $carrerasEstudiante);
+            if (empty($interseccion)) {
+                abort(403, 'Solo puede editar estudiantes de sus carreras asignadas.');
+            }
             $carreras = $user->persona ? $user->persona->carreras()->get() : collect();
             $cargos = ['estudiante'];
         } elseif ($cargo === 'secretario_general') {
-            // Secretario general: puede editar cualquier cargo excepto estudiante
             $carreras = \App\Models\Carrera::all();
             $cargos = array_filter($this->CARGOS_VALIDOS, function($c) {
                 return $c !== 'estudiante';
@@ -324,7 +331,6 @@ class PersonaController extends Controller
             $cargos = $this->CARGOS_VALIDOS;
         }
 
-        // NO unificar cargos aquí, solo enviar los valores originales
         return view('personas.edit', compact('persona', 'carreras', 'cargos'));
     }
 
@@ -333,11 +339,19 @@ class PersonaController extends Controller
     {
         $user = Auth::user();
         $cargo = strtolower(trim($user->cargo ?? ''));
-        if (in_array($cargo, ['coordinador', 'coordinadora', 'coordinador/a', 'decano', 'decana', 'decano/a', 'subdecano', 'subdecana', 'subdecano/a', 'abogado', 'abogada', 'abogado/a', 'docente', 'estudiante'])) {
-            abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para acceder a esta funcionalidad del sistema.');
-        }
-
         $persona = Persona::findOrFail($id);
+        // Si es secretaria/o, solo puede actualizar estudiantes de sus carreras asignadas
+        if (in_array($cargo, ['secretario', 'secretaria', 'secretario/a'])) {
+            if ($persona->cargo !== 'estudiante') {
+                abort(403, 'Solo puede actualizar estudiantes.');
+            }
+            $carrerasAsignadas = $user->persona ? $user->persona->carreras()->pluck('id_carrera')->toArray() : [];
+            $carrerasEstudiante = $persona->carreras()->pluck('id_carrera')->toArray();
+            $interseccion = array_intersect($carrerasAsignadas, $carrerasEstudiante);
+            if (empty($interseccion)) {
+                abort(403, 'Solo puede actualizar estudiantes de sus carreras asignadas.');
+            }
+        }
 
         $validator = Validator::make($request->all(), [
             'cedula' => 'required|string|max:20|unique:personas,cedula,'.$id,

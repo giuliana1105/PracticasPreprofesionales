@@ -7,7 +7,7 @@
     $user = auth()->user();
     $persona = $user ? \App\Models\Persona::where('email', $user->email)->first() : null;
     $cargo = session('selected_role') ? strtolower(trim(session('selected_role'))) : strtolower(trim($persona->cargo ?? ''));
-    $esSecretaria = in_array($cargo, ['secretario', 'secretaria']);
+    $esSecretaria = in_array($cargo, ['secretario', 'secretaria', 'secretario/a']);
     $esEstudiante = $cargo === 'estudiante';
 @endphp
 @if($esEstudiante)
@@ -515,10 +515,6 @@
                             <div class="d-inline-flex flex-column align-items-center">
                                 <div>
                                     @php
-                                        // Solo puede editar/eliminar/resetear si:
-                                        // - Es secretaria/o
-                                        // - El registro es estudiante
-                                        // - El estudiante pertenece a una de sus carreras asignadas
                                         $puedeEditar = true;
                                         if ($esSecretaria) {
                                             $puedeEditar = (
@@ -528,7 +524,6 @@
                                             );
                                         }
                                     @endphp
-
                                     @if($puedeEditar)
                                         <a href="{{ route('personas.edit', $persona->id) }}" class="btn btn-sm btn-warning" title="Editar">
                                             <i class="fas fa-edit text-white"></i>
@@ -545,7 +540,6 @@
                                 </div>
                                 @php
                                     $esAdmin = $user && in_array(strtolower($user->cargo), ['secretario', 'secretaria', 'secretario_general']);
-                                    // Solo puede resetear si puede editar (es secretaria/o y estudiante de su carrera)
                                 @endphp
                                 @if($esAdmin && $puedeEditar)
                                     <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalResetPassword" data-id="{{ $persona->id }}" data-nombre="{{ $persona->nombres }}">
