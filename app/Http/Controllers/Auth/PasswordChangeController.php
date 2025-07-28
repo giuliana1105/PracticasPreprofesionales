@@ -33,10 +33,13 @@ class PasswordChangeController extends Controller
         $combinedRoles = [
             'docente-decano/a',
             'docente-subdecano/a',
+            'docente-coordinador/a',
             'docente-decano',
             'docente-subdecano',
+            'docente-coordinador',
             'docente-decanoa',
             'docente-subdecanoa',
+            'docente-coordinadora',
         ];
         if (in_array(strtolower($user->cargo), array_map('strtolower', $combinedRoles))) {
             // Limpiar el rol seleccionado para forzar la selección después del cambio de contraseña
