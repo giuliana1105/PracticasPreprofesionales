@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -43,7 +44,7 @@ class AuthenticatedSessionController extends Controller
         $combinedRoles = [
             'docente-decano/a',
             'docente-subdecano/a',
-            'docente-coordinador/a', // <-- Debe estar aquí
+            'docente-coordinador/a',
             'docente-decano',
             'docente-subdecano',
             'docente-coordinador',
@@ -51,6 +52,11 @@ class AuthenticatedSessionController extends Controller
             'docente-subdecanoa',
             'docente-coordinadora',
         ];
+        
+        // Debug: verificar el cargo del usuario
+        Log::info('Usuario cargo: ' . $user->cargo);
+        Log::info('Cargo en lowercase: ' . strtolower($user->cargo));
+        
         if ($user && in_array(strtolower($user->cargo), array_map('strtolower', $combinedRoles))) {
             session()->forget('selected_role');
             return redirect()->route('role.select.show');

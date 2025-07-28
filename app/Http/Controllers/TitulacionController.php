@@ -992,6 +992,12 @@ class TitulacionController extends Controller
                 }
             });
         }
+        if ($request->filled('director_filtro')) {
+            $query->where('cedula_director', $request->director_filtro);
+        }
+        if ($request->filled('asesor1_filtro')) {
+            $query->where('cedula_asesor1', $request->asesor1_filtro);
+        }
 
         $titulo = 'Reporte de Titulaciones';
         $titulaciones = $query->get();

@@ -127,7 +127,7 @@
     $esDocente = $cargo === 'docente';
     $esCoordinador = in_array($cargo, ['coordinador', 'coordinadora', 'coordinador/a','docente-coordinador/a']);
     $esDecano = in_array($cargo, ['decano', 'decana']);
-    $esSubdecano = in_array($cargo, ['subdecano', 'subdecana']);
+    $esSubdecano = in_array($cargo, ['subdecano', 'subdecana' ]);
     $esAbogado = in_array($cargo, ['abogado', 'abogada']);
     $esSoloLectura = $esDecano || $esSubdecano || $esAbogado;
     $esSecretarioGeneral = $cargo === 'secretario_general';
