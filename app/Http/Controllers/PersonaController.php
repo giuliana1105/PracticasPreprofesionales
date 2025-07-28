@@ -31,6 +31,7 @@ class PersonaController extends Controller
         'coordinadora',
         'docente-decano/a',
         'docente-subdecano/a',
+        'docente-coordinador/a',
     ];
 
     public function __construct()
@@ -204,8 +205,8 @@ class PersonaController extends Controller
             $cargoSeleccionado = strtolower(trim($request->cargo));
             $carreras = $request->carrera_id;
 
-            // Si es coordinador o secretario/a, guarda la primera carrera en carrera_id y todas en la relación
-            if (in_array($cargoSeleccionado, ['coordinador', 'coordinadora','coordinador/a', 'secretario', 'secretaria', 'secretario/a'])) {
+            // Si es coordinador, docente-coordinador/a o secretario/a, guarda la primera carrera en carrera_id y todas en la relación
+            if (in_array($cargoSeleccionado, ['coordinador', 'coordinadora','coordinador/a', 'docente-coordinador/a', 'secretario', 'secretaria', 'secretario/a'])) {
                 $personaCreada = Persona::create(array_merge(
                     $request->except('carrera_id'),
                     ['carrera_id' => is_array($carreras) ? $carreras[0] : $carreras]
@@ -321,7 +322,7 @@ class PersonaController extends Controller
             $cargoSeleccionado = strtolower(trim($request->cargo));
             $carreras = $request->carrera_id;
 
-            if (in_array($cargoSeleccionado, ['coordinador', 'coordinadora','coordinador/a', 'secretario', 'secretaria', 'secretario/a'])) {
+            if (in_array($cargoSeleccionado, ['coordinador', 'coordinadora','coordinador/a', 'docente-coordinador/a', 'secretario', 'secretaria', 'secretario/a'])) {
                 $persona->update(array_merge(
                     $request->except('carrera_id'),
                     ['carrera_id' => is_array($carreras) ? $carreras[0] : $carreras]
@@ -535,6 +536,8 @@ public function import(Request $request)
                 $cargoCsv = 'docente-decano/a';
             } elseif ($cargoCsv === 'docente/subdecano' || $cargoCsv === 'docente-subdecano' || $cargoCsv === 'docente subdecano') {
                 $cargoCsv = 'docente-subdecano/a';
+            } elseif ($cargoCsv === 'docente/coordinador' || $cargoCsv === 'docente-coordinador' || $cargoCsv === 'docente coordinador') {
+                $cargoCsv = 'docente-coordinador/a';
             } else {
                 // Unificar otros cargos
                 $cargoMap = [
@@ -568,11 +571,11 @@ public function import(Request $request)
                 continue;
             }
 
-            // Si es secretario general y el cargo es coordinador/a o secretario/a, permite varias carreras separadas por /
+            // Si es secretario general y el cargo es coordinador/a, docente-coordinador/a o secretario/a, permite varias carreras separadas por /
             $carrerasIds = [];
             if (
                 $esSecretarioGeneral &&
-                in_array($cargoCsv, ['coordinador', 'coordinadora', 'coordinador/a', 'secretario', 'secretaria', 'secretario/a'])
+                in_array($cargoCsv, ['coordinador', 'coordinadora', 'coordinador/a', 'docente-coordinador/a', 'secretario', 'secretaria', 'secretario/a'])
             ) {
                 $siglas = preg_split('/\s*\/\s*/', $siglasCarrera);
                 foreach ($siglas as $sigla) {
