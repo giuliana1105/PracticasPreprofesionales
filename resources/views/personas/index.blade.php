@@ -362,6 +362,9 @@
                     'estudiante' => ['estudiante'],
                     'abogado/a' => ['abogado', 'abogada'],
                     'secretario general' => ['secretario_general'],
+                    'docente-decano/a' => ['docente-decano/a'],
+                    'docente-subdecano/a' => ['docente-subdecano/a'],
+                    'docente-coordinador/a' => ['docente-coordinador/a'],
                 ];
                 // Determinar el valor seleccionado
                 $cargoSeleccionado = '';
@@ -370,6 +373,10 @@
                         $cargoSeleccionado = $label;
                         break;
                     }
+                }
+                // Si no se encontró en los grupos, usar el valor directo
+                if (empty($cargoSeleccionado) && request('cargo_filtro')) {
+                    $cargoSeleccionado = request('cargo_filtro');
                 }
             @endphp
             <div class="dropdown" style="position:relative;">

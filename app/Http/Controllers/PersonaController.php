@@ -97,7 +97,44 @@ class PersonaController extends Controller
         // Filtro por cargo
         if ($request->filled('cargo_filtro')) {
             $cargoFiltro = $request->cargo_filtro;
-            $query->where('cargo', $cargoFiltro);
+            
+            // Mapeo de cargos base a cargos compuestos
+            $cargosCompuestos = [];
+            switch ($cargoFiltro) {
+                case 'docente':
+                    $cargosCompuestos = ['docente', 'docente-decano/a', 'docente-subdecano/a', 'docente-coordinador/a'];
+                    break;
+                case 'decano/a':
+                case 'decano':
+                case 'decana':
+                    $cargosCompuestos = ['decano/a', 'decano', 'decana', 'docente-decano/a'];
+                    break;
+                case 'subdecano/a':
+                case 'subdecano':
+                case 'subdecana':
+                    $cargosCompuestos = ['subdecano/a', 'subdecano', 'subdecana', 'docente-subdecano/a'];
+                    break;
+                case 'coordinador/a':
+                case 'coordinador':
+                case 'coordinadora':
+                    $cargosCompuestos = ['coordinador/a', 'coordinador', 'coordinadora', 'docente-coordinador/a'];
+                    break;
+                case 'secretario/a':
+                case 'secretario':
+                case 'secretaria':
+                    $cargosCompuestos = ['secretario/a', 'secretario', 'secretaria'];
+                    break;
+                case 'abogado/a':
+                case 'abogado':
+                case 'abogada':
+                    $cargosCompuestos = ['abogado/a', 'abogado', 'abogada'];
+                    break;
+                default:
+                    $cargosCompuestos = [$cargoFiltro];
+                    break;
+            }
+            
+            $query->whereIn('cargo', $cargosCompuestos);
         }
 
         // Búsqueda
@@ -127,8 +164,22 @@ class PersonaController extends Controller
             ? ($user->persona ? $user->persona->carreras()->orderBy('siglas_carrera')->get() : collect())
             : \App\Models\Carrera::orderBy('siglas_carrera')->get();
 
-        // Para el filtro de cargos: mostrar todos los cargos presentes en la base
+        // Para el filtro de cargos: mostrar todos los cargos presentes en la base + opciones compuestas
         $cargosFiltro = \App\Models\Persona::select('cargo')->distinct()->pluck('cargo')->toArray();
+        
+        // Agregar opciones de cargos compuestos para el filtro
+        $cargosCompuestosFiltro = [
+            'docente-decano/a',
+            'docente-subdecano/a', 
+            'docente-coordinador/a'
+        ];
+        
+        // Agregar solo si no están ya en la lista
+        foreach ($cargosCompuestosFiltro as $cargoCompuesto) {
+            if (!in_array($cargoCompuesto, $cargosFiltro)) {
+                $cargosFiltro[] = $cargoCompuesto;
+            }
+        }
 
         return view('personas.index', compact('personas', 'carrerasAsignadas', 'carrerasFiltro', 'cargosFiltro'));
     }
