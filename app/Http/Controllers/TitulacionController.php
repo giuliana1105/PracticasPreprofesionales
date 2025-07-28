@@ -10,6 +10,7 @@ use App\Models\ResTema;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\AvanceHistorial;
 use App\Models\Carrera;
@@ -417,7 +418,7 @@ class TitulacionController extends Controller
             )->get();
             $personas = \App\Models\Persona::all();
         }
-        $docentes = \App\Models\Persona::whereIn(\DB::raw('LOWER(cargo)'), [
+        $docentes = \App\Models\Persona::whereIn(DB::raw('LOWER(cargo)'), [
             'docente',
             'decano/a',
             'coordinador/a',
@@ -1029,16 +1030,7 @@ class TitulacionController extends Controller
             $carrera = $titulacion->estudiantePersona->carrera->siglas_carrera;
         }
 
-        // Inicializar con los valores iniciales (antes de cualquier cambio)
-        $estado = [
-            'actividad'    => $titulacion->actividades_cronograma,
-            'cumplio'      => $titulacion->cumplio_cronograma,
-            'resultados'   => $titulacion->resultados,
-            'horas'        => $titulacion->horas_asesoria,
-            'observaciones'=> $titulacion->observaciones,
-            'fecha'        => $titulacion->created_at ? $titulacion->created_at->format('Y-m-d') : now()->format('Y-m-d'),
-        ];
-
+        // Obtener el historial de cambios ordenado por fecha
         $historial = $titulacion->avanceHistorial
             ->whereIn('campo', [
                 'actividades_cronograma',
@@ -1049,41 +1041,70 @@ class TitulacionController extends Controller
             ])
             ->sortBy('created_at');
 
-    $actividades = [];
-    $actividadesUnicas = [];
-    foreach ($historial as $cambio) {
-        // Actualiza solo el campo editado, el resto se mantiene
-        switch ($cambio->campo) {
-            case 'actividades_cronograma':
-                if (!empty($cambio->valor_nuevo)) $estado['actividad'] = $cambio->valor_nuevo;
-                break;
-            case 'cumplio_cronograma':
-                if (!empty($cambio->valor_nuevo)) $estado['cumplio'] = $cambio->valor_nuevo;
-                break;
-            case 'resultados':
-                if (!empty($cambio->valor_nuevo)) $estado['resultados'] = $cambio->valor_nuevo;
-                break;
-            case 'horas_asesoria':
-                if (!empty($cambio->valor_nuevo)) $estado['horas'] = $cambio->valor_nuevo;
-                break;
-            case 'observaciones':
-                if (!empty($cambio->valor_nuevo)) $estado['observaciones'] = $cambio->valor_nuevo;
-                break;
+        $actividades = [];
+
+        // Estado inicial (valores originales de la titulación)
+        $estadoActual = [
+            'actividad'    => $titulacion->actividades_cronograma ?? '',
+            'cumplio'      => $titulacion->cumplio_cronograma ?? '',
+            'resultados'   => $titulacion->resultados ?? '',
+            'horas'        => $titulacion->horas_asesoria ?? '',
+            'observaciones'=> $titulacion->observaciones ?? '',
+            'fecha'        => $titulacion->created_at ? $titulacion->created_at->format('Y-m-d') : now()->format('Y-m-d'),
+        ];
+
+        // Si hay valores iniciales, agregar como primera actividad
+        if (!empty($estadoActual['actividad']) || !empty($estadoActual['observaciones'])) {
+            $actividades[] = $estadoActual;
         }
-        $estado['fecha'] = $cambio->created_at ? $cambio->created_at->format('Y-m-d') : $estado['fecha'];
-        // Solo guarda si la combinación de actividad y fecha es nueva
-        $key = $estado['actividad'] . '|' . $estado['fecha'];
-        $actividadesUnicas[$key] = $estado;
-    }
 
-    // Si no hubo historial, mostrar el estado inicial
-    if (empty($actividadesUnicas)) {
-        $actividades[] = $estado;
-    } else {
-        $actividades = array_values($actividadesUnicas);
-    }
+        // Agrupar los cambios por marca de tiempo exacta (created_at)
+        $cambiosAgrupados = [];
+        foreach ($historial as $cambio) {
+            $timestamp = $cambio->created_at ? $cambio->created_at->format('Y-m-d H:i:s') : now()->format('Y-m-d H:i:s');
+            if (!isset($cambiosAgrupados[$timestamp])) {
+                $cambiosAgrupados[$timestamp] = [];
+            }
+            $cambiosAgrupados[$timestamp][] = $cambio;
+        }
 
-        $data = [
+        // Para cada edición (grupo de cambios con el mismo timestamp), aplicar los cambios y guardar el estado final
+        $actividadesOrdenadas = [];
+        $timestamps = array_keys($cambiosAgrupados);
+        sort($timestamps); // Ordenar los timestamps de menor a mayor (más antiguo primero)
+        foreach ($timestamps as $timestamp) {
+            $cambios = $cambiosAgrupados[$timestamp];
+            $nuevaActividad = $estadoActual;
+            $nuevaActividad['fecha'] = substr($timestamp, 0, 10); // Solo la fecha
+            foreach ($cambios as $cambio) {
+                switch ($cambio->campo) {
+                    case 'actividades_cronograma':
+                        $nuevaActividad['actividad'] = $cambio->valor_nuevo;
+                        $estadoActual['actividad'] = $cambio->valor_nuevo;
+                        break;
+                    case 'cumplio_cronograma':
+                        $nuevaActividad['cumplio'] = $cambio->valor_nuevo;
+                        $estadoActual['cumplio'] = $cambio->valor_nuevo;
+                        break;
+                    case 'resultados':
+                        $nuevaActividad['resultados'] = $cambio->valor_nuevo;
+                        $estadoActual['resultados'] = $cambio->valor_nuevo;
+                        break;
+                    case 'horas_asesoria':
+                        $nuevaActividad['horas'] = $cambio->valor_nuevo;
+                        $estadoActual['horas'] = $cambio->valor_nuevo;
+                        break;
+                    case 'observaciones':
+                        $nuevaActividad['observaciones'] = $cambio->valor_nuevo;
+                        $estadoActual['observaciones'] = $cambio->valor_nuevo;
+                        break;
+                }
+            }
+            $actividadesOrdenadas[] = $nuevaActividad;
+        }
+        $actividades = $actividadesOrdenadas;
+
+    $data = [
             'tema' => $titulacion->tema,
             'director' => $titulacion->directorPersona ? ($titulacion->directorPersona->nombres . ' ' . $titulacion->directorPersona->apellidos) : '',
             'asesor_tic' => $titulacion->asesor1Persona ? ($titulacion->asesor1Persona->nombres . ' ' . $titulacion->asesor1Persona->apellidos) : '',

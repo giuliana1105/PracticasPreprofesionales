@@ -65,12 +65,11 @@
         </thead>
         <tbody>
         @php
-            $grupo = 1;
-            $sub = 1;
+            $contador = 1;
         @endphp
         @foreach($actividades as $actividad)
             <tr>
-                <td>{{ $grupo . '.' . $sub }}</td>
+                <td>{{ $contador }}</td>
                 <td>{{ $actividad['actividad'] }}</td>
                 <td>@if($actividad['cumplio'] == 'Muy Aceptable') X @endif</td>
                 <td>@if($actividad['cumplio'] == 'Aceptable') X @endif</td>
@@ -84,11 +83,7 @@
                 <td style="width: 180px;"></td>
             </tr>
             @php
-                $sub++;
-                if($sub > 3) {
-                    $grupo++;
-                    $sub = 1;
-                }
+                $contador++;
             @endphp
         @endforeach
         </tbody>
