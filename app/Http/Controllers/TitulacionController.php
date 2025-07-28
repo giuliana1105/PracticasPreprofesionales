@@ -563,7 +563,7 @@ class TitulacionController extends Controller
                   });
             })->get();
         } else {
-            $personas = \App\Models\Persona::whereIn(DB::raw('LOWER(cargo)'), $cargosPermitidos)->get();
+            $personas = \App\Models\Persona::all();
         }
 
         $personaEstudiante = $personas->firstWhere('cedula', $titulacion->cedula_estudiante);

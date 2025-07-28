@@ -258,25 +258,6 @@
                     <input type="text" id="tema" name="tema" class="form-control" value="{{ $titulacion->tema }}" required>
                 @endif
             </div>
-            <div class="form-group">
-                <label class="form-label">Estudiante</label>
-                @if($esDocente)
-                    <input type="text" class="form-control" value="{{ $personaEstudiante->nombres ?? '' }} {{ $personaEstudiante->apellidos ?? '' }}" readonly>
-                @else
-                    <select id="persona_estudiante_id" name="persona_estudiante_id" class="form-control" required>
-                        <option value="">Seleccione un estudiante</option>
-                        @foreach($personas as $persona)
-                            @if(strtolower(trim($persona->cargo)) === 'estudiante')
-                                <option value="{{ $persona->id }}"
-                                    data-cedula="{{ $persona->cedula }}"
-                                    {{ (old('persona_estudiante_id', $personaEstudiante->id ?? '') == $persona->id) ? 'selected' : '' }}>
-                                    {{ $persona->nombres }} {{ $persona->apellidos }}
-                                </option>
-                            @endif
-                        @endforeach
-                    </select>
-                @endif
-            </div>
 
             {{-- Estudiante --}}
             <div class="form-group">
