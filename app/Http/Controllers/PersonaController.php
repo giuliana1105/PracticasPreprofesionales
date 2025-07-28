@@ -536,7 +536,7 @@ public function import(Request $request)
                 $cargoCsv = 'docente-decano/a';
             } elseif ($cargoCsv === 'docente/subdecano' || $cargoCsv === 'docente-subdecano' || $cargoCsv === 'docente subdecano') {
                 $cargoCsv = 'docente-subdecano/a';
-            } elseif ($cargoCsv === 'docente/coordinador' || $cargoCsv === 'docente-coordinador' || $cargoCsv === 'docente coordinador') {
+            } elseif ($cargoCsv === 'docente/coordinador' || $cargoCsv === 'docente-coordinador' || $cargoCsv === 'docente coordinador' || $cargoCsv === 'docente-coordinadora') {
                 $cargoCsv = 'docente-coordinador/a';
             } else {
                 // Unificar otros cargos

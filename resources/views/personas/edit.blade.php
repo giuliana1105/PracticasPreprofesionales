@@ -293,6 +293,7 @@
                             'secretario_general' => 'Secretario General',
                             'docente-decano/a' => 'Docente-Decano/a',
                             'docente-subdecano/a' => 'Docente-Subdecano/a',
+                            'docente-coordinador/a' => 'Docente-Coordinador/a',
                         ];
                         $labelsMostrados = [];
                     @endphp
@@ -366,7 +367,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const removeBtn = row.querySelector('.remove-carrera-btn');
             if (
                 cargo === 'secretario' || cargo === 'secretaria' ||
-                cargo === 'coordinador' || cargo === 'coordinadora'
+                cargo === 'coordinador' || cargo === 'coordinadora' ||
+                cargo === 'docente-coordinador/a'
             ) {
                 addBtn.style.display = '';
                 removeBtn.style.display = rows.length > 1 ? '' : 'none';
@@ -377,7 +379,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         if (
             cargo !== 'secretario' && cargo !== 'secretaria' &&
-            cargo !== 'coordinador' && cargo !== 'coordinadora'
+            cargo !== 'coordinador' && cargo !== 'coordinadora' &&
+            cargo !== 'docente-coordinador/a'
         ) {
             while (carrerasContainer.children.length > 1) {
                 carrerasContainer.removeChild(carrerasContainer.lastChild);
