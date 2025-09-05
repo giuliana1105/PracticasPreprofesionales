@@ -12,6 +12,8 @@
         th { background: #eee; }
         .pagenum:before { content: counter(page); }
         .pagecount:before { content: counter(pages); }
+        .actividad-text { text-align: left; max-width: 150px; word-wrap: break-word; }
+        .observaciones-text { text-align: left; max-width: 120px; word-wrap: break-word; }
     </style>
 </head>
 <body>
@@ -64,13 +66,10 @@
             </tr>
         </thead>
         <tbody>
-        @php
-            $contador = 1;
-        @endphp
-        @foreach($actividades as $actividad)
+        @forelse($actividades as $actividad)
             <tr>
-                <td>{{ $contador }}</td>
-                <td>{{ $actividad['actividad'] }}</td>
+                <td style="font-weight: bold;">{{ $actividad['numero'] }}</td>
+                <td class="actividad-text">{{ $actividad['actividad'] }}</td>
                 <td>@if($actividad['cumplio'] == 'Muy Aceptable') X @endif</td>
                 <td>@if($actividad['cumplio'] == 'Aceptable') X @endif</td>
                 <td>@if($actividad['cumplio'] == 'Poco Aceptable') X @endif</td>
@@ -78,14 +77,17 @@
                 <td>@if($actividad['resultados'] == 'Aceptable') X @endif</td>
                 <td>@if($actividad['resultados'] == 'Poco Aceptable') X @endif</td>
                 <td>{{ $actividad['horas'] }}</td>
-                <td>{{ $actividad['observaciones'] }}</td>
-                <td>{{ \Carbon\Carbon::parse($actividad['fecha'])->format('d/m/Y') }}</td>
-                <td style="width: 180px;"></td>
+                <td class="observaciones-text">{{ $actividad['observaciones'] }}</td>
+                <td>{{ $actividad['fecha'] }}</td>
+                <td style="width: 180px;">&nbsp;</td>
             </tr>
-            @php
-                $contador++;
-            @endphp
-        @endforeach
+        @empty
+            <tr>
+                <td colspan="12" style="text-align: center; padding: 20px; font-style: italic;">
+                    No hay actividades registradas para este anexo.
+                </td>
+            </tr>
+        @endforelse
         </tbody>
     </table>
 

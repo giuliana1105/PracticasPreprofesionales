@@ -141,12 +141,12 @@
     $rolParaPermisos = $rolActual ? strtolower($rolActual) : strtolower($cargo);
 @endphp
 <div class="alineado-home">
-    <div class="header-container">
+    <div class="header-container justif">
         <div class="header-logo"></div>
-        <div class="header-text-container">
-            <span class="utn-text">UTN</span>
-            <span class="ibarra-text">IBARRA - ECUADOR</span>
-        </div>
+       
+        <div class="d-flex align-items-center justify-content-center bg-danger text-white p-3 rounded mb-4 w-100">
+    <img src="{{ asset('img/utn_logo.png') }}" alt="Logo UTN" style="height: 100px; display: block; margin: 0 auto;">
+</div>
     </div>
     <div class="page-title">
         PORTAFOLIOS
