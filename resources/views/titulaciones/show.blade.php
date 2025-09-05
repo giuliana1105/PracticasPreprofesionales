@@ -149,7 +149,7 @@
     </div>
     <div class="page-title">Detalles de Titulación</div>
     <a href="{{ route('titulaciones.index') }}" class="btn btn-secondary mb-3">Volver</a>
-    @if(!$esEstudiante && !$esSecretarioGeneral && !$esSoloLectura && !$esCoordinador)
+    @if(!$esEstudiante && !$esSecretarioGeneral && !$esSoloLectura  && !$esDecano && !$esSubdecano && !$esAbogado)
         <a href="#" id="btn-anexo-x" class="btn btn-info mb-3" style="margin-left: 8px;">
             <i class="fas fa-file-pdf"></i> Anexo X
         </a>

@@ -1117,6 +1117,165 @@ class TitulacionController extends Controller
     //     $pdf = PDF::loadView('titulaciones.anexo_x', $data)->setPaper('a4', 'landscape');
     //     return $pdf->stream('Anexo_X.pdf');
     // }
+
+// public function generarAnexoX($id)
+// {
+//     $user = Auth::user();
+//     $persona = $user instanceof \App\Models\User ? \App\Models\Persona::where('email', $user->email)->first() : $user;
+//     $cargo = session('selected_role') ? strtolower(session('selected_role')) : strtolower(trim($persona->cargo ?? ''));
+//     if ($this->esSoloLectura($persona) || $cargo === 'coordinador/a' || $cargo === 'coordinador') {
+//         abort(403, 'El cargo ' . ucfirst($cargo) . ' no tiene permisos para generar el Anexo X.');
+//     }
+
+//     $titulacion = Titulacion::with([
+//         'directorPersona',
+//         'asesor1Persona',
+//         'estudiantePersona.carreras',
+//         'avanceHistorial.docente'
+//     ])->findOrFail($id);
+
+//     $carrera = '';
+//     if ($titulacion->estudiantePersona && $titulacion->estudiantePersona->carreras && $titulacion->estudiantePersona->carreras->count()) {
+//         $carrera = $titulacion->estudiantePersona->carreras->pluck('siglas_carrera')->implode(' / ');
+//     } elseif ($titulacion->estudiantePersona && $titulacion->estudiantePersona->carrera) {
+//         $carrera = $titulacion->estudiantePersona->carrera->siglas_carrera;
+//     }
+
+//     // Obtener el historial de cambios relacionados con el Anexo X
+//     $historialRelevante = $titulacion->avanceHistorial
+//         ->whereIn('campo', [
+//             'actividades_cronograma',
+//             'cumplio_cronograma',
+//             'resultados',
+//             'horas_asesoria',
+//             'observaciones'
+//         ])
+//         ->sortBy('created_at');
+
+//     $actividades = [];
+//     $numeroMayor = 1; // Número principal (1, 2, 3, etc.)
+//     $numeroMenor = 1; // Número secundario (1, 2, 3, etc.)
+
+//     // Agrupar cambios por fecha/hora de edición
+//     $cambiosAgrupados = [];
+//     foreach ($historialRelevante as $cambio) {
+//         $timestamp = $cambio->created_at ? $cambio->created_at->format('Y-m-d H:i:s') : now()->format('Y-m-d H:i:s');
+//         if (!isset($cambiosAgrupados[$timestamp])) {
+//             $cambiosAgrupados[$timestamp] = [
+//                 'fecha' => $cambio->created_at ? $cambio->created_at->format('d/m/Y') : now()->format('d/m/Y'),
+//                 'cambios' => []
+//             ];
+//         }
+//         $cambiosAgrupados[$timestamp]['cambios'][] = $cambio;
+//     }
+
+//     // Si no hay historial, crear una entrada con los valores actuales
+//     if (empty($cambiosAgrupados)) {
+//         if (!empty($titulacion->actividades_cronograma) || 
+//             !empty($titulacion->observaciones) || 
+//             !empty($titulacion->cumplio_cronograma) || 
+//             !empty($titulacion->resultados) || 
+//             !empty($titulacion->horas_asesoria)) {
+            
+//             $actividades[] = [
+//                 'numero' => $numeroMayor . '.' . $numeroMenor,
+//                 'actividad' => $titulacion->actividades_cronograma ?? '',
+//                 'cumplio' => $titulacion->cumplio_cronograma ?? '',
+//                 'resultados' => $titulacion->resultados ?? '',
+//                 'horas' => $titulacion->horas_asesoria ?? '',
+//                 'observaciones' => $titulacion->observaciones ?? '',
+//                 'fecha' => $titulacion->updated_at ? $titulacion->updated_at->format('d/m/Y') : now()->format('d/m/Y'),
+//             ];
+//         }
+//     } else {
+//         // Ordenar por timestamp
+//         ksort($cambiosAgrupados);
+
+//         foreach ($cambiosAgrupados as $timestamp => $grupo) {
+//             $cambios = $grupo['cambios'];
+//             $fecha = $grupo['fecha'];
+
+//             // Verificar si algún cambio tiene contenido relevante
+//             $tieneContenido = false;
+//             $actividad = '';
+//             $cumplio = '';
+//             $resultados = '';
+//             $horas = '';
+//             $observaciones = '';
+
+//             foreach ($cambios as $cambio) {
+//                 switch ($cambio->campo) {
+//                     case 'actividades_cronograma':
+//                         if (!empty($cambio->valor_nuevo)) {
+//                             $actividad = $cambio->valor_nuevo;
+//                             $tieneContenido = true;
+//                         }
+//                         break;
+//                     case 'cumplio_cronograma':
+//                         if (!empty($cambio->valor_nuevo)) {
+//                             $cumplio = $cambio->valor_nuevo;
+//                             $tieneContenido = true;
+//                         }
+//                         break;
+//                     case 'resultados':
+//                         if (!empty($cambio->valor_nuevo)) {
+//                             $resultados = $cambio->valor_nuevo;
+//                             $tieneContenido = true;
+//                         }
+//                         break;
+//                     case 'horas_asesoria':
+//                         if (!empty($cambio->valor_nuevo)) {
+//                             $horas = $cambio->valor_nuevo;
+//                             $tieneContenido = true;
+//                         }
+//                         break;
+//                     case 'observaciones':
+//                         if (!empty($cambio->valor_nuevo)) {
+//                             $observaciones = $cambio->valor_nuevo;
+//                             $tieneContenido = true;
+//                         }
+//                         break;
+//                 }
+//             }
+
+//             // Solo agregar si hay contenido relevante
+//             if ($tieneContenido) {
+//                 // Si tenemos más de 3 actividades en el número mayor actual, incrementar el número mayor
+//                 if ($numeroMenor > 3) {
+//                     $numeroMayor++;
+//                     $numeroMenor = 1;
+//                 }
+
+//                 $actividades[] = [
+//                     'numero' => $numeroMayor . '.' . $numeroMenor,
+//                     'actividad' => $actividad,
+//                     'cumplio' => $cumplio,
+//                     'resultados' => $resultados,
+//                     'horas' => $horas,
+//                     'observaciones' => $observaciones,
+//                     'fecha' => $fecha,
+//                 ];
+
+//                 $numeroMenor++;
+//             }
+//         }
+//     }
+
+//     $data = [
+//         'tema' => $titulacion->tema,
+//         'director' => $titulacion->directorPersona ? ($titulacion->directorPersona->nombres . ' ' . $titulacion->directorPersona->apellidos) : '',
+//         'asesor_tic' => $titulacion->asesor1Persona ? ($titulacion->asesor1Persona->nombres . ' ' . $titulacion->asesor1Persona->apellidos) : '',
+//         'facultad' => 'FACULTAD DE INGENIERÍA EN CIENCIAS APLICADAS',
+//         'carrera' => $carrera,
+//         'autor' => $titulacion->estudiantePersona ? ($titulacion->estudiantePersona->nombres . ' ' . $titulacion->estudiantePersona->apellidos) : '',
+//         'actividades' => $actividades,
+//     ];
+
+//     $pdf = PDF::loadView('titulaciones.anexo_x', $data)->setPaper('a4', 'landscape');
+//     return $pdf->stream('Anexo_X.pdf');
+// }
+
+
 public function generarAnexoX($id)
 {
     $user = Auth::user();
@@ -1190,72 +1349,56 @@ public function generarAnexoX($id)
         // Ordenar por timestamp
         ksort($cambiosAgrupados);
 
+        // Estado inicial de todos los campos
+        $estadoActual = [
+            'actividades_cronograma' => '',
+            'cumplio_cronograma' => '',
+            'resultados' => '',
+            'horas_asesoria' => '',
+            'observaciones' => ''
+        ];
+
         foreach ($cambiosAgrupados as $timestamp => $grupo) {
             $cambios = $grupo['cambios'];
             $fecha = $grupo['fecha'];
 
-            // Verificar si algún cambio tiene contenido relevante
-            $tieneContenido = false;
-            $actividad = '';
-            $cumplio = '';
-            $resultados = '';
-            $horas = '';
-            $observaciones = '';
-
+            // Actualizar el estado actual con los cambios de esta edición
+            $hayAlgunCambio = false;
             foreach ($cambios as $cambio) {
-                switch ($cambio->campo) {
-                    case 'actividades_cronograma':
-                        if (!empty($cambio->valor_nuevo)) {
-                            $actividad = $cambio->valor_nuevo;
-                            $tieneContenido = true;
-                        }
-                        break;
-                    case 'cumplio_cronograma':
-                        if (!empty($cambio->valor_nuevo)) {
-                            $cumplio = $cambio->valor_nuevo;
-                            $tieneContenido = true;
-                        }
-                        break;
-                    case 'resultados':
-                        if (!empty($cambio->valor_nuevo)) {
-                            $resultados = $cambio->valor_nuevo;
-                            $tieneContenido = true;
-                        }
-                        break;
-                    case 'horas_asesoria':
-                        if (!empty($cambio->valor_nuevo)) {
-                            $horas = $cambio->valor_nuevo;
-                            $tieneContenido = true;
-                        }
-                        break;
-                    case 'observaciones':
-                        if (!empty($cambio->valor_nuevo)) {
-                            $observaciones = $cambio->valor_nuevo;
-                            $tieneContenido = true;
-                        }
-                        break;
+                if (in_array($cambio->campo, ['actividades_cronograma', 'cumplio_cronograma', 'resultados', 'horas_asesoria', 'observaciones'])) {
+                    $estadoActual[$cambio->campo] = $cambio->valor_nuevo;
+                    $hayAlgunCambio = true;
                 }
             }
 
-            // Solo agregar si hay contenido relevante
-            if ($tieneContenido) {
-                // Si tenemos más de 3 actividades en el número mayor actual, incrementar el número mayor
-                if ($numeroMenor > 3) {
-                    $numeroMayor++;
-                    $numeroMenor = 1;
+            // Solo crear una entrada si hubo al menos un cambio en los campos del anexo
+            if ($hayAlgunCambio) {
+                // Verificar si hay contenido relevante para mostrar
+                $tieneContenidoParaMostrar = !empty($estadoActual['actividades_cronograma']) || 
+                                           !empty($estadoActual['observaciones']) || 
+                                           !empty($estadoActual['cumplio_cronograma']) || 
+                                           !empty($estadoActual['resultados']) || 
+                                           !empty($estadoActual['horas_asesoria']);
+
+                if ($tieneContenidoParaMostrar) {
+                    // Si tenemos más de 3 actividades en el número mayor actual, incrementar el número mayor
+                    if ($numeroMenor > 3) {
+                        $numeroMayor++;
+                        $numeroMenor = 1;
+                    }
+
+                    $actividades[] = [
+                        'numero' => $numeroMayor . '.' . $numeroMenor,
+                        'actividad' => $estadoActual['actividades_cronograma'],
+                        'cumplio' => $estadoActual['cumplio_cronograma'],
+                        'resultados' => $estadoActual['resultados'],
+                        'horas' => $estadoActual['horas_asesoria'],
+                        'observaciones' => $estadoActual['observaciones'],
+                        'fecha' => $fecha,
+                    ];
+
+                    $numeroMenor++;
                 }
-
-                $actividades[] = [
-                    'numero' => $numeroMayor . '.' . $numeroMenor,
-                    'actividad' => $actividad,
-                    'cumplio' => $cumplio,
-                    'resultados' => $resultados,
-                    'horas' => $horas,
-                    'observaciones' => $observaciones,
-                    'fecha' => $fecha,
-                ];
-
-                $numeroMenor++;
             }
         }
     }
